@@ -2963,25 +2963,26 @@ let partyIsMyTurn = false;
 let partyGameState = null;
 const PARTY_PLAYER_COLORS = ['#00F0FF', '#FF0055', '#FFD700', '#00FF66'];
 
-// Initialize Guest Profile if not logged in
+// Initialize Guest Profile if not logged in (using sessionStorage so 2 tabs in same browser are separate players)
 function getPartyUser() {
   if (currentUser) {
     return {
       id: currentUser.id,
       username: currentUser.username,
-      avatar_url: currentUser.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.username}`,
+      avatar_url: currentUser.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(currentUser.username)}`,
       isGuest: false
     };
   }
-  let savedName = localStorage.getItem('voltix_guest_name');
+  let savedName = sessionStorage.getItem('voltix_guest_name') || localStorage.getItem('voltix_guest_name');
   if (!savedName) {
     savedName = 'Player_' + Math.floor(1000 + Math.random() * 9000);
+    sessionStorage.setItem('voltix_guest_name', savedName);
     localStorage.setItem('voltix_guest_name', savedName);
   }
-  let savedId = localStorage.getItem('voltix_guest_id');
+  let savedId = sessionStorage.getItem('voltix_guest_id');
   if (!savedId) {
     savedId = 'guest_' + Math.floor(100000 + Math.random() * 900000);
-    localStorage.setItem('voltix_guest_id', savedId);
+    sessionStorage.setItem('voltix_guest_id', savedId);
   }
   return {
     id: savedId,
@@ -3088,29 +3089,31 @@ function handlePartySocketMessage(msg) {
       break;
 
     case 'PARTY_CREATED':
+    case 'PARTY_JOINED':
+    case 'PARTY_UPDATED':
       partyCurrentRoom = {
         code: msg.roomCode,
         gameSlug: msg.gameSlug,
         maxPlayers: msg.maxPlayers,
         hostId: msg.hostId,
+        status: msg.status || 'LOBBY',
         players: msg.players
       };
+      // Ensure party modal is open so joining player is immediately placed in lobby
+      openPartyModal();
       showPartyScreen('lobby');
       renderLobbyView();
       playArcadeSound('click');
       break;
 
-    case 'PARTY_UPDATED':
-      if (partyCurrentRoom) {
-        partyCurrentRoom.players = msg.players;
-        partyCurrentRoom.hostId = msg.hostId;
-        partyCurrentRoom.status = msg.status;
-        renderLobbyView();
-      }
-      break;
-
     case 'PARTY_ERROR':
-      alert(msg.message || 'Party action failed');
+      const partyErrEl = document.getElementById('partyJoinErrorMsg');
+      if (partyErrEl) {
+        partyErrEl.textContent = '❌ ' + (msg.message || 'Party action failed');
+        partyErrEl.classList.remove('hidden');
+      } else {
+        alert(msg.message || 'Party action failed');
+      }
       cancelQuickMatch();
       break;
 
@@ -3336,11 +3339,11 @@ document.addEventListener('click', (e) => {
 function joinPartyRoom(codeFromUrl) {
   const inputEl = document.getElementById('partyJoinCodeInput');
   const errorEl = document.getElementById('partyJoinErrorMsg');
-  const code = (codeFromUrl || inputEl?.value || '').trim();
+  const code = (typeof codeFromUrl === 'string' && codeFromUrl.trim() ? codeFromUrl : inputEl?.value || '').trim().toUpperCase();
 
   if (!code) {
     if (errorEl) {
-      errorEl.textContent = '⚠️ Pehle 6-letter room code enter karein (ya direct Quick 1v1 Match par tap karein)';
+      errorEl.textContent = '⚠️ Pehle friend dwara share kiya gaya room code enter karein (e.g. VX-8492)';
       errorEl.classList.remove('hidden');
     }
     if (inputEl) {
@@ -3352,11 +3355,16 @@ function joinPartyRoom(codeFromUrl) {
   }
 
   if (errorEl) errorEl.classList.add('hidden');
+  if (inputEl) inputEl.value = code;
 
   ensurePartyWebSocket(() => {
+    const u = getPartyUser();
     partyWs.send(JSON.stringify({
       type: 'PARTY_JOIN',
-      roomCode: code
+      roomCode: code,
+      guestId: u.id,
+      guestName: u.username,
+      avatar: u.avatar_url
     }));
     playArcadeSound('click');
   });

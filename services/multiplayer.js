@@ -229,31 +229,62 @@ function setupMultiplayer(wss) {
           }
 
           case 'PARTY_JOIN': {
+            // Auto guest auth fallback if currentUser was not yet set
             if (!currentUser) {
-              return ws.send(JSON.stringify({ type: 'PARTY_ERROR', message: 'Auth required before joining a party' }));
+              const guestName = (msg.guestName || '').trim() || `Player_${Math.floor(1000 + Math.random() * 9000)}`;
+              const guestId = msg.guestId || `guest_${Math.floor(100000 + Math.random() * 900000)}`;
+              currentUser = {
+                id: guestId,
+                username: guestName,
+                avatar_url: msg.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(guestName)}`,
+                isGuest: true
+              };
+              ws.userId = guestId;
             }
 
-            const rawCode = (msg.roomCode || '').toUpperCase().trim();
-            const roomCode = rawCode.startsWith('VX-') ? rawCode : (rawCode.startsWith('VX') ? `VX-${rawCode.slice(2)}` : `VX-${rawCode}`);
-            const room = partyRooms.get(roomCode) || partyRooms.get(rawCode);
+            const rawCode = (msg.roomCode || '').toUpperCase().trim().replace(/\s+/g, '');
+            const cleanCode = rawCode.replace(/^VX[-_]?/i, '');
+            const roomCode = `VX-${cleanCode}`;
+            const room = partyRooms.get(roomCode) || partyRooms.get(rawCode) || partyRooms.get(cleanCode);
 
             if (!room) {
-              return ws.send(JSON.stringify({ type: 'PARTY_ERROR', message: `Room "${rawCode}" not found. Check code & try again!` }));
+              return ws.send(JSON.stringify({ 
+                type: 'PARTY_ERROR', 
+                message: `Room "${rawCode}" nahi mila! Kripya sahi 4 ya 6 letter code enter karein.` 
+              }));
             }
 
             if (room.status !== 'LOBBY') {
-              return ws.send(JSON.stringify({ type: 'PARTY_ERROR', message: 'Game has already started in this room.' }));
+              return ws.send(JSON.stringify({ 
+                type: 'PARTY_ERROR', 
+                message: 'Ye match pehle hi start ho chuka hai.' 
+              }));
             }
 
             if (room.players.length >= room.maxPlayers) {
-              return ws.send(JSON.stringify({ type: 'PARTY_ERROR', message: `Room is full (Max ${room.maxPlayers} players).` }));
+              return ws.send(JSON.stringify({ 
+                type: 'PARTY_ERROR', 
+                message: `Room full ho gaya hai (Max ${room.maxPlayers} players).` 
+              }));
             }
 
-            // Check if player is already inside
-            const existingIdx = room.players.findIndex(p => p.user.id === currentUser.id);
-            if (existingIdx !== -1) {
-              room.players[existingIdx].ws = ws;
+            // Check if player with this exact ws is already inside
+            const existingWsIdx = room.players.findIndex(p => p.ws === ws);
+            if (existingWsIdx !== -1) {
+              // Already inside with this socket
+              room.players[existingWsIdx].ready = true;
             } else {
+              // Check if user ID is duplicate (e.g. user testing two tabs with same guest/account)
+              const existingUserIdx = room.players.findIndex(p => p.user.id === currentUser.id);
+              if (existingUserIdx !== -1) {
+                const uniqueNum = Math.floor(100 + Math.random() * 900);
+                currentUser = {
+                  ...currentUser,
+                  id: `${currentUser.id}_${uniqueNum}`,
+                  username: `${currentUser.username}_P${room.players.length + 1}`
+                };
+              }
+
               const assignedColor = PLAYER_COLORS[room.players.length % PLAYER_COLORS.length];
               room.players.push({
                 ws,
@@ -268,7 +299,7 @@ function setupMultiplayer(wss) {
 
             currentPartyCode = room.code;
 
-            // Broadcast updated lobby to all players
+            // Updated lobby payload
             const partyPayload = {
               type: 'PARTY_UPDATED',
               roomCode: room.code,
@@ -287,7 +318,14 @@ function setupMultiplayer(wss) {
               }))
             };
 
-            broadcastToParty(room, partyPayload);
+            // Send explicit PARTY_JOINED confirmation to the joining player
+            ws.send(JSON.stringify({
+              type: 'PARTY_JOINED',
+              ...partyPayload
+            }));
+
+            // Broadcast PARTY_UPDATED to all other players in the party room
+            broadcastToParty(room, partyPayload, ws);
             break;
           }
 

@@ -1412,7 +1412,7 @@
           <span class="font-bold text-gray-200">Have a friend's room code?</span>
         </div>
         <div class="flex items-center gap-2 w-full sm:w-auto">
-          <input type="text" id="modeModalJoinCodeInput" placeholder="e.g. VX-8492" maxlength="8" class="flex-1 sm:w-32 px-3 py-1.5 rounded-xl bg-black/60 border border-white/20 text-white font-mono uppercase font-black tracking-wider text-center focus:border-cyan-400 outline-none">
+          <input type="text" id="modeModalJoinCodeInput" onkeyup="if(event.key==='Enter') joinRoomFromModeModal()" placeholder="e.g. VX-8492" maxlength="8" class="flex-1 sm:w-32 px-3 py-1.5 rounded-xl bg-black/60 border border-white/20 text-white font-mono uppercase font-black tracking-wider text-center focus:border-cyan-400 outline-none">
           <button onclick="joinRoomFromModeModal()" class="px-4 py-1.5 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white font-extrabold text-xs uppercase hover:scale-105 active:scale-95 transition-all cursor-pointer">
             JOIN
           </button>
@@ -1484,7 +1484,7 @@
             <p class="text-xs text-gray-300">Apne dost dwara share kiya gaya 6-character room code dalein:</p>
 
             <div class="max-w-xs mx-auto space-y-2">
-              <input type="text" id="partyJoinCodeInput" placeholder="e.g. VX-9482" maxlength="8" class="w-full text-center tracking-widest text-xl font-orbitron font-black uppercase py-3 px-4 rounded-2xl bg-black/70 border-2 border-fuchsia-500/50 text-neonCyan focus:border-cyan-400 outline-none transition-all">
+              <input type="text" id="partyJoinCodeInput" onkeyup="if(event.key==='Enter') joinPartyRoom()" placeholder="e.g. VX-9482" maxlength="8" class="w-full text-center tracking-widest text-xl font-orbitron font-black uppercase py-3 px-4 rounded-2xl bg-black/70 border-2 border-fuchsia-500/50 text-neonCyan focus:border-cyan-400 outline-none transition-all">
               <div id="partyJoinErrorMsg" class="hidden text-xs text-rose-400 font-bold bg-rose-950/40 border border-rose-500/30 p-2 rounded-xl"></div>
             </div>
 
@@ -1530,7 +1530,6 @@
             </button>
           </div>
         </div>
-      </div>
       </div>
 
       <!-- SCREEN 2: WAITING LOBBY (HOST & GUESTS ASSEMBLE) -->
