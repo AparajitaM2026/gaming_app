@@ -1595,11 +1595,11 @@ function updateAuthUI(user) {
 
   if (vipNavBtn) {
     if (subscribed) {
-      vipNavBtn.innerHTML = '<i class="fa-solid fa-crown text-black text-xs"></i> <span>VIP Active</span>';
-      vipNavBtn.className = 'px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-black font-extrabold text-xs uppercase tracking-wider hover:opacity-95 shadow-md shadow-emerald-500/20 transition-all flex items-center gap-1.5 cursor-pointer';
+      vipNavBtn.innerHTML = '<i class="fa-solid fa-crown text-black text-xs"></i> <span class="inline">VIP<span class="hidden sm:inline"> ACTIVE</span></span>';
+      vipNavBtn.className = 'shrink-0 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-black font-extrabold text-xs uppercase tracking-wider hover:opacity-95 shadow-md shadow-emerald-500/20 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap';
     } else {
-      vipNavBtn.innerHTML = '<i class="fa-solid fa-crown text-black text-xs"></i> <span>VIP Pass</span>';
-      vipNavBtn.className = 'px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-black font-extrabold text-xs uppercase tracking-wider hover:opacity-95 shadow-md shadow-amber-500/25 transition-all flex items-center gap-1.5 cursor-pointer';
+      vipNavBtn.innerHTML = '<i class="fa-solid fa-crown text-black text-xs"></i> <span class="inline">VIP<span class="hidden sm:inline"> PASS</span></span>';
+      vipNavBtn.className = 'shrink-0 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-black font-extrabold text-xs uppercase tracking-wider hover:opacity-95 shadow-md shadow-amber-500/25 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap';
     }
   }
 
@@ -1607,20 +1607,20 @@ function updateAuthUI(user) {
 
   if (user) {
     container.innerHTML = `
-      <div class="flex items-center gap-2.5">
+      <div class="shrink-0 flex items-center gap-2">
         <div class="hidden sm:flex flex-col text-right">
           <span class="text-xs font-bold text-white leading-tight">${user.username}</span>
           ${subscribed ? '<span class="text-[10px] text-amber-400 font-bold flex items-center gap-1 justify-end"><i class="fa-solid fa-crown text-[8px]"></i> VIP Pass</span>' : '<span class="text-[10px] text-emerald-400 font-medium">Free Member</span>'}
         </div>
         <img onclick="openProfileModal()" src="${user.avatar_url}" class="w-8 h-8 rounded-xl border ${subscribed ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-neonCyan'} cursor-pointer hover:scale-105 transition-all">
-        <button onclick="handleLogout()" title="Sign Out" class="text-gray-400 hover:text-red-400 text-xs ml-1">
+        <button onclick="handleLogout()" title="Sign Out" class="text-gray-400 hover:text-red-400 text-xs ml-0.5">
           <i class="fa-solid fa-right-from-bracket"></i>
         </button>
       </div>
     `;
   } else {
     container.innerHTML = `
-      <button onclick="openAuthModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-neonCyan to-blue-600 text-black font-extrabold text-xs uppercase tracking-wider hover:opacity-90 shadow-md transition-all flex items-center gap-1.5">
+      <button onclick="openAuthModal()" class="shrink-0 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-neonCyan to-blue-600 text-black font-extrabold text-xs uppercase tracking-wider hover:opacity-90 shadow-md transition-all flex items-center gap-1.5 whitespace-nowrap">
         <i class="fa-solid fa-user-lock"></i>
         <span>Sign In</span>
       </button>
@@ -1896,11 +1896,11 @@ async function refreshWalletModalData() {
       const navDailyBtn = document.getElementById('dailyBonusNavBtn');
       if (navDailyBtn) {
         if (isClaimLocked) {
-          navDailyBtn.className = 'px-2.5 py-1.5 rounded-xl bg-slate-900 border border-white/10 text-gray-400 text-xs flex items-center gap-1.5 cursor-not-allowed opacity-60';
-          navDailyBtn.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> <span class="hidden lg:inline text-[10px] uppercase font-bold tracking-wider">CLAIMED</span>`;
+          navDailyBtn.className = 'shrink-0 px-2 sm:px-2.5 py-1.5 rounded-xl bg-slate-900 border border-white/10 text-gray-400 text-xs flex items-center gap-1.5 cursor-not-allowed opacity-60';
+          navDailyBtn.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> <span class="hidden 2xl:inline text-[10px] uppercase font-bold tracking-wider">CLAIMED</span>`;
         } else {
-          navDailyBtn.className = 'px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-400/40 hover:border-emerald-300 text-emerald-300 font-extrabold text-xs flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all cursor-pointer';
-          navDailyBtn.innerHTML = `<i class="fa-solid fa-gift text-emerald-400 animate-bounce"></i> <span class="hidden lg:inline text-[10px] uppercase font-black tracking-wider">DAILY BONUS</span>`;
+          navDailyBtn.className = 'shrink-0 px-2 sm:px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-400/40 hover:border-emerald-300 text-emerald-300 font-extrabold text-xs flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all cursor-pointer';
+          navDailyBtn.innerHTML = `<i class="fa-solid fa-gift text-emerald-400 animate-bounce"></i> <span class="hidden 2xl:inline text-[10px] uppercase font-black tracking-wider">DAILY BONUS</span>`;
         }
       }
 
@@ -1910,11 +1910,11 @@ async function refreshWalletModalData() {
       const isSpinLocked = (data.authenticated && data.canSpinWheel === false) || !spinStatus.canSpin;
       if (navSpinBtn) {
         if (isSpinLocked) {
-          navSpinBtn.className = 'px-2.5 py-1.5 rounded-xl bg-slate-900 border border-white/10 text-gray-400 text-xs flex items-center gap-1.5 cursor-not-allowed opacity-60';
-          navSpinBtn.innerHTML = `<i class="fa-solid fa-check text-pink-400"></i> <span class="hidden md:inline text-[10px] uppercase font-bold tracking-wider">SPUN</span>`;
+          navSpinBtn.className = 'shrink-0 px-2 sm:px-2.5 py-1.5 rounded-xl bg-slate-900 border border-white/10 text-gray-400 text-xs flex items-center gap-1.5 cursor-not-allowed opacity-60';
+          navSpinBtn.innerHTML = `<i class="fa-solid fa-check text-pink-400"></i> <span class="hidden 2xl:inline text-[10px] uppercase font-bold tracking-wider">SPUN</span>`;
         } else {
-          navSpinBtn.className = 'px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/40 hover:border-pink-300 text-pink-300 font-extrabold text-xs flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all cursor-pointer';
-          navSpinBtn.innerHTML = `<i class="fa-solid fa-dharmachakra text-pink-400 animate-spin-slow"></i> <span class="hidden md:inline text-[10px] uppercase font-black tracking-wider">LUCKY SPIN</span>`;
+          navSpinBtn.className = 'shrink-0 px-2 sm:px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/40 hover:border-pink-300 text-pink-300 font-extrabold text-xs flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all cursor-pointer';
+          navSpinBtn.innerHTML = `<i class="fa-solid fa-dharmachakra text-pink-400 animate-spin-slow"></i> <span class="hidden 2xl:inline text-[10px] uppercase font-black tracking-wider">LUCKY SPIN</span>`;
         }
       }
 
