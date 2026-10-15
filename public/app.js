@@ -650,14 +650,6 @@ function openCreatePartyForSelectedGame() {
   if (!slug) return;
 
   openPartyModal();
-  switchPartyTab('host');
-
-  const radio = document.querySelector(`input[name="partyGameChoice"][value="${slug}"]`);
-  if (radio) {
-    radio.checked = true;
-    updatePartyChoiceCardHighlight(slug);
-  }
-
   createPartyRoom(slug);
 }
 
@@ -3190,7 +3182,7 @@ function openPartyModal() {
   updatePartyUserUI();
   ensurePartyWebSocket();
   showPartyScreen('modeSelect');
-  switchPartyTab('quick');
+  switchPartyTab('join');
   playArcadeSound('click');
 }
 
