@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Classic Ludo — You vs Smart Computer</title>
+  <title>Voltixz Ludo — Multiplayer & AI Board</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -14,28 +14,36 @@
       margin: 0;
       padding: 0;
       overflow: hidden;
-      background: #111422;
+      background: #0B0E1A;
       font-family: 'Poppins', sans-serif;
       color: #fff;
       user-select: none;
       touch-action: manipulation;
     }
     
-    /* 3D Classic White Dice with black pips */
+    /* 3D Classic White Dice with black & red pips */
     .dice-cube {
-      width: 48px;
-      height: 48px;
+      width: 46px;
+      height: 46px;
       background: #FFFFFF;
       border-radius: 12px;
-      box-shadow: 0 4px 0 #CBD5E1, 0 6px 12px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 0 #CBD5E1, 0 6px 14px rgba(0,0,0,0.5);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    }
+    .dice-cube.active-turn {
+      animation: dicePulse 1.2s infinite alternate ease-in-out;
+      border: 2px solid #00F0FF;
+    }
+    @keyframes dicePulse {
+      0% { transform: scale(1); box-shadow: 0 4px 0 #CBD5E1, 0 0 10px rgba(0, 240, 255, 0.5); }
+      100% { transform: scale(1.08); box-shadow: 0 5px 0 #CBD5E1, 0 0 18px rgba(0, 240, 255, 0.9); }
     }
     .dice-cube:active {
-      transform: translateY(3px);
+      transform: translateY(3px) scale(0.98);
       box-shadow: 0 1px 0 #CBD5E1, 0 3px 6px rgba(0,0,0,0.4);
     }
     
@@ -77,35 +85,12 @@
 </head>
 <body class="h-full w-full flex flex-col items-center justify-between p-1.5 sm:p-2.5 max-w-lg mx-auto box-border overflow-hidden">
 
-  <!-- Top Status Bar -->
-  <div class="w-full shrink-0 flex items-center justify-between bg-slate-900/90 border border-slate-700/60 px-3 py-1.5 rounded-xl shadow-lg">
-    <!-- Player Indicator (Red) -->
-    <div class="flex items-center gap-2">
-      <div class="w-3.5 h-3.5 rounded-full bg-red-600 border-2 border-white shadow"></div>
-      <div class="flex flex-col">
-        <span class="text-[11px] font-bold text-red-400 leading-none">YOU (RED)</span>
-        <span class="text-[9.5px] text-gray-400" id="redHomeCount">0 / 4 Home</span>
-      </div>
-    </div>
-
-    <!-- Turn Message Banner -->
-    <div class="px-2.5 py-0.5 rounded-lg bg-slate-800 border border-slate-700 text-center">
-      <span class="text-[11px] font-extrabold uppercase tracking-wide text-amber-300" id="turnBanner">
-        Your Turn — Roll Dice!
-      </span>
-    </div>
-
-    <!-- AI Indicator (Green) -->
-    <div class="flex items-center gap-2 text-right">
-      <div class="flex flex-col">
-        <span class="text-[11px] font-bold text-emerald-400 leading-none">AI BOT (GREEN)</span>
-        <span class="text-[9.5px] text-gray-400" id="greenHomeCount">0 / 4 Home</span>
-      </div>
-      <div class="w-3.5 h-3.5 rounded-full bg-emerald-600 border-2 border-white shadow"></div>
-    </div>
+  <!-- Top Realtime Players Status Bar -->
+  <div id="playersStatusBar" class="w-full shrink-0 flex items-center justify-between bg-slate-900/90 border border-slate-700/60 px-2 sm:px-3 py-1.5 rounded-xl shadow-lg gap-1.5">
+    <!-- Rendered dynamically for connected players -->
   </div>
 
-  <!-- Real Authentic 15x15 Ludo Board (Responsive dynamic fit) -->
+  <!-- Real Authentic 15x15 Ludo Board -->
   <div class="flex-1 min-h-0 w-full flex items-center justify-center py-1 overflow-hidden">
     <div class="h-full aspect-square max-w-full p-1 sm:p-1.5 bg-slate-800 rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-slate-700 flex items-center justify-center">
       <canvas id="ludoCanvas" class="w-full h-full rounded-lg sm:rounded-xl bg-white shadow-inner"></canvas>
@@ -115,25 +100,25 @@
   <!-- Bottom Control Deck: Real White Dice & Info -->
   <div class="w-full shrink-0 bg-slate-900/95 border border-slate-700/80 rounded-xl sm:rounded-2xl px-3 py-1.5 sm:py-2 flex items-center justify-between shadow-xl">
     
-    <div class="flex flex-col max-w-[120px]">
-      <span class="text-[10px] sm:text-[11px] font-bold text-gray-300" id="actionHint">Click dice to roll!</span>
-      <span class="text-[9px] sm:text-[10px] text-gray-500">Roll 6 to open token</span>
+    <div class="flex flex-col max-w-[130px]">
+      <span class="text-[10px] sm:text-[11px] font-bold text-gray-200 truncate" id="actionHint">Click dice to roll!</span>
+      <span class="text-[9px] sm:text-[10px] text-gray-400" id="actionSubHint">Roll 6 to open token</span>
     </div>
 
     <!-- The 3D Dice -->
     <div class="flex flex-col items-center">
-      <div id="diceCube" onclick="onDiceClick()" class="dice-cube select-none">
+      <div id="diceCube" onclick="onDiceClick()" class="dice-cube select-none active-turn">
         <!-- Pips rendered dynamically -->
         <div id="diceGrid" class="grid grid-cols-3 gap-1 p-1 w-full h-full items-center justify-items-center">
           <div class="col-start-2 dice-pip red-pip"></div>
         </div>
       </div>
-      <span class="text-[9.5px] font-bold text-gray-400 mt-0.5 uppercase" id="diceLabel">Roll Dice</span>
+      <span class="text-[9.5px] font-bold text-gray-300 mt-0.5 uppercase" id="diceLabel">Roll Dice</span>
     </div>
 
-    <div class="flex flex-col text-right max-w-[120px]">
-      <span class="text-[10px] sm:text-[11px] font-bold text-emerald-400">Rules Active</span>
-      <span class="text-[9px] sm:text-[10px] text-gray-500">Safe stars & capture</span>
+    <div class="flex flex-col text-right max-w-[130px]">
+      <span class="text-[10px] sm:text-[11px] font-bold text-emerald-400" id="gameModeBadge">Multiplayer</span>
+      <span class="text-[9px] sm:text-[10px] text-gray-400">Safe stars & capture</span>
     </div>
 
   </div>
@@ -143,8 +128,8 @@
     <div class="w-20 h-20 rounded-2xl bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-amber-400 text-4xl animate-bounce">
       <i class="fa-solid fa-trophy"></i>
     </div>
-    <h2 class="font-black text-3xl text-white" id="modalTitle">🏆 YOU WON!</h2>
-    <p class="text-xs text-gray-300" id="modalDesc">All your tokens successfully reached Home!</p>
+    <h2 class="font-black text-2xl sm:text-3xl text-white" id="modalTitle">🏆 PLAYER WINS!</h2>
+    <p class="text-xs text-gray-300" id="modalDesc">All 4 tokens successfully reached Home!</p>
     <div class="flex gap-3 w-full max-w-xs pt-2">
       <button onclick="resetGame()" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold text-xs uppercase hover:opacity-90">
         Play Again
@@ -156,17 +141,91 @@
   </div>
 
   <script>
+    // -------------------------------------------------------------
+    // URL PARAMETERS & MULTIPLAYER SETUP
+    // -------------------------------------------------------------
+    const urlParams = new URLSearchParams(window.location.search);
+    const gameMode = urlParams.get('mode') || 'ai'; // 'party', 'passplay', or 'ai'
+    const isPartyMode = (gameMode === 'party');
+    const isPassPlay = (gameMode === 'passplay');
+    const myUserId = urlParams.get('myId') || '';
+
+    // Color configs
+    const PLAYER_CONFIG = {
+      RED: { base: '#DC2626', dark: '#991B1B', name: 'RED', border: '#EF4444' },
+      GREEN: { base: '#16A34A', dark: '#166534', name: 'GREEN', border: '#22C55E' },
+      YELLOW: { base: '#CA8A04', dark: '#854D0E', name: 'YELLOW', border: '#EAB308' },
+      BLUE: { base: '#2563EB', dark: '#1E40AF', name: 'BLUE', border: '#3B82F6' }
+    };
+    const COLOR_KEYS = ['RED', 'GREEN', 'YELLOW', 'BLUE'];
+
+    // Resolve Active Players in this match
+    let activePlayers = [];
+
+    if (isPartyMode) {
+      let passedPlayers = [];
+      try {
+        passedPlayers = JSON.parse(urlParams.get('players') || '[]');
+      } catch (e) {}
+      if (!passedPlayers || passedPlayers.length === 0) {
+        if (window.parent?.activePartySession?.players) {
+          passedPlayers = window.parent.activePartySession.players;
+        }
+      }
+
+      if (Array.isArray(passedPlayers) && passedPlayers.length > 0) {
+        activePlayers = passedPlayers.map((p, idx) => {
+          const colorKey = COLOR_KEYS[idx % 4];
+          return {
+            id: p.id,
+            username: p.username || `Player_${idx + 1}`,
+            avatar_url: p.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${p.username || idx}`,
+            color: colorKey,
+            isBot: p.isBot || false,
+            isMe: (p.id === myUserId) || (!myUserId && idx === 0)
+          };
+        });
+      } else {
+        // Fallback: 2-player default
+        activePlayers = [
+          { id: 'p1', username: 'Host (You)', color: 'RED', isBot: false, isMe: true },
+          { id: 'p2', username: 'Friend', color: 'GREEN', isBot: false, isMe: false }
+        ];
+      }
+    } else if (isPassPlay) {
+      activePlayers = [
+        { id: 'p1', username: 'Player 1', color: 'RED', isBot: false, isMe: true },
+        { id: 'p2', username: 'Player 2', color: 'GREEN', isBot: false, isMe: true }
+      ];
+    } else {
+      // Single player vs Computer AI
+      activePlayers = [
+        { id: 'p1', username: 'You', color: 'RED', isBot: false, isMe: true },
+        { id: 'bot', username: 'AI Bot', color: 'GREEN', isBot: true, isMe: false }
+      ];
+    }
+
+    // Determine if local player is the host (player 0)
+    const isHost = activePlayers[0] && activePlayers[0].isMe;
+    const myPlayer = activePlayers.find(p => p.isMe) || activePlayers[0];
+
+    // Badge label
+    const modeBadge = document.getElementById('gameModeBadge');
+    if (modeBadge) {
+      modeBadge.textContent = isPartyMode ? 'Party Live' : (isPassPlay ? 'Pass & Play' : 'Vs Smart AI');
+    }
+
+    // -------------------------------------------------------------
+    // CANVAS & AUDIO SETUP
+    // -------------------------------------------------------------
     const canvas = document.getElementById('ludoCanvas');
     const ctx = canvas.getContext('2d');
-
-    // 15x15 standard Ludo grid
     const GRID_SIZE = 15;
     const CANVAS_SIZE = 600;
     canvas.width = CANVAS_SIZE;
     canvas.height = CANVAS_SIZE;
-    const CELL = CANVAS_SIZE / GRID_SIZE; // 40px per square
+    const CELL = CANVAS_SIZE / GRID_SIZE; // 40px
 
-    // Web Audio Sound Synthesizer
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSfx(type) {
       try {
@@ -212,9 +271,8 @@
     }
 
     // -------------------------------------------------------------
-    // CLASSIC LUDO PATH COORDINATES (52 Common Squares + Home Run)
+    // CLASSIC LUDO TRACK & HOME PATH COORDINATES (15x15 Indian Board)
     // -------------------------------------------------------------
-    // Full clockwise loop starting from Red's start (row 6, col 1) = index 0
     const TRACK_COORDS = [
       // Red arm bottom to top
       { r: 6, c: 1 }, { r: 6, c: 2 }, { r: 6, c: 3 }, { r: 6, c: 4 }, { r: 6, c: 5 },
@@ -228,31 +286,30 @@
       { r: 6, c: 9 }, { r: 6, c: 10 }, { r: 6, c: 11 }, { r: 6, c: 12 }, { r: 6, c: 13 }, { r: 6, c: 14 },
       // Right edge
       { r: 7, c: 14 }, { r: 8, c: 14 },
-      // Right arm bottom row going left
+      // Right arm bottom row going left (Yellow start at index 26: r 8, c 13)
       { r: 8, c: 13 }, { r: 8, c: 12 }, { r: 8, c: 11 }, { r: 8, c: 10 }, { r: 8, c: 9 },
       // Bottom arm right column going down
       { r: 9, c: 8 }, { r: 10, c: 8 }, { r: 11, c: 8 }, { r: 12, c: 8 }, { r: 13, c: 8 }, { r: 14, c: 8 },
       // Bottom edge
       { r: 14, c: 7 }, { r: 14, c: 6 },
-      // Bottom arm left column going up
+      // Bottom arm left column going up (Blue start at index 39: r 13, c 6)
       { r: 13, c: 6 }, { r: 12, c: 6 }, { r: 11, c: 6 }, { r: 10, c: 6 }, { r: 9, c: 6 },
       // Left arm bottom row going left
       { r: 8, c: 5 }, { r: 8, c: 4 }, { r: 8, c: 3 }, { r: 8, c: 2 }, { r: 8, c: 1 }, { r: 8, c: 0 },
       // Left edge
       { r: 7, c: 0 }
-    ]; // Total 51 main track tiles + tile 0 = 52 tiles (0 to 51)
+    ]; // 52 common tiles
 
-    // Red Home Run (5 tiles moving into center)
-    const RED_HOME_PATH = [
-      { r: 7, c: 1 }, { r: 7, c: 2 }, { r: 7, c: 3 }, { r: 7, c: 4 }, { r: 7, c: 5 }, { r: 7, c: 6 } // 6 is Center Home!
-    ];
+    // Home paths leading to center (r 7, c 7)
+    const RED_HOME_PATH = [ { r: 7, c: 1 }, { r: 7, c: 2 }, { r: 7, c: 3 }, { r: 7, c: 4 }, { r: 7, c: 5 }, { r: 7, c: 6 } ];
+    const GREEN_HOME_PATH = [ { r: 1, c: 7 }, { r: 2, c: 7 }, { r: 3, c: 7 }, { r: 4, c: 7 }, { r: 5, c: 7 }, { r: 6, c: 7 } ];
+    const YELLOW_HOME_PATH = [ { r: 7, c: 13 }, { r: 7, c: 12 }, { r: 7, c: 11 }, { r: 7, c: 10 }, { r: 7, c: 9 }, { r: 7, c: 8 } ];
+    const BLUE_HOME_PATH = [ { r: 13, c: 7 }, { r: 12, c: 7 }, { r: 11, c: 7 }, { r: 10, c: 7 }, { r: 9, c: 7 }, { r: 8, c: 7 } ];
 
-    // Green Home Run (5 tiles moving down into center)
-    const GREEN_HOME_PATH = [
-      { r: 1, c: 7 }, { r: 2, c: 7 }, { r: 3, c: 7 }, { r: 4, c: 7 }, { r: 5, c: 7 }, { r: 6, c: 7 } // Center Home!
-    ];
+    const TRACK_OFFSETS = { RED: 0, GREEN: 13, YELLOW: 26, BLUE: 39 };
+    const HOME_PATHS = { RED: RED_HOME_PATH, GREEN: GREEN_HOME_PATH, YELLOW: YELLOW_HOME_PATH, BLUE: BLUE_HOME_PATH };
 
-    // Safe Squares (Star tiles where tokens cannot be captured)
+    // Safe Squares
     const SAFE_SQUARES = [
       { r: 6, c: 1 },  // Red Start
       { r: 2, c: 6 },  // Safe Star
@@ -263,82 +320,98 @@
       { r: 13, c: 6 }, // Blue Start
       { r: 8, c: 2 }   // Safe Star
     ];
-
     function isSafeSquare(r, c) {
       return SAFE_SQUARES.some(s => s.r === r && s.c === c);
     }
 
-    // Base positions for 4 tokens in home boxes
-    const RED_BASE_SLOTS = [
-      { r: 2, c: 2 }, { r: 2, c: 3 }, { r: 3, c: 2 }, { r: 3, c: 3 }
-    ];
-    const GREEN_BASE_SLOTS = [
-      { r: 2, c: 11 }, { r: 2, c: 12 }, { r: 3, c: 11 }, { r: 3, c: 12 }
-    ];
-
-    // Game Tokens State (4 Red Tokens & 4 Green Tokens)
-    const tokens = {
-      RED: [
-        { id: 1, step: -1, isHome: false },
-        { id: 2, step: -1, isHome: false },
-        { id: 3, step: -1, isHome: false },
-        { id: 4, step: -1, isHome: false }
-      ],
-      GREEN: [
-        { id: 1, step: -1, isHome: false },
-        { id: 2, step: -1, isHome: false },
-        { id: 3, step: -1, isHome: false },
-        { id: 4, step: -1, isHome: false }
-      ]
+    // Base slots
+    const BASE_SLOTS = {
+      RED: [ { r: 2, c: 2 }, { r: 2, c: 3 }, { r: 3, c: 2 }, { r: 3, c: 3 } ],
+      GREEN: [ { r: 2, c: 11 }, { r: 2, c: 12 }, { r: 3, c: 11 }, { r: 3, c: 12 } ],
+      YELLOW: [ { r: 11, c: 11 }, { r: 11, c: 12 }, { r: 12, c: 11 }, { r: 12, c: 12 } ],
+      BLUE: [ { r: 11, c: 2 }, { r: 11, c: 3 }, { r: 12, c: 2 }, { r: 12, c: 3 } ]
     };
 
-    let isPlayerTurn = true;
+    // 4 tokens per color
+    const tokens = {
+      RED: [ { id: 1, step: -1, isHome: false }, { id: 2, step: -1, isHome: false }, { id: 3, step: -1, isHome: false }, { id: 4, step: -1, isHome: false } ],
+      GREEN: [ { id: 1, step: -1, isHome: false }, { id: 2, step: -1, isHome: false }, { id: 3, step: -1, isHome: false }, { id: 4, step: -1, isHome: false } ],
+      YELLOW: [ { id: 1, step: -1, isHome: false }, { id: 2, step: -1, isHome: false }, { id: 3, step: -1, isHome: false }, { id: 4, step: -1, isHome: false } ],
+      BLUE: [ { id: 1, step: -1, isHome: false }, { id: 2, step: -1, isHome: false }, { id: 3, step: -1, isHome: false }, { id: 4, step: -1, isHome: false } ]
+    };
+
+    let currentTurnIndex = 0;
     let diceValue = null;
     let hasRolled = false;
     let isRolling = false;
     let isGameOver = false;
 
-    // Helper: Get token row and col on the board
-    function getTokenPos(player, tokenIndex) {
-      const token = tokens[player][tokenIndex];
-      if (token.isHome) {
-        return { r: 7, c: 7 }; // Inside Center Home
-      }
-      if (token.step === -1) {
-        // Inside Base box
-        return player === 'RED' ? RED_BASE_SLOTS[tokenIndex] : GREEN_BASE_SLOTS[tokenIndex];
-      }
+    function getTokenPos(playerColor, tokenIndex) {
+      const token = tokens[playerColor][tokenIndex];
+      if (token.isHome) return { r: 7, c: 7 };
+      if (token.step === -1) return BASE_SLOTS[playerColor][tokenIndex];
 
-      // Step is >= 0
-      if (player === 'RED') {
-        if (token.step < 51) {
-          return TRACK_COORDS[token.step];
-        } else {
-          // Inside Red Home Run (step 51..56)
-          const homeIndex = token.step - 51;
-          return RED_HOME_PATH[Math.min(homeIndex, RED_HOME_PATH.length - 1)];
-        }
+      const offset = TRACK_OFFSETS[playerColor];
+      if (token.step < 51) {
+        const trackIdx = (offset + token.step) % 52;
+        return TRACK_COORDS[trackIdx];
       } else {
-        // GREEN player starts at index 13 on the main track
-        // Steps 0..50 correspond to (13 + step) % 52
-        if (token.step < 51) {
-          const trackIdx = (13 + token.step) % 52;
-          return TRACK_COORDS[trackIdx];
-        } else {
-          // Inside Green Home Run
-          const homeIndex = token.step - 51;
-          return GREEN_HOME_PATH[Math.min(homeIndex, GREEN_HOME_PATH.length - 1)];
-        }
+        const homeIdx = token.step - 51;
+        const hp = HOME_PATHS[playerColor];
+        return hp[Math.min(homeIdx, hp.length - 1)];
       }
     }
 
+    function canPawnMove(token, roll) {
+      if (!token || token.isHome) return false;
+      if (token.step === -1) return roll === 6;
+      return (token.step + roll) <= 56;
+    }
+
     // -------------------------------------------------------------
-    // DRAWING THE CLASSIC LUDO BOARD
+    // RENDER TOP STATUS BAR & BOARD
     // -------------------------------------------------------------
+    function updateStatusBar() {
+      const bar = document.getElementById('playersStatusBar');
+      if (!bar) return;
+
+      bar.innerHTML = activePlayers.map((p, idx) => {
+        const isCurrent = (idx === currentTurnIndex);
+        const homeCount = tokens[p.color].filter(t => t.isHome).length;
+        const cfg = PLAYER_CONFIG[p.color];
+
+        return `
+          <div class="flex items-center gap-1.5 px-2 py-1 rounded-xl transition-all ${isCurrent ? 'bg-white/10 ring-2 ring-cyan-400' : 'bg-black/30 opacity-75'}">
+            <div class="w-3.5 h-3.5 rounded-full shrink-0 shadow" style="background-color: ${cfg.base}; border: 2px solid #fff"></div>
+            <div class="flex flex-col min-w-0">
+              <span class="text-[10px] sm:text-[11px] font-black truncate leading-tight ${isCurrent ? 'text-white' : 'text-gray-300'}">
+                ${p.username} ${p.isMe ? '<span class="text-[8.5px] text-cyan-300">(You)</span>' : ''}
+              </span>
+              <span class="text-[9px] text-gray-400 leading-none">${homeCount}/4 Home</span>
+            </div>
+            ${isCurrent ? '<i class="fa-solid fa-dice text-[11px] text-cyan-300 animate-spin-slow ml-1"></i>' : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderDiceFace(val) {
+      const grid = document.getElementById('diceGrid');
+      const pipMap = {
+        1: '<div class="col-start-2 row-start-2 dice-pip red-pip"></div>',
+        2: '<div class="col-start-1 row-start-1 dice-pip"></div><div class="col-start-3 row-start-3 dice-pip"></div>',
+        3: '<div class="col-start-1 row-start-1 dice-pip"></div><div class="col-start-2 row-start-2 dice-pip"></div><div class="col-start-3 row-start-3 dice-pip"></div>',
+        4: '<div class="col-start-1 row-start-1 dice-pip"></div><div class="col-start-3 row-start-1 dice-pip"></div><div class="col-start-1 row-start-3 dice-pip"></div><div class="col-start-3 row-start-3 dice-pip"></div>',
+        5: '<div class="col-start-1 row-start-1 dice-pip"></div><div class="col-start-3 row-start-1 dice-pip"></div><div class="col-start-2 row-start-2 dice-pip"></div><div class="col-start-1 row-start-3 dice-pip"></div><div class="col-start-3 row-start-3 dice-pip"></div>',
+        6: '<div class="col-start-1 row-start-1 dice-pip"></div><div class="col-start-3 row-start-1 dice-pip"></div><div class="col-start-1 row-start-2 dice-pip"></div><div class="col-start-3 row-start-2 dice-pip"></div><div class="col-start-1 row-start-3 dice-pip"></div><div class="col-start-3 row-start-3 dice-pip"></div>'
+      };
+      grid.innerHTML = pipMap[val] || pipMap[1];
+    }
+
     function renderBoard() {
       ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-      // 1. Draw 15x15 white grid with subtle borders
+      // 1. White Grid
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
@@ -350,17 +423,13 @@
         }
       }
 
-      // 2. Draw Colored Corner Bases
-      // RED BASE (Top-Left 6x6)
-      drawBaseBox(0, 0, '#DC2626', RED_BASE_SLOTS);
-      // GREEN BASE (Top-Right 6x6)
-      drawBaseBox(9, 0, '#16A34A', GREEN_BASE_SLOTS);
-      // BLUE BASE (Bottom-Left 6x6)
-      drawBaseBox(0, 9, '#2563EB', []);
-      // YELLOW BASE (Bottom-Right 6x6)
-      drawBaseBox(9, 9, '#CA8A04', []);
+      // 2. Corner Base Boxes
+      drawBaseBox(0, 0, '#DC2626', BASE_SLOTS.RED);
+      drawBaseBox(9, 0, '#16A34A', BASE_SLOTS.GREEN);
+      drawBaseBox(0, 9, '#2563EB', BASE_SLOTS.BLUE);
+      drawBaseBox(9, 9, '#CA8A04', BASE_SLOTS.YELLOW);
 
-      // 3. Draw Colored Home Rows & Paths
+      // 3. Colored Paths & Home Runs
       // Red Start Square (row 6, col 1) & Home Row (row 7, col 1..5)
       fillCell(6, 1, '#DC2626');
       drawStar(6, 1, '#FFFFFF');
@@ -381,17 +450,17 @@
       drawStar(13, 6, '#FFFFFF');
       for (let r = 9; r <= 13; r++) fillCell(r, 7, '#2563EB');
 
-      // Safe Stars
+      // Safe Stars on Track
       SAFE_SQUARES.forEach(s => {
         if (!((s.r === 6 && s.c === 1) || (s.r === 1 && s.c === 8) || (s.r === 8 && s.c === 13) || (s.r === 13 && s.c === 6))) {
           drawStar(s.r, s.c, '#94A3B8');
         }
       });
 
-      // 4. Center Home Triangles (Center 3x3)
+      // 4. Center Home Triangles
       drawCenterHome();
 
-      // 5. Draw Pawns / Tokens
+      // 5. Draw Pawns of all active players
       drawAllPawns();
     }
 
@@ -404,12 +473,10 @@
       ctx.fillStyle = color;
       ctx.fillRect(x, y, w, h);
 
-      // Inner white area
       const pad = CELL;
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(x + pad, y + pad, w - pad * 2, h - pad * 2);
 
-      // Circular pawn home seats
       slots.forEach(slot => {
         const cx = (slot.c + 0.5) * CELL;
         const cy = (slot.r + 0.5) * CELL;
@@ -449,7 +516,6 @@
         y = cy + Math.sin(rot) * outerRadius;
         ctx.lineTo(x, y);
         rot += step;
-
         x = cx + Math.cos(rot) * innerRadius;
         y = cy + Math.sin(rot) * innerRadius;
         ctx.lineTo(x, y);
@@ -462,12 +528,12 @@
     }
 
     function drawCenterHome() {
-      const cx = 7.5 * CELL;
-      const cy = 7.5 * CELL;
       const left = 6 * CELL;
       const right = 9 * CELL;
       const top = 6 * CELL;
       const bottom = 9 * CELL;
+      const cx = 7.5 * CELL;
+      const cy = 7.5 * CELL;
 
       // Red Triangle (Left)
       ctx.beginPath();
@@ -506,19 +572,17 @@
       ctx.fill();
     }
 
-    // Draw Classic 3D Pawn Shape
     function drawAllPawns() {
-      // 1. Draw Green Pawns (AI)
-      tokens.GREEN.forEach((t, i) => {
-        const pos = getTokenPos('GREEN', i);
-        drawClassicPawn(pos.r, pos.c, '#16A34A', '#15803D', false);
-      });
+      activePlayers.forEach((p, pIdx) => {
+        const color = p.color;
+        const cfg = PLAYER_CONFIG[color];
+        const isMyTurn = (currentTurnIndex === pIdx) && p.isMe;
 
-      // 2. Draw Red Pawns (Player)
-      tokens.RED.forEach((t, i) => {
-        const pos = getTokenPos('RED', i);
-        const canMove = isPlayerTurn && hasRolled && canPawnMove(t, diceValue);
-        drawClassicPawn(pos.r, pos.c, '#DC2626', '#B91C1C', canMove);
+        tokens[color].forEach((t, i) => {
+          const pos = getTokenPos(color, i);
+          const canMove = isMyTurn && hasRolled && canPawnMove(t, diceValue);
+          drawClassicPawn(pos.r, pos.c, cfg.base, cfg.dark, canMove);
+        });
       });
     }
 
@@ -528,7 +592,6 @@
 
       ctx.save();
       if (isMovable) {
-        // Movable yellow halo
         ctx.beginPath();
         ctx.arc(cx, cy, CELL * 0.46, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(255, 215, 0, 0.45)';
@@ -538,25 +601,21 @@
         ctx.stroke();
       }
 
-      // Shadow
       ctx.beginPath();
       ctx.ellipse(cx, cy + CELL * 0.3, CELL * 0.28, CELL * 0.12, 0, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(0,0,0,0.3)';
       ctx.fill();
 
-      // Pawn Base Skirt
       ctx.beginPath();
       ctx.arc(cx, cy + CELL * 0.18, CELL * 0.32, 0, Math.PI * 2);
       ctx.fillStyle = darkColor;
       ctx.fill();
 
-      // Pawn Body Collar
       ctx.beginPath();
       ctx.arc(cx, cy - CELL * 0.05, CELL * 0.24, 0, Math.PI * 2);
       ctx.fillStyle = baseColor;
       ctx.fill();
 
-      // Pawn Head Ball
       ctx.beginPath();
       ctx.arc(cx, cy - CELL * 0.15, CELL * 0.2, 0, Math.PI * 2);
       ctx.fillStyle = '#FFFFFF';
@@ -566,7 +625,6 @@
       ctx.fillStyle = baseColor;
       ctx.fill();
 
-      // White Shine on head
       ctx.beginPath();
       ctx.arc(cx - CELL * 0.06, cy - CELL * 0.2, CELL * 0.05, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(255,255,255,0.8)';
@@ -575,32 +633,38 @@
       ctx.restore();
     }
 
-    function canPawnMove(token, roll) {
-      if (token.isHome) return false;
-      if (token.step === -1) return roll === 6; // Needs a 6 to open
-      return (token.step + roll) <= 56; // 56 is Exact Center Home
-    }
+    // -------------------------------------------------------------
+    // TURN CONTROLS & DICE ROLLING
+    // -------------------------------------------------------------
+    function updateTurnDisplay(isExtraTurn = false) {
+      updateStatusBar();
+      const activePlayer = activePlayers[currentTurnIndex];
+      if (!activePlayer) return;
 
-    // -------------------------------------------------------------
-    // DICE LOGIC & PIPS RENDERING
-    // -------------------------------------------------------------
-    function renderDiceFace(val) {
-      const grid = document.getElementById('diceGrid');
-      const pipMap = {
-        1: '<div class="col-start-2 row-start-2 dice-pip red-pip"></div>',
-        2: '<div class="col-start-1 row-start-1 dice-pip"></div><div class="col-start-3 row-start-3 dice-pip"></div>',
-        3: '<div class="col-start-1 row-start-1 dice-pip"></div><div class="col-start-2 row-start-2 dice-pip"></div><div class="col-start-3 row-start-3 dice-pip"></div>',
-        4: '<div class="col-start-1 row-start-1 dice-pip"></div><div class="col-start-3 row-start-1 dice-pip"></div><div class="col-start-1 row-start-3 dice-pip"></div><div class="col-start-3 row-start-3 dice-pip"></div>',
-        5: '<div class="col-start-1 row-start-1 dice-pip"></div><div class="col-start-3 row-start-1 dice-pip"></div><div class="col-start-2 row-start-2 dice-pip"></div><div class="col-start-1 row-start-3 dice-pip"></div><div class="col-start-3 row-start-3 dice-pip"></div>',
-        6: '<div class="col-start-1 row-start-1 dice-pip"></div><div class="col-start-3 row-start-1 dice-pip"></div><div class="col-start-1 row-start-2 dice-pip"></div><div class="col-start-3 row-start-2 dice-pip"></div><div class="col-start-1 row-start-3 dice-pip"></div><div class="col-start-3 row-start-3 dice-pip"></div>'
-      };
-      grid.innerHTML = pipMap[val] || pipMap[1];
+      const diceCube = document.getElementById('diceCube');
+      const actionHint = document.getElementById('actionHint');
+      const diceLabel = document.getElementById('diceLabel');
+
+      if (activePlayer.isMe) {
+        diceCube.classList.add('active-turn');
+        actionHint.textContent = isExtraTurn ? "🎉 Extra turn! Roll again!" : "🎲 YOUR TURN — ROLL DICE!";
+        diceLabel.textContent = "Your Turn";
+      } else {
+        diceCube.classList.remove('active-turn');
+        actionHint.textContent = `Waiting for ${activePlayer.username} to roll...`;
+        diceLabel.textContent = `${activePlayer.username}'s Turn`;
+      }
     }
 
     function onDiceClick() {
-      if (!isPlayerTurn || hasRolled || isRolling || isGameOver) return;
-      isRolling = true;
+      if (isGameOver || hasRolled || isRolling) return;
+      const activePlayer = activePlayers[currentTurnIndex];
+      if (!activePlayer) return;
 
+      // In party mode, only active player can roll!
+      if (isPartyMode && !activePlayer.isMe) return;
+
+      isRolling = true;
       const cube = document.getElementById('diceCube');
       cube.classList.add('rolling');
       playSfx('roll');
@@ -614,16 +678,26 @@
 
         document.getElementById('diceLabel').textContent = `Rolled: ${diceValue}`;
 
-        // Check player movable pawns
-        const movable = tokens.RED.filter(t => canPawnMove(t, diceValue));
+        // Broadcast roll to peers over WebSocket
+        if (isPartyMode) {
+          sendPartyAction({
+            action: 'LUDO_ROLL',
+            roll: diceValue,
+            playerIndex: currentTurnIndex
+          });
+        }
+
+        const color = activePlayer.color;
+        const movable = tokens[color]
+          .map((t, idx) => ({ t, idx }))
+          .filter(item => canPawnMove(item.t, diceValue));
 
         if (movable.length === 0) {
-          document.getElementById('actionHint').textContent = `No moves available for ${diceValue}.`;
-          setTimeout(switchTurnToAI, 1100);
+          document.getElementById('actionHint').textContent = `No moves for ${diceValue}.`;
+          setTimeout(advanceTurn, 1000);
         } else if (movable.length === 1) {
-          // Auto move single option
-          document.getElementById('actionHint').textContent = `Moving Token ${movable[0].id}...`;
-          setTimeout(() => movePlayerToken(movable[0]), 400);
+          document.getElementById('actionHint').textContent = `Moving Token ${movable[0].t.id}...`;
+          setTimeout(() => executeMoveToken(color, movable[0].idx, diceValue, true), 350);
         } else {
           document.getElementById('actionHint').textContent = "Select glowing token to move!";
         }
@@ -632,27 +706,29 @@
       }, 400);
     }
 
-    // Board touch & click interaction
+    // Board click interaction
     function handleBoardInteraction(clientX, clientY) {
-      if (!isPlayerTurn || !hasRolled || isGameOver) return;
+      if (isGameOver || !hasRolled || isRolling) return;
+      const activePlayer = activePlayers[currentTurnIndex];
+      if (!activePlayer || !activePlayer.isMe) return;
 
+      const color = activePlayer.color;
       const rect = canvas.getBoundingClientRect();
       const scaleX = canvas.width / rect.width;
       const scaleY = canvas.height / rect.height;
       const clickX = (clientX - rect.left) * scaleX;
       const clickY = (clientY - rect.top) * scaleY;
 
-      // Find clicked Red token
-      for (let i = 0; i < tokens.RED.length; i++) {
-        const t = tokens.RED[i];
+      for (let i = 0; i < tokens[color].length; i++) {
+        const t = tokens[color][i];
         if (!canPawnMove(t, diceValue)) continue;
 
-        const pos = getTokenPos('RED', i);
+        const pos = getTokenPos(color, i);
         const cx = (pos.c + 0.5) * CELL;
         const cy = (pos.r + 0.5) * CELL;
 
-        if (Math.hypot(clickX - cx, clickY - cy) < CELL * 0.75) {
-          movePlayerToken(t);
+        if (Math.hypot(clickX - cx, clickY - cy) < CELL * 0.85) {
+          executeMoveToken(color, i, diceValue, true);
           break;
         }
       }
@@ -661,7 +737,6 @@
     canvas.addEventListener('click', (e) => {
       handleBoardInteraction(e.clientX, e.clientY);
     });
-
     canvas.addEventListener('touchstart', (e) => {
       if (e.touches && e.touches.length > 0) {
         e.preventDefault();
@@ -669,12 +744,15 @@
       }
     }, { passive: false });
 
-    function movePlayerToken(token) {
+    function executeMoveToken(color, tokenIndex, roll, isLocal) {
+      const token = tokens[color][tokenIndex];
+      if (!token) return;
+
       if (token.step === -1) {
-        token.step = 0; // Open to start square (row 6, col 1)
+        token.step = 0;
         playSfx('home');
       } else {
-        token.step += diceValue;
+        token.step += roll;
         playSfx('move');
       }
 
@@ -683,207 +761,194 @@
         playSfx('home');
       }
 
-      // Check for Capture on opponent Green token
-      checkCapture('RED', token);
+      const captured = checkCapture(color, token);
 
-      updateScores();
       renderBoard();
+      updateStatusBar();
 
-      // Check Victory Condition (All 4 Home)
-      if (tokens.RED.every(t => t.isHome)) {
-        finishGame(true);
+      if (isLocal && isPartyMode) {
+        sendPartyAction({
+          action: 'LUDO_MOVE',
+          playerColor: color,
+          tokenIndex: tokenIndex,
+          roll: roll,
+          captured: captured
+        });
+      }
+
+      // Check Victory
+      if (tokens[color].every(t => t.isHome)) {
+        finishGame(color);
         return;
       }
 
-      // If player rolled 6, extra roll awarded!
-      if (diceValue === 6) {
+      // 6 rolled or token captured: Extra turn!
+      if (roll === 6 || captured) {
         hasRolled = false;
-        document.getElementById('actionHint').textContent = "🎉 Rolled a 6! Roll again!";
-        document.getElementById('turnBanner').textContent = "Extra Turn Awarded!";
+        diceValue = null;
+        updateTurnDisplay(true);
+        if (isLocal) maybeRunBotTurn();
       } else {
-        switchTurnToAI();
+        advanceTurn();
       }
     }
 
     function checkCapture(attackerPlayer, attackerToken) {
-      if (attackerToken.step === -1 || attackerToken.isHome) return;
-
-      // Get attacker coordinate
+      if (attackerToken.step === -1 || attackerToken.isHome) return false;
       const attackerIdx = tokens[attackerPlayer].indexOf(attackerToken);
       const attPos = getTokenPos(attackerPlayer, attackerIdx);
 
-      // Safe square immunity check!
-      if (isSafeSquare(attPos.r, attPos.c)) return;
+      if (isSafeSquare(attPos.r, attPos.c)) return false;
 
-      const defenderPlayer = attackerPlayer === 'RED' ? 'GREEN' : 'RED';
+      let didCapture = false;
+      activePlayers.forEach(p => {
+        if (p.color === attackerPlayer) return;
+        tokens[p.color].forEach(defToken => {
+          if (defToken.step === -1 || defToken.isHome) return;
+          const defIdx = tokens[p.color].indexOf(defToken);
+          const defPos = getTokenPos(p.color, defIdx);
 
-      tokens[defenderPlayer].forEach((defToken, idx) => {
-        if (defToken.step === -1 || defToken.isHome) return;
-        const defPos = getTokenPos(defenderPlayer, idx);
-
-        if (attPos.r === defPos.r && attPos.c === defPos.c) {
-          // CAPTURE! Sent back to base!
-          defToken.step = -1;
-          playSfx('capture');
-          document.getElementById('actionHint').textContent = `💥 Captured ${defenderPlayer} Pawn!`;
-        }
+          if (attPos.r === defPos.r && attPos.c === defPos.c) {
+            defToken.step = -1;
+            didCapture = true;
+            playSfx('capture');
+            document.getElementById('actionHint').textContent = `💥 Captured ${p.color} Token!`;
+          }
+        });
       });
+
+      return didCapture;
     }
 
-    function switchTurnToAI() {
-      isPlayerTurn = false;
+    function advanceTurn() {
+      currentTurnIndex = (currentTurnIndex + 1) % activePlayers.length;
       hasRolled = false;
       diceValue = null;
-      document.getElementById('turnBanner').textContent = "AI BOT (GREEN) THINKING...";
-      document.getElementById('actionHint').textContent = "AI is rolling...";
-      document.getElementById('diceLabel').textContent = "AI Turn";
+      updateTurnDisplay();
       renderBoard();
-
-      setTimeout(runAiTurn, 1000);
+      maybeRunBotTurn();
     }
 
-    // -------------------------------------------------------------
-    // SMART COMPUTER AI BOT LOGIC
-    // -------------------------------------------------------------
-    function runAiTurn() {
-      if (isGameOver) return;
+    function maybeRunBotTurn() {
+      const activePlayer = activePlayers[currentTurnIndex];
+      if (!activePlayer || !activePlayer.isBot || isGameOver) return;
+      if (isPartyMode && !isHost) return; // In party mode, host executes bot turns
 
-      const cube = document.getElementById('diceCube');
-      cube.classList.add('rolling');
-      playSfx('roll');
+      document.getElementById('actionHint').textContent = `${activePlayer.username} is rolling...`;
 
       setTimeout(() => {
-        const aiRoll = Math.floor(Math.random() * 6) + 1;
-        cube.classList.remove('rolling');
-        renderDiceFace(aiRoll);
-        document.getElementById('diceLabel').textContent = `AI Rolled: ${aiRoll}`;
+        if (isGameOver) return;
+        const cube = document.getElementById('diceCube');
+        cube.classList.add('rolling');
+        playSfx('roll');
 
-        const movable = tokens.GREEN.filter(t => canPawnMove(t, aiRoll));
+        setTimeout(() => {
+          const botRoll = Math.floor(Math.random() * 6) + 1;
+          cube.classList.remove('rolling');
+          renderDiceFace(botRoll);
+          diceValue = botRoll;
+          hasRolled = true;
+          document.getElementById('diceLabel').textContent = `Bot Rolled: ${botRoll}`;
 
-        if (movable.length === 0) {
-          document.getElementById('actionHint').textContent = `AI rolled ${aiRoll} (No moves)`;
-          setTimeout(switchTurnToPlayer, 1000);
-        } else {
-          // Smart AI Decision:
-          // Priority 1: Check if any move captures a Red pawn
-          let chosen = null;
-          for (const t of movable) {
-            const nextStep = (t.step === -1) ? 0 : (t.step + aiRoll);
-            const testIdx = (13 + nextStep) % 52;
-            const testCoord = (nextStep < 51) ? TRACK_COORDS[testIdx] : GREEN_HOME_PATH[Math.min(nextStep - 51, GREEN_HOME_PATH.length - 1)];
-
-            if (!isSafeSquare(testCoord.r, testCoord.c)) {
-              const canHit = tokens.RED.some((rt, ri) => {
-                if (rt.step === -1 || rt.isHome) return false;
-                const rPos = getTokenPos('RED', ri);
-                return rPos.r === testCoord.r && rPos.c === testCoord.c;
-              });
-              if (canHit) {
-                chosen = t;
-                break;
-              }
-            }
+          if (isPartyMode) {
+            sendPartyAction({
+              action: 'LUDO_ROLL',
+              roll: botRoll,
+              playerIndex: currentTurnIndex,
+              isBotMove: true
+            });
           }
 
-          // Priority 2: Deploy token from base if 6 rolled
-          if (!chosen && aiRoll === 6) {
-            chosen = movable.find(t => t.step === -1);
+          const color = activePlayer.color;
+          const movable = tokens[color]
+            .map((t, idx) => ({ t, idx }))
+            .filter(item => canPawnMove(item.t, botRoll));
+
+          if (movable.length === 0) {
+            document.getElementById('actionHint').textContent = `Bot rolled ${botRoll} (No moves)`;
+            setTimeout(advanceTurn, 1000);
+          } else {
+            // Priority: open or advance
+            let chosen = movable[0];
+            const openMove = movable.find(m => m.t.step === -1);
+            if (openMove) chosen = openMove;
+
+            setTimeout(() => {
+              executeMoveToken(color, chosen.idx, botRoll, true);
+            }, 500);
           }
-
-          // Priority 3: Move token that is closest to Home
-          if (!chosen) {
-            chosen = movable.reduce((prev, curr) => (curr.step > prev.step ? curr : prev));
-          }
-
-          setTimeout(() => {
-            if (chosen.step === -1) {
-              chosen.step = 0;
-              playSfx('home');
-            } else {
-              chosen.step += aiRoll;
-              playSfx('move');
-            }
-
-            if (chosen.step === 56) {
-              chosen.isHome = true;
-              playSfx('home');
-            }
-
-            checkCapture('GREEN', chosen);
-            updateScores();
-            renderBoard();
-
-            // Check AI Win
-            if (tokens.GREEN.every(t => t.isHome)) {
-              finishGame(false);
-              return;
-            }
-
-            // If AI rolled 6, extra turn!
-            if (aiRoll === 6) {
-              document.getElementById('actionHint').textContent = "AI rolled 6! Extra turn!";
-              setTimeout(runAiTurn, 1000);
-            } else {
-              setTimeout(switchTurnToPlayer, 900);
-            }
-          }, 500);
-        }
-      }, 400);
+          renderBoard();
+        }, 400);
+      }, 900);
     }
 
-    function switchTurnToPlayer() {
-      isPlayerTurn = true;
-      hasRolled = false;
-      diceValue = null;
-      document.getElementById('turnBanner').textContent = "Your Turn — Roll Dice!";
-      document.getElementById('actionHint').textContent = "Click dice to roll!";
-      document.getElementById('diceLabel').textContent = "Roll Dice";
-      renderBoard();
+    // -------------------------------------------------------------
+    // MULTIPLAYER MESSAGING WITH PARENT WEBSOCKET
+    // -------------------------------------------------------------
+    function sendPartyAction(actionPayload) {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: 'PARTY_ACTION',
+          gameSlug: 'ludo-hero-ai',
+          ...actionPayload
+        }, '*');
+      }
     }
 
-    function updateScores() {
-      const redHome = tokens.RED.filter(t => t.isHome).length;
-      const greenHome = tokens.GREEN.filter(t => t.isHome).length;
-      document.getElementById('redHomeCount').textContent = `${redHome} / 4 Home`;
-      document.getElementById('greenHomeCount').textContent = `${greenHome} / 4 Home`;
+    function handleRemotePartyAction(data) {
+      if (!data) return;
+
+      if (data.action === 'LUDO_ROLL') {
+        const cube = document.getElementById('diceCube');
+        cube.classList.add('rolling');
+        playSfx('roll');
+        isRolling = true;
+
+        setTimeout(() => {
+          diceValue = data.roll;
+          cube.classList.remove('rolling');
+          renderDiceFace(diceValue);
+          hasRolled = true;
+          isRolling = false;
+          const p = activePlayers[currentTurnIndex];
+          const name = p ? p.username : 'Opponent';
+          document.getElementById('diceLabel').textContent = `${name} Rolled: ${diceValue}`;
+          renderBoard();
+        }, 400);
+      } else if (data.action === 'LUDO_MOVE') {
+        executeMoveToken(data.playerColor, data.tokenIndex, data.roll, false);
+      }
     }
 
-    function finishGame(playerWon) {
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'PARTY_GAME_UPDATE') {
+        const payload = event.data.actionData || event.data;
+        if (event.data.senderId && event.data.senderId === myUserId) return;
+        handleRemotePartyAction(payload);
+      }
+    });
+
+    function finishGame(winnerColor) {
       isGameOver = true;
+      const winner = activePlayers.find(p => p.color === winnerColor) || { username: winnerColor };
       const modal = document.getElementById('winModal');
       const title = document.getElementById('modalTitle');
       const desc = document.getElementById('modalDesc');
 
-      if (playerWon) {
-        title.textContent = "🏆 YOU WON!";
-        title.className = "font-black text-3xl text-amber-400 animate-bounce";
-        desc.textContent = "All 4 of your Red Pawns reached Home! Excellent strategy!";
-      } else {
-        title.textContent = "DEFEAT!";
-        title.className = "font-black text-3xl text-red-500";
-        desc.textContent = "The Smart Computer AI got all tokens Home first!";
-      }
-
-      modal.classList.remove('hidden');
+      if (title) title.textContent = `🏆 ${winner.username} WINS!`;
+      if (desc) desc.textContent = `All 4 ${winnerColor} tokens reached Home!`;
+      if (modal) modal.classList.remove('hidden');
+      playSfx('home');
     }
 
     function resetGame() {
-      document.getElementById('winModal').classList.add('hidden');
-      tokens.RED.forEach(t => { t.step = -1; t.isHome = false; });
-      tokens.GREEN.forEach(t => { t.step = -1; t.isHome = false; });
-      isPlayerTurn = true;
-      hasRolled = false;
-      isGameOver = false;
-      diceValue = null;
-      renderDiceFace(1);
-      updateScores();
-      switchTurnToPlayer();
-      renderBoard();
+      window.location.reload();
     }
 
-    // Initialize board on load
-    renderDiceFace(1);
+    // Initialize
+    updateTurnDisplay();
     renderBoard();
+    maybeRunBotTurn();
   </script>
 </body>
 </html>

@@ -320,8 +320,8 @@ function setupMultiplayer(wss) {
 
             // Send explicit PARTY_JOINED confirmation to the joining player
             ws.send(JSON.stringify({
-              type: 'PARTY_JOINED',
-              ...partyPayload
+              ...partyPayload,
+              type: 'PARTY_JOINED'
             }));
 
             // Broadcast PARTY_UPDATED to all other players in the party room
@@ -481,6 +481,18 @@ function setupMultiplayer(wss) {
             if (!currentPartyCode) return;
             const room = partyRooms.get(currentPartyCode);
             if (!room || room.status !== 'PLAYING') return;
+
+            // Realtime Ludo Hero & Board Games Action Synchronization
+            if (msg.gameSlug === 'ludo-hero-ai' || msg.action === 'LUDO_ACTION' || msg.action === 'LUDO_ROLL' || msg.action === 'LUDO_MOVE') {
+              broadcastToParty(room, {
+                type: 'PARTY_GAME_UPDATE',
+                roomCode: room.code,
+                gameSlug: room.gameSlug,
+                senderId: currentUser.id,
+                actionData: msg
+              });
+              break;
+            }
 
             const activePlayer = room.players[room.currentTurnIndex];
             if (!activePlayer || activePlayer.user.id !== currentUser.id) {

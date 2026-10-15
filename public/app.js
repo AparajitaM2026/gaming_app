@@ -729,20 +729,27 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
     setTheaterSize('wide');
   }
 
-  // In-House Polished AI & Board Games (with Pass & Play support)
-  const passParam = isPassAndPlay ? '?mode=passplay' : '';
+  // In-House Polished AI & Board Games (with Pass & Play or Live Party support)
+  let gameModeParam = '';
+  if (window.activePartySession && window.activePartySession.slug === slug) {
+    const sess = window.activePartySession;
+    gameModeParam = `?mode=party&room=${encodeURIComponent(sess.roomCode)}&myId=${encodeURIComponent(sess.myUser?.id || '')}&players=${encodeURIComponent(JSON.stringify(sess.players || []))}`;
+  } else if (isPassAndPlay) {
+    gameModeParam = '?mode=passplay';
+  }
+
   if (slug === 'ludo-hero-ai' || slug === 'ludo') {
-    playUrl = '/games/ludo_ai.html' + passParam;
+    playUrl = '/games/ludo_ai.html' + gameModeParam;
   } else if (slug === 'carrom-clash-ai' || slug === 'carrom-pool') {
-    playUrl = '/games/carrom_ai.html' + passParam;
+    playUrl = '/games/carrom_ai.html' + gameModeParam;
   } else if (slug === 'chess-master-ai' || slug === 'chess') {
-    playUrl = '/games/chess_ai.html' + passParam;
+    playUrl = '/games/chess_ai.html' + gameModeParam;
   } else if (slug === 'checkers-classic-ai' || slug === 'checkers') {
-    playUrl = '/games/checkers_ai.html' + passParam;
+    playUrl = '/games/checkers_ai.html' + gameModeParam;
   } else if (slug === 'connect4-arena-ai' || slug === 'connect-4' || slug === 'connect4') {
-    playUrl = '/games/connect4_ai.html' + passParam;
+    playUrl = '/games/connect4_ai.html' + gameModeParam;
   } else if (slug === 'tictactoe-neon-ai' || slug === 'tic-tac-toe' || slug === 'tictactoe') {
-    playUrl = '/games/tictactoe_ai.html' + passParam;
+    playUrl = '/games/tictactoe_ai.html' + gameModeParam;
   } else if (slug === 'neon-runner') {
     playUrl = '/games/runner.html?title=' + encodeURIComponent(title);
   } else if (playUrl && playUrl.startsWith('http')) {
@@ -3133,6 +3140,15 @@ function handlePartySocketMessage(msg) {
       break;
 
     case 'PARTY_GAME_UPDATE':
+      const gameIframe = document.getElementById('gameIframe');
+      if (gameIframe && gameIframe.contentWindow) {
+        try {
+          gameIframe.contentWindow.postMessage({
+            type: 'PARTY_GAME_UPDATE',
+            ...msg
+          }, '*');
+        } catch(e) {}
+      }
       handleGameUpdate(msg);
       break;
 
@@ -3433,6 +3449,14 @@ function sharePartyOnWhatsApp() {
 function launchPartyTheaterGame(slug, roomCode, players) {
   closePartyModal();
   closeGameModeModal();
+
+  // Save active party session details so game iframe receives multiplayer mode
+  window.activePartySession = {
+    slug,
+    roomCode,
+    players,
+    myUser: partyMyUser || getPartyUser()
+  };
 
   // Launch game in theater directly
   launchGameBySlug(slug, true);
@@ -3970,5 +3994,21 @@ window.addEventListener('DOMContentLoaded', () => {
       openPartyModal();
       joinPartyRoom(partyCode);
     }, 800);
+  }
+});
+
+// -------------------------------------------------------------
+// PARTY GAME IFRAME BRIDGE (LUDO & BOARD GAMES MULTIPLAYER)
+// -------------------------------------------------------------
+window.addEventListener('message', (event) => {
+  if (!event.data) return;
+  if (event.data.type === 'PARTY_ACTION' || event.data.action === 'LUDO_ACTION' || event.data.action === 'LUDO_ROLL' || event.data.action === 'LUDO_MOVE') {
+    if (partyWs && partyWs.readyState === WebSocket.OPEN) {
+      partyWs.send(JSON.stringify({
+        type: 'PARTY_ACTION',
+        gameSlug: 'ludo-hero-ai',
+        ...event.data
+      }));
+    }
   }
 });
