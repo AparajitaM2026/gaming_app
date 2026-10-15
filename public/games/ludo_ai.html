@@ -148,7 +148,8 @@
     const gameMode = urlParams.get('mode') || 'ai'; // 'party', 'passplay', or 'ai'
     const isPartyMode = (gameMode === 'party');
     const isPassPlay = (gameMode === 'passplay');
-    const myUserId = urlParams.get('myId') || '';
+    const myUserId = String(urlParams.get('myId') || '');
+    const myUsername = String(urlParams.get('myUsername') || '');
 
     // Color configs
     const PLAYER_CONFIG = {
@@ -176,13 +177,18 @@
       if (Array.isArray(passedPlayers) && passedPlayers.length > 0) {
         activePlayers = passedPlayers.map((p, idx) => {
           const colorKey = COLOR_KEYS[idx % 4];
+          const isThisPlayerMe = (
+            (myUserId && String(p.id) === String(myUserId)) ||
+            (myUsername && p.username && p.username.toLowerCase() === myUsername.toLowerCase()) ||
+            (!myUserId && !myUsername && idx === 0)
+          );
           return {
             id: p.id,
             username: p.username || `Player_${idx + 1}`,
             avatar_url: p.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${p.username || idx}`,
             color: colorKey,
             isBot: p.isBot || false,
-            isMe: (p.id === myUserId) || (!myUserId && idx === 0)
+            isMe: isThisPlayerMe
           };
         });
       } else {
@@ -694,7 +700,9 @@
 
         if (movable.length === 0) {
           document.getElementById('actionHint').textContent = `No moves for ${diceValue}.`;
-          setTimeout(advanceTurn, 1000);
+          setTimeout(() => {
+            advanceTurn(true);
+          }, 1000);
         } else if (movable.length === 1) {
           document.getElementById('actionHint').textContent = `Moving Token ${movable[0].t.id}...`;
           setTimeout(() => executeMoveToken(color, movable[0].idx, diceValue, true), 350);
@@ -744,7 +752,7 @@
       }
     }, { passive: false });
 
-    function executeMoveToken(color, tokenIndex, roll, isLocal) {
+    function executeMoveToken(color, tokenIndex, roll, isLocal, explicitNextTurn = null, isExtraTurn = false) {
       const token = tokens[color][tokenIndex];
       if (!token) return;
 
@@ -766,30 +774,57 @@
       renderBoard();
       updateStatusBar();
 
-      if (isLocal && isPartyMode) {
-        sendPartyAction({
-          action: 'LUDO_MOVE',
-          playerColor: color,
-          tokenIndex: tokenIndex,
-          roll: roll,
-          captured: captured
-        });
-      }
-
       // Check Victory
       if (tokens[color].every(t => t.isHome)) {
         finishGame(color);
+        if (isLocal && isPartyMode) {
+          sendPartyAction({
+            action: 'LUDO_MOVE',
+            playerColor: color,
+            tokenIndex: tokenIndex,
+            roll: roll,
+            captured: captured,
+            isGameOver: true
+          });
+        }
         return;
       }
 
-      // 6 rolled or token captured: Extra turn!
-      if (roll === 6 || captured) {
+      const getsExtraTurn = (roll === 6 || captured);
+
+      if (isLocal) {
+        if (isPartyMode) {
+          const nextTurn = getsExtraTurn ? currentTurnIndex : ((currentTurnIndex + 1) % activePlayers.length);
+          sendPartyAction({
+            action: 'LUDO_MOVE',
+            playerColor: color,
+            tokenIndex: tokenIndex,
+            roll: roll,
+            captured: captured,
+            nextTurnIndex: nextTurn,
+            extraTurn: getsExtraTurn
+          });
+        }
+
+        if (getsExtraTurn) {
+          hasRolled = false;
+          diceValue = null;
+          isRolling = false;
+          updateTurnDisplay(true);
+          maybeRunBotTurn();
+        } else {
+          advanceTurn(true);
+        }
+      } else {
+        // Remote move applied
+        if (explicitNextTurn !== null && explicitNextTurn !== undefined) {
+          currentTurnIndex = explicitNextTurn;
+        }
         hasRolled = false;
         diceValue = null;
-        updateTurnDisplay(true);
-        if (isLocal) maybeRunBotTurn();
-      } else {
-        advanceTurn();
+        isRolling = false;
+        updateTurnDisplay(isExtraTurn);
+        renderBoard();
       }
     }
 
@@ -820,12 +855,19 @@
       return didCapture;
     }
 
-    function advanceTurn() {
+    function advanceTurn(syncToParty = false) {
       currentTurnIndex = (currentTurnIndex + 1) % activePlayers.length;
       hasRolled = false;
       diceValue = null;
-      updateTurnDisplay();
+      isRolling = false;
+      updateTurnDisplay(false);
       renderBoard();
+      if (syncToParty && isPartyMode) {
+        sendPartyAction({
+          action: 'LUDO_TURN_ADVANCE',
+          nextTurnIndex: currentTurnIndex
+        });
+      }
       maybeRunBotTurn();
     }
 
@@ -866,7 +908,9 @@
 
           if (movable.length === 0) {
             document.getElementById('actionHint').textContent = `Bot rolled ${botRoll} (No moves)`;
-            setTimeout(advanceTurn, 1000);
+            setTimeout(() => {
+              advanceTurn(true);
+            }, 1000);
           } else {
             // Priority: open or advance
             let chosen = movable[0];
@@ -899,6 +943,9 @@
       if (!data) return;
 
       if (data.action === 'LUDO_ROLL') {
+        if (data.playerIndex !== undefined) {
+          currentTurnIndex = data.playerIndex;
+        }
         const cube = document.getElementById('diceCube');
         cube.classList.add('rolling');
         playSfx('roll');
@@ -913,17 +960,47 @@
           const p = activePlayers[currentTurnIndex];
           const name = p ? p.username : 'Opponent';
           document.getElementById('diceLabel').textContent = `${name} Rolled: ${diceValue}`;
+
+          const color = p ? p.color : null;
+          if (color) {
+            const movable = tokens[color]
+              .map((t, idx) => ({ t, idx }))
+              .filter(item => canPawnMove(item.t, diceValue));
+            if (movable.length === 0) {
+              document.getElementById('actionHint').textContent = `${name} has no moves for ${diceValue}.`;
+              // Safety net: in case LUDO_TURN_ADVANCE packet is dropped or delayed, auto-advance after 1.2s
+              setTimeout(() => {
+                if (currentTurnIndex === data.playerIndex && hasRolled) {
+                  advanceTurn(false);
+                }
+              }, 1200);
+            }
+          }
           renderBoard();
         }, 400);
       } else if (data.action === 'LUDO_MOVE') {
-        executeMoveToken(data.playerColor, data.tokenIndex, data.roll, false);
+        executeMoveToken(data.playerColor, data.tokenIndex, data.roll, false, data.nextTurnIndex, data.extraTurn);
+      } else if (data.action === 'LUDO_TURN_ADVANCE') {
+        if (data.nextTurnIndex !== undefined) {
+          currentTurnIndex = data.nextTurnIndex;
+        } else {
+          currentTurnIndex = (currentTurnIndex + 1) % activePlayers.length;
+        }
+        hasRolled = false;
+        diceValue = null;
+        isRolling = false;
+        updateTurnDisplay(false);
+        renderBoard();
+        maybeRunBotTurn();
       }
     }
 
     window.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'PARTY_GAME_UPDATE') {
         const payload = event.data.actionData || event.data;
-        if (event.data.senderId && event.data.senderId === myUserId) return;
+        if (event.data.senderId && myUserId && String(event.data.senderId) === String(myUserId)) {
+          return;
+        }
         handleRemotePartyAction(payload);
       }
     });

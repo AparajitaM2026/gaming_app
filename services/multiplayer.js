@@ -483,7 +483,7 @@ function setupMultiplayer(wss) {
             if (!room || room.status !== 'PLAYING') return;
 
             // Realtime Ludo Hero & Board Games Action Synchronization
-            if (msg.gameSlug === 'ludo-hero-ai' || msg.action === 'LUDO_ACTION' || msg.action === 'LUDO_ROLL' || msg.action === 'LUDO_MOVE') {
+            if (msg.gameSlug === 'ludo-hero-ai' || (msg.action && msg.action.startsWith('LUDO_')) || msg.action === 'BOARD_ACTION') {
               broadcastToParty(room, {
                 type: 'PARTY_GAME_UPDATE',
                 roomCode: room.code,

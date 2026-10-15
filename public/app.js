@@ -761,7 +761,7 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
   let gameModeParam = '';
   if (window.activePartySession && window.activePartySession.slug === slug) {
     const sess = window.activePartySession;
-    gameModeParam = `?mode=party&room=${encodeURIComponent(sess.roomCode)}&myId=${encodeURIComponent(sess.myUser?.id || '')}&players=${encodeURIComponent(JSON.stringify(sess.players || []))}`;
+    gameModeParam = `?mode=party&room=${encodeURIComponent(sess.roomCode)}&myId=${encodeURIComponent(sess.myUser?.id || '')}&myUsername=${encodeURIComponent(sess.myUser?.username || '')}&players=${encodeURIComponent(JSON.stringify(sess.players || []))}`;
   } else if (isPassAndPlay) {
     gameModeParam = '?mode=passplay';
   }
