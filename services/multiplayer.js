@@ -581,6 +581,17 @@ function setupMultiplayer(wss) {
                 }
               }
             }
+
+            // GENERIC MULTIPLAYER GAME EVENT & MOVE RELAY
+            else {
+              broadcastToParty(room, {
+                type: 'PARTY_GAME_SYNC',
+                roomCode: room.code,
+                senderId: currentUser.id,
+                action: action || 'GAME_SYNC',
+                data: data || msg.data || {}
+              }, ws);
+            }
             break;
           }
 

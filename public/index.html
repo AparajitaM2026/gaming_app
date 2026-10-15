@@ -719,10 +719,69 @@
       </div>
     </div>
 
+    <!-- MULTIPLAYER LIVE PARTY HUD BAR (Appears when in a Friends Room) -->
+    <div id="theaterPartyLiveBar" class="hidden bg-gradient-to-r from-fuchsia-950/90 via-slate-900/95 to-pink-950/90 border-b border-fuchsia-500/40 px-3 sm:px-5 py-1.5 sm:py-2 flex items-center justify-between gap-2 z-40 text-xs shrink-0">
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+        <span class="px-2.5 py-0.5 rounded-lg bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-400/40 font-extrabold uppercase text-[10px] flex items-center gap-1.5 shrink-0">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> LIVE ROOM
+        </span>
+        <span class="text-gray-300 font-bold text-[11px] sm:text-xs shrink-0">
+          Code: <span id="theaterPartyRoomCode" class="text-cyan-300 font-mono font-black tracking-wider cursor-pointer hover:underline" onclick="copyPartyCode()" title="Click to copy room code">VX-0000</span>
+        </span>
+        <!-- Connected Players in this Room -->
+        <div id="theaterPartyPlayersList" class="flex items-center -space-x-1.5 shrink-0">
+          <!-- Populated dynamically with player avatars -->
+        </div>
+      </div>
+
+      <!-- Quick Emoji Reactions & Chat Button -->
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <div class="flex items-center gap-1 bg-black/60 px-2 py-0.5 rounded-xl border border-white/10 text-base">
+          <button onclick="sendPartyEmoji('🔥')" class="hover:scale-125 transition-transform cursor-pointer" title="Fire">🔥</button>
+          <button onclick="sendPartyEmoji('👏')" class="hover:scale-125 transition-transform cursor-pointer" title="Clap">👏</button>
+          <button onclick="sendPartyEmoji('😂')" class="hover:scale-125 transition-transform cursor-pointer" title="Laugh">😂</button>
+          <button onclick="sendPartyEmoji('👑')" class="hover:scale-125 transition-transform cursor-pointer" title="Crown">👑</button>
+          <button onclick="sendPartyEmoji('💀')" class="hover:scale-125 transition-transform cursor-pointer" title="Skull">💀</button>
+          <button onclick="sendPartyEmoji('🎲')" class="hover:scale-125 transition-transform cursor-pointer" title="Dice">🎲</button>
+        </div>
+        <button onclick="toggleTheaterPartyChat()" title="Party Chat" class="px-2.5 py-1 rounded-xl bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 hover:text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-comments"></i>
+          <span class="hidden sm:inline">Chat</span>
+        </button>
+        <button onclick="leavePartyRoom()" title="Leave Party Room" class="px-2.5 py-1 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 hover:bg-red-900/60 font-bold text-xs cursor-pointer">
+          Leave Room
+        </button>
+      </div>
+    </div>
+
     <!-- Centered Responsive Arcade Cabinet Container -->
     <div class="flex-1 w-full min-h-0 relative bg-[#04060d] flex items-center justify-center p-0 sm:p-1.5 overflow-hidden">
       <div id="theaterFrameContainer" onclick="document.getElementById('gameTheaterFrame')?.focus()" class="w-full h-full max-w-full max-h-full bg-black rounded-none sm:rounded-2xl overflow-hidden shadow-2xl border-0 sm:border border-white/10 transition-all duration-300 flex items-center justify-center relative">
         <iframe id="gameTheaterFrame" src="about:blank" class="w-full h-full border-0" allow="autoplay; fullscreen; gamepad; keyboard-map; clipboard-write; accelerometer; gyroscope"></iframe>
+        
+        <!-- Floating Live Emoji Reaction Layer -->
+        <div id="theaterFloatingEmojiLayer" class="pointer-events-none absolute inset-0 z-30 overflow-hidden"></div>
+
+        <!-- Slide-out In-Game Party Chat Drawer -->
+        <div id="theaterPartyChatDrawer" class="hidden absolute top-3 right-3 bottom-3 w-72 bg-slate-950/95 border border-fuchsia-500/40 rounded-2xl shadow-2xl flex flex-col z-40 p-3 space-y-2 backdrop-blur-md">
+          <div class="flex items-center justify-between pb-1.5 border-b border-white/10">
+            <span class="font-extrabold text-white text-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-comments text-cyan-400"></i> Party Live Chat
+            </span>
+            <button onclick="toggleTheaterPartyChat()" class="text-gray-400 hover:text-white text-xs cursor-pointer">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div id="theaterPartyChatMessages" class="flex-1 overflow-y-auto space-y-2 text-xs no-scrollbar">
+            <div class="text-[11px] text-gray-400 text-center py-2">Start chatting with your party!</div>
+          </div>
+          <form onsubmit="sendTheaterPartyChatMessage(event)" class="flex gap-1.5 pt-1 border-t border-white/10">
+            <input type="text" id="theaterPartyChatInput" placeholder="Type a message..." maxlength="80" class="flex-1 px-2.5 py-1 rounded-lg bg-black/60 border border-white/15 text-white text-xs focus:border-cyan-400 outline-none">
+            <button type="submit" class="px-2.5 py-1 rounded-lg bg-cyan-500 text-black font-extrabold text-xs hover:bg-cyan-400 transition-colors cursor-pointer">
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </form>
+        </div>
       </div>
     </div>
 
@@ -1227,6 +1286,142 @@
   </div>
 
   <!-- ======================================================== -->
+  <!-- MODAL: LUDO KING STYLE GAME MODE SELECTOR -->
+  <!-- (Play vs Computer / AI OR Play with Friends Private Room) -->
+  <!-- ======================================================== -->
+  <div id="gameModeSelectModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-md">
+    <div class="relative w-full max-w-xl bg-portalCard border-2 border-fuchsia-500/50 rounded-3xl p-5 sm:p-6 shadow-2xl shadow-pink-500/30 space-y-4 max-h-[95vh] overflow-y-auto no-scrollbar">
+      
+      <!-- Close Button -->
+      <button onclick="closeGameModeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors cursor-pointer z-20">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+
+      <!-- Modal Header with Game Info -->
+      <div class="flex items-center gap-3.5 pb-2 border-b border-white/10">
+        <img id="gameModePosterImg" src="" alt="Poster" class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-2 border-fuchsia-500/40 object-cover shadow-lg bg-slate-900 shrink-0">
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2">
+            <span id="gameModeCategoryBadge" class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/40">VIP 3D EXCLUSIVE</span>
+            <span class="text-[10px] text-amber-300 font-bold"><i class="fa-solid fa-coins mr-1"></i>+10 Coins</span>
+          </div>
+          <h3 id="gameModeGameTitle" class="text-lg sm:text-xl font-orbitron font-black text-white truncate mt-0.5">Game Title</h3>
+          <p class="text-xs text-gray-300 font-medium">Khelne ka tareeka chunein (Choose How to Play)</p>
+        </div>
+      </div>
+
+      <!-- 4 LUDO KING STYLE MODE CARDS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+        
+        <!-- MODE 1: PLAY WITH COMPUTER / BOT (AI) -->
+        <div onclick="launchSelectedGameSolo()" class="p-4 rounded-2xl bg-gradient-to-br from-emerald-950/70 via-slate-900/90 to-slate-900 border-2 border-emerald-500/40 hover:border-emerald-400 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer group shadow-lg shadow-emerald-500/10 flex flex-col justify-between min-h-[140px]">
+          <div>
+            <div class="flex items-center justify-between">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/50 flex items-center justify-center text-emerald-400 text-xl group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-robot"></i>
+              </div>
+              <span class="text-[9px] font-black uppercase tracking-wider text-emerald-400 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30">1-TAP PLAY</span>
+            </div>
+            <h4 class="font-orbitron font-extrabold text-white text-sm sm:text-base mt-2.5 group-hover:text-emerald-300 transition-colors">
+              Play vs Computer
+            </h4>
+            <p class="text-[11px] text-gray-300 mt-1 line-clamp-2">
+              Solo match against intelligent AI bot. Practice moves & earn coins instantly!
+            </p>
+          </div>
+          <div class="mt-3 flex items-center justify-between text-xs font-black text-emerald-400">
+            <span>▶ PLAY WITH BOT</span>
+            <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+          </div>
+        </div>
+
+        <!-- MODE 2: PLAY WITH FRIENDS (MULTIPLAYER ROOM) -->
+        <div onclick="openCreatePartyForSelectedGame()" class="p-4 rounded-2xl bg-gradient-to-br from-fuchsia-950/80 via-slate-900/90 to-pink-950/80 border-2 border-fuchsia-500/50 hover:border-fuchsia-400 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer group shadow-lg shadow-pink-500/20 flex flex-col justify-between min-h-[140px] relative overflow-hidden">
+          <div class="absolute -right-3 -top-3 w-16 h-16 bg-pink-500/10 rounded-full blur-xl pointer-events-none"></div>
+          <div>
+            <div class="flex items-center justify-between">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-fuchsia-600 to-pink-600 flex items-center justify-center text-white text-xl group-hover:scale-110 transition-transform shadow-md shadow-pink-500/40">
+                <i class="fa-solid fa-users"></i>
+              </div>
+              <span class="text-[9px] font-black uppercase tracking-wider text-pink-300 px-2 py-0.5 rounded-full bg-pink-500/20 border border-pink-400/40">LUDO KING STYLE</span>
+            </div>
+            <h4 class="font-orbitron font-extrabold text-white text-sm sm:text-base mt-2.5 group-hover:text-pink-300 transition-colors">
+              Play with Friends
+            </h4>
+            <p class="text-[11px] text-gray-300 mt-1 line-clamp-2">
+              Create 6-digit room, share on WhatsApp, or join your friend's live match!
+            </p>
+          </div>
+          <div class="mt-3 flex items-center justify-between text-xs font-black text-pink-400">
+            <span>👥 CREATE / JOIN ROOM</span>
+            <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+          </div>
+        </div>
+
+        <!-- MODE 3: ONLINE QUICK 1v1 MATCH -->
+        <div onclick="startQuickMatchForSelectedGame()" class="p-4 rounded-2xl bg-gradient-to-br from-cyan-950/70 via-slate-900/90 to-slate-900 border-2 border-cyan-500/40 hover:border-cyan-400 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer group shadow-lg shadow-cyan-500/10 flex flex-col justify-between min-h-[140px]">
+          <div>
+            <div class="flex items-center justify-between">
+              <div class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-400/50 flex items-center justify-center text-cyan-400 text-xl group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-bolt"></i>
+              </div>
+              <span class="text-[9px] font-black uppercase tracking-wider text-cyan-300 px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/30">ONLINE 1v1</span>
+            </div>
+            <h4 class="font-orbitron font-extrabold text-white text-sm sm:text-base mt-2.5 group-hover:text-cyan-300 transition-colors">
+              Online Matchmaking
+            </h4>
+            <p class="text-[11px] text-gray-300 mt-1 line-clamp-2">
+              Match with active online players in 5 seconds. Winner takes coin pool!
+            </p>
+          </div>
+          <div class="mt-3 flex items-center justify-between text-xs font-black text-cyan-400">
+            <span>⚡ QUICK MATCH</span>
+            <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+          </div>
+        </div>
+
+        <!-- MODE 4: PASS & PLAY (LOCAL 2-PLAYER) -->
+        <div onclick="launchSelectedGamePassPlay()" class="p-4 rounded-2xl bg-gradient-to-br from-amber-950/70 via-slate-900/90 to-slate-900 border-2 border-amber-500/40 hover:border-amber-400 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer group shadow-lg shadow-amber-500/10 flex flex-col justify-between min-h-[140px]">
+          <div>
+            <div class="flex items-center justify-between">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/50 flex items-center justify-center text-amber-400 text-xl group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-mobile-screen"></i>
+              </div>
+              <span class="text-[9px] font-black uppercase tracking-wider text-amber-300 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/30">SAME SCREEN</span>
+            </div>
+            <h4 class="font-orbitron font-extrabold text-white text-sm sm:text-base mt-2.5 group-hover:text-amber-300 transition-colors">
+              Pass & Play (Local 2P)
+            </h4>
+            <p class="text-[11px] text-gray-300 mt-1 line-clamp-2">
+              Two players take turns on the same device. Perfect for playing side-by-side!
+            </p>
+          </div>
+          <div class="mt-3 flex items-center justify-between text-xs font-black text-amber-400">
+            <span>📱 PASS & PLAY</span>
+            <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- QUICK JOIN ROOM WITH CODE ACCORDION / BAR -->
+      <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-white/15 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-key text-fuchsia-400 text-sm"></i>
+          <span class="font-bold text-gray-200">Have a friend's room code?</span>
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <input type="text" id="modeModalJoinCodeInput" placeholder="e.g. VX-8492" maxlength="8" class="flex-1 sm:w-32 px-3 py-1.5 rounded-xl bg-black/60 border border-white/20 text-white font-mono uppercase font-black tracking-wider text-center focus:border-cyan-400 outline-none">
+          <button onclick="joinRoomFromModeModal()" class="px-4 py-1.5 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white font-extrabold text-xs uppercase hover:scale-105 active:scale-95 transition-all cursor-pointer">
+            JOIN
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
   <!-- MODAL: VOLTIXZ MULTIPLAYER & PARTY ARENA (REALTIME WEBSOCKET) -->
   <!-- ======================================================== -->
   <div id="partyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-md">
@@ -1312,22 +1507,70 @@
         <div id="partyTabContentHost" class="hidden space-y-4">
           <div class="p-4 rounded-2xl bg-slate-900/80 border border-white/10 space-y-4">
             <div>
-              <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">Select Game</label>
-              <div class="grid grid-cols-2 gap-3 text-xs">
-                <label class="p-3 rounded-xl border border-fuchsia-500/60 bg-fuchsia-950/30 flex items-center gap-2.5 cursor-pointer hover:border-fuchsia-400 transition-all">
-                  <input type="radio" name="partyGameChoice" value="dice-duel" checked class="accent-pink-500">
-                  <div>
-                    <span class="font-extrabold text-white block">🎲 Neon Dice Duel</span>
-                    <span class="text-[10px] text-gray-400">Race to 30 on neon track</span>
-                  </div>
+              <div class="flex items-center justify-between mb-2">
+                <label class="text-xs font-bold text-gray-200 uppercase tracking-wider">Select Game to Host</label>
+                <span class="text-[10px] text-pink-400 font-bold">Ludo King & 1v1 Party</span>
+              </div>
+              
+              <!-- TOP 8 MULTIPLAYER GAMES SELECTION GRID -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs" id="partyGameChoiceGrid">
+                
+                <label class="p-2.5 rounded-xl border-2 border-pink-500/80 bg-pink-950/40 flex flex-col items-center justify-center text-center gap-1 cursor-pointer hover:border-pink-400 transition-all party-game-radio-card" data-slug="ludo-hero-ai">
+                  <input type="radio" name="partyGameChoice" value="ludo-hero-ai" checked class="hidden">
+                  <span class="text-xl">🎲</span>
+                  <span class="font-extrabold text-white text-[11px] block truncate w-full">Ludo Hero</span>
+                  <span class="text-[9px] text-pink-300 font-bold">4-Player Classic</span>
                 </label>
-                <label class="p-3 rounded-xl border border-white/15 bg-slate-900 flex items-center gap-2.5 cursor-pointer hover:border-cyan-400 transition-all">
-                  <input type="radio" name="partyGameChoice" value="tictactoe-neon" class="accent-cyan-400">
-                  <div>
-                    <span class="font-extrabold text-white block">⭕❌ Neon Tic-Tac-Toe</span>
-                    <span class="text-[10px] text-gray-400">1v1 Instant Duel</span>
-                  </div>
+
+                <label class="p-2.5 rounded-xl border border-white/15 bg-slate-900/90 flex flex-col items-center justify-center text-center gap-1 cursor-pointer hover:border-cyan-400 transition-all party-game-radio-card" data-slug="tictactoe-neon">
+                  <input type="radio" name="partyGameChoice" value="tictactoe-neon" class="hidden">
+                  <span class="text-xl">⭕❌</span>
+                  <span class="font-extrabold text-white text-[11px] block truncate w-full">Tic-Tac-Toe</span>
+                  <span class="text-[9px] text-cyan-300 font-bold">1v1 Instant Duel</span>
                 </label>
+
+                <label class="p-2.5 rounded-xl border border-white/15 bg-slate-900/90 flex flex-col items-center justify-center text-center gap-1 cursor-pointer hover:border-fuchsia-400 transition-all party-game-radio-card" data-slug="dice-duel">
+                  <input type="radio" name="partyGameChoice" value="dice-duel" class="hidden">
+                  <span class="text-xl">🎲⚡</span>
+                  <span class="font-extrabold text-white text-[11px] block truncate w-full">Dice Duel</span>
+                  <span class="text-[9px] text-gray-400 font-bold">Race to 30</span>
+                </label>
+
+                <label class="p-2.5 rounded-xl border border-white/15 bg-slate-900/90 flex flex-col items-center justify-center text-center gap-1 cursor-pointer hover:border-amber-400 transition-all party-game-radio-card" data-slug="carrom-clash-ai">
+                  <input type="radio" name="partyGameChoice" value="carrom-clash-ai" class="hidden">
+                  <span class="text-xl">🔴⚪</span>
+                  <span class="font-extrabold text-white text-[11px] block truncate w-full">Carrom Clash</span>
+                  <span class="text-[9px] text-amber-300 font-bold">Striker Battle</span>
+                </label>
+
+                <label class="p-2.5 rounded-xl border border-white/15 bg-slate-900/90 flex flex-col items-center justify-center text-center gap-1 cursor-pointer hover:border-emerald-400 transition-all party-game-radio-card" data-slug="chess-master-ai">
+                  <input type="radio" name="partyGameChoice" value="chess-master-ai" class="hidden">
+                  <span class="text-xl">♟️</span>
+                  <span class="font-extrabold text-white text-[11px] block truncate w-full">Chess Master</span>
+                  <span class="text-[9px] text-emerald-300 font-bold">Grandmaster 1v1</span>
+                </label>
+
+                <label class="p-2.5 rounded-xl border border-white/15 bg-slate-900/90 flex flex-col items-center justify-center text-center gap-1 cursor-pointer hover:border-rose-400 transition-all party-game-radio-card" data-slug="checkers-classic-ai">
+                  <input type="radio" name="partyGameChoice" value="checkers-classic-ai" class="hidden">
+                  <span class="text-xl">👑</span>
+                  <span class="font-extrabold text-white text-[11px] block truncate w-full">Checkers</span>
+                  <span class="text-[9px] text-rose-300 font-bold">Crown Battle</span>
+                </label>
+
+                <label class="p-2.5 rounded-xl border border-white/15 bg-slate-900/90 flex flex-col items-center justify-center text-center gap-1 cursor-pointer hover:border-yellow-400 transition-all party-game-radio-card" data-slug="connect4-arena-ai">
+                  <input type="radio" name="partyGameChoice" value="connect4-arena-ai" class="hidden">
+                  <span class="text-xl">🟡🔴</span>
+                  <span class="font-extrabold text-white text-[11px] block truncate w-full">Connect 4</span>
+                  <span class="text-[9px] text-yellow-300 font-bold">Drop 4 in Row</span>
+                </label>
+
+                <label class="p-2.5 rounded-xl border border-white/15 bg-slate-900/90 flex flex-col items-center justify-center text-center gap-1 cursor-pointer hover:border-indigo-400 transition-all party-game-radio-card" data-slug="8-ball-billiards-classic">
+                  <input type="radio" name="partyGameChoice" value="8-ball-billiards-classic" class="hidden">
+                  <span class="text-xl">🎱</span>
+                  <span class="font-extrabold text-white text-[11px] block truncate w-full">8-Ball Pool</span>
+                  <span class="text-[9px] text-indigo-300 font-bold">Cue Master</span>
+                </label>
+
               </div>
             </div>
 

@@ -585,7 +585,121 @@ window.addEventListener('resize', () => {
   }
 });
 
-async function launchGameBySlug(slug) {
+let selectedModeGameSlug = null;
+
+function openGameModeModal(slug) {
+  selectedModeGameSlug = slug;
+  let game = window.gameMap[slug];
+  if (!game && (!window.allFreeGames || window.allFreeGames.length === 0)) {
+    game = { slug, title: slug, category: 'VIP 3D' };
+  }
+  if (!game) {
+    if (slug === 'snake') game = window.gameMap['classic-snake'];
+    if (slug === 'classic-snake') game = window.gameMap['snake'];
+    if (slug === '2048') game = window.gameMap['2048-galaxy'];
+  }
+  if (!game) {
+    return launchGameBySlug(slug, true);
+  }
+
+  const modal = document.getElementById('gameModeSelectModal');
+  const titleEl = document.getElementById('gameModeGameTitle');
+  const badgeEl = document.getElementById('gameModeCategoryBadge');
+  const posterEl = document.getElementById('gameModePosterImg');
+
+  const cleanTitle = cleanGameTitle(game.title);
+  if (titleEl) titleEl.textContent = cleanTitle;
+
+  const isPremium = game.is_premium || game.category === 'premium' || (game.game_url || '').includes('ottsol.cloud');
+  if (badgeEl) {
+    if (isPremium) {
+      badgeEl.textContent = '👑 VIP 3D EXCLUSIVE';
+      badgeEl.className = 'text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40';
+    } else {
+      badgeEl.textContent = (game.category || 'ARCADE').toUpperCase() + ' ARENA';
+      badgeEl.className = 'text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/40';
+    }
+  }
+
+  if (posterEl) {
+    posterEl.src = game.thumbnail || `/assets/posters/${game.slug}.svg`;
+  }
+
+  if (modal) {
+    modal.classList.remove('hidden');
+    playArcadeSound('click');
+  }
+}
+
+function closeGameModeModal() {
+  const modal = document.getElementById('gameModeSelectModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function launchSelectedGameSolo() {
+  const slug = selectedModeGameSlug;
+  closeGameModeModal();
+  if (slug) {
+    launchGameBySlug(slug, true);
+  }
+}
+
+function openCreatePartyForSelectedGame() {
+  const slug = selectedModeGameSlug;
+  closeGameModeModal();
+  if (!slug) return;
+
+  openPartyModal();
+  switchPartyTab('host');
+
+  const radio = document.querySelector(`input[name="partyGameChoice"][value="${slug}"]`);
+  if (radio) {
+    radio.checked = true;
+    updatePartyChoiceCardHighlight(slug);
+  }
+
+  createPartyRoom(slug);
+}
+
+function startQuickMatchForSelectedGame() {
+  const slug = selectedModeGameSlug;
+  closeGameModeModal();
+  openPartyModal();
+  switchPartyTab('quick');
+  startQuickMatchmaking(slug);
+}
+
+function launchSelectedGamePassPlay() {
+  const slug = selectedModeGameSlug;
+  closeGameModeModal();
+  if (slug) {
+    launchGameBySlug(slug, true, true);
+  }
+}
+
+function joinRoomFromModeModal() {
+  const input = document.getElementById('modeModalJoinCodeInput');
+  const code = (input?.value || '').trim();
+  if (!code) {
+    if (input) {
+      input.focus();
+      input.classList.add('border-rose-500');
+      setTimeout(() => input.classList.remove('border-rose-500'), 2000);
+    }
+    return;
+  }
+  closeGameModeModal();
+  openPartyModal();
+  switchPartyTab('join');
+  joinPartyRoom(code);
+}
+
+async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false) {
+  // If not forcing direct play, open Ludo King style Game Mode Selector!
+  if (!forceDirect) {
+    return openGameModeModal(slug);
+  }
+
   let game = window.gameMap[slug];
   if (!game && (!window.allFreeGames || window.allFreeGames.length === 0)) {
     try {
@@ -623,19 +737,20 @@ async function launchGameBySlug(slug) {
     setTheaterSize('wide');
   }
 
-  // In-House Polished AI & Board Games
+  // In-House Polished AI & Board Games (with Pass & Play support)
+  const passParam = isPassAndPlay ? '?mode=passplay' : '';
   if (slug === 'ludo-hero-ai' || slug === 'ludo') {
-    playUrl = '/games/ludo_ai.html';
+    playUrl = '/games/ludo_ai.html' + passParam;
   } else if (slug === 'carrom-clash-ai' || slug === 'carrom-pool') {
-    playUrl = '/games/carrom_ai.html';
+    playUrl = '/games/carrom_ai.html' + passParam;
   } else if (slug === 'chess-master-ai' || slug === 'chess') {
-    playUrl = '/games/chess_ai.html';
+    playUrl = '/games/chess_ai.html' + passParam;
   } else if (slug === 'checkers-classic-ai' || slug === 'checkers') {
-    playUrl = '/games/checkers_ai.html';
+    playUrl = '/games/checkers_ai.html' + passParam;
   } else if (slug === 'connect4-arena-ai' || slug === 'connect-4' || slug === 'connect4') {
-    playUrl = '/games/connect4_ai.html';
+    playUrl = '/games/connect4_ai.html' + passParam;
   } else if (slug === 'tictactoe-neon-ai' || slug === 'tic-tac-toe' || slug === 'tictactoe') {
-    playUrl = '/games/tictactoe_ai.html';
+    playUrl = '/games/tictactoe_ai.html' + passParam;
   } else if (slug === 'neon-runner') {
     playUrl = '/games/runner.html?title=' + encodeURIComponent(title);
   } else if (playUrl && playUrl.startsWith('http')) {
@@ -3010,8 +3125,15 @@ function handlePartySocketMessage(msg) {
     case 'PARTY_GAME_STARTED':
       partyGameState = msg.gameState;
       partyCurrentRoom.players = msg.players;
-      showPartyScreen('arena');
-      initGameArena(msg.gameSlug, msg.players, msg.currentTurn, msg.gameState);
+      
+      // If native dice duel or tic-tac-toe arena:
+      if (msg.gameSlug === 'dice-duel' || msg.gameSlug === 'tictactoe-neon') {
+        showPartyScreen('arena');
+        initGameArena(msg.gameSlug, msg.players, msg.currentTurn, msg.gameState);
+      } else {
+        // Launch full game in theater with Live Party Room HUD for ALL players!
+        launchPartyTheaterGame(msg.gameSlug, msg.roomCode, msg.players);
+      }
       playArcadeSound('click');
       break;
 
@@ -3176,9 +3298,11 @@ function cancelQuickMatch() {
 // -------------------------------------------------------------
 // PRIVATE PARTY HOST & JOIN
 // -------------------------------------------------------------
-function createPartyRoom() {
+// PRIVATE PARTY HOST & JOIN
+// -------------------------------------------------------------
+function createPartyRoom(explicitSlug = null) {
   ensurePartyWebSocket(() => {
-    const gameChoice = document.querySelector('input[name="partyGameChoice"]:checked')?.value || 'dice-duel';
+    const gameChoice = explicitSlug || document.querySelector('input[name="partyGameChoice"]:checked')?.value || 'ludo-hero-ai';
     const maxPlayers = parseInt(document.querySelector('input[name="partyMaxPlayers"]:checked')?.value) || 4;
 
     partyWs.send(JSON.stringify({
@@ -3189,6 +3313,33 @@ function createPartyRoom() {
     playArcadeSound('click');
   });
 }
+
+function updatePartyChoiceCardHighlight(slug) {
+  const cards = document.querySelectorAll('.party-game-radio-card');
+  cards.forEach(c => {
+    const cardSlug = c.getAttribute('data-slug');
+    if (cardSlug === slug) {
+      c.classList.remove('border-white/15', 'bg-slate-900/90');
+      c.classList.add('border-2', 'border-pink-500/80', 'bg-pink-950/40');
+      const radio = c.querySelector('input[type="radio"]');
+      if (radio) radio.checked = true;
+    } else {
+      c.classList.remove('border-2', 'border-pink-500/80', 'bg-pink-950/40');
+      c.classList.add('border', 'border-white/15', 'bg-slate-900/90');
+    }
+  });
+}
+
+document.addEventListener('click', (e) => {
+  const card = e.target.closest('.party-game-radio-card');
+  if (card) {
+    const slug = card.getAttribute('data-slug');
+    if (slug) {
+      updatePartyChoiceCardHighlight(slug);
+      playArcadeSound('click');
+    }
+  }
+});
 
 function joinPartyRoom(codeFromUrl) {
   const inputEl = document.getElementById('partyJoinCodeInput');
@@ -3233,6 +3384,8 @@ function leavePartyRoom() {
     partyWs.send(JSON.stringify({ type: 'PARTY_LEAVE' }));
   }
   partyCurrentRoom = null;
+  const partyBar = document.getElementById('theaterPartyLiveBar');
+  if (partyBar) partyBar.classList.add('hidden');
   showPartyScreen('modeSelect');
   playArcadeSound('click');
 }
@@ -3269,6 +3422,94 @@ function copyPartyInviteLink() {
   playArcadeSound('click');
 }
 
+function sharePartyOnWhatsApp() {
+  if (!partyCurrentRoom?.code) return;
+  const link = `${window.location.origin}/?party=${encodeURIComponent(partyCurrentRoom.code)}`;
+  const text = `🎮 Join my game room on Voltixz Arena!\n🔑 Room Code: *${partyCurrentRoom.code}*\n⚡ Tap link to join & play now: ${link}`;
+  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+}
+
+// Launch full game in theater with live party HUD
+function launchPartyTheaterGame(slug, roomCode, players) {
+  closePartyModal();
+  closeGameModeModal();
+
+  // Launch game in theater directly
+  launchGameBySlug(slug, true);
+
+  const partyBar = document.getElementById('theaterPartyLiveBar');
+  const codeEl = document.getElementById('theaterPartyRoomCode');
+  const playersList = document.getElementById('theaterPartyPlayersList');
+
+  if (partyBar) partyBar.classList.remove('hidden');
+  if (codeEl) codeEl.textContent = roomCode;
+
+  if (playersList && Array.isArray(players)) {
+    playersList.innerHTML = players.map(p => `
+      <img src="${p.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + p.username}" 
+           title="${p.username} ${p.isBot ? '(BOT)' : ''}" 
+           class="w-6 h-6 rounded-full border-2 border-slate-900 object-cover bg-slate-800" 
+           style="border-color: ${p.color || '#00F0FF'}">
+    `).join('');
+  }
+}
+
+function sendPartyEmoji(emoji) {
+  if (partyWs && partyWs.readyState === WebSocket.OPEN && partyCurrentRoom) {
+    partyWs.send(JSON.stringify({
+      type: 'PARTY_CHAT',
+      emoji: emoji,
+      text: ''
+    }));
+  }
+  showFloatingEmoji(emoji);
+}
+
+function showFloatingEmoji(emoji) {
+  const layer = document.getElementById('theaterFloatingEmojiLayer');
+  if (!layer) return;
+
+  const el = document.createElement('div');
+  el.textContent = emoji;
+  el.className = 'absolute text-4xl sm:text-5xl select-none transition-all duration-1000';
+  const left = Math.random() * 70 + 15;
+  el.style.left = left + '%';
+  el.style.bottom = '15%';
+  el.style.opacity = '1';
+
+  layer.appendChild(el);
+
+  setTimeout(() => {
+    el.style.transform = 'translateY(-140px) scale(1.5)';
+    el.style.opacity = '0';
+  }, 40);
+
+  setTimeout(() => {
+    el.remove();
+  }, 1200);
+
+  playArcadeSound('click');
+}
+
+function toggleTheaterPartyChat() {
+  const drawer = document.getElementById('theaterPartyChatDrawer');
+  if (drawer) drawer.classList.toggle('hidden');
+}
+
+function sendTheaterPartyChatMessage(e) {
+  e.preventDefault();
+  const input = document.getElementById('theaterPartyChatInput');
+  const text = (input?.value || '').trim();
+  if (!text || !partyWs || !partyCurrentRoom) return;
+
+  partyWs.send(JSON.stringify({
+    type: 'PARTY_CHAT',
+    text: text,
+    emoji: null
+  }));
+  input.value = '';
+}
+
 function renderLobbyView() {
   if (!partyCurrentRoom) return;
 
@@ -3285,7 +3526,18 @@ function renderLobbyView() {
   if (countEl) countEl.textContent = partyCurrentRoom.players.length;
   if (maxCountEl) maxCountEl.textContent = partyCurrentRoom.maxPlayers;
   if (gameBadge) {
-    gameBadge.textContent = partyCurrentRoom.gameSlug === 'tictactoe-neon' ? 'Neon Tic-Tac-Toe' : 'Neon Dice Duel';
+    const g = window.gameMap[partyCurrentRoom.gameSlug];
+    const name = g ? cleanGameTitle(g.title) : (
+      partyCurrentRoom.gameSlug === 'ludo-hero-ai' ? 'Ludo Hero' :
+      partyCurrentRoom.gameSlug === 'carrom-clash-ai' ? 'Carrom Clash' :
+      partyCurrentRoom.gameSlug === 'chess-master-ai' ? 'Chess Master' :
+      partyCurrentRoom.gameSlug === 'checkers-classic-ai' ? 'Checkers Classic' :
+      partyCurrentRoom.gameSlug === 'connect4-arena-ai' ? 'Connect 4' :
+      partyCurrentRoom.gameSlug === 'tictactoe-neon' ? 'Neon Tic-Tac-Toe' :
+      partyCurrentRoom.gameSlug === 'dice-duel' ? 'Neon Dice Duel' :
+      partyCurrentRoom.gameSlug
+    );
+    gameBadge.textContent = '🎮 ' + name;
   }
 
   const isHost = partyMyUser && (
