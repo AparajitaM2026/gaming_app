@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f051d" />
+      <stop offset="100%" stop-color="#05020a" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="brightGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 2 0" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <pattern id="gridPattern" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#a855f7" stroke-width="1" stroke-opacity="0.15" />
+    </pattern>
+  </defs>
+
+  <!-- Background Layer -->
+  <rect width="300" height="300" fill="url(#bgGrad)" />
+  <rect width="300" height="300" fill="url(#gridPattern)" />
+  <circle cx="150" cy="150" r="110" fill="#8b5cf6" opacity="0.16" filter="url(#brightGlow)" />
+
+  <!-- VIP Crown Badge Accent on Artwork -->
+  <g transform="translate(242, 18) scale(0.7)">
+    <polygon points="12,0 16,10 24,4 20,20 4,20 0,4 8,10" fill="#eab308" filter="url(#brightGlow)"/>
+  </g>
+
+  <!-- High-Def Custom 3D Vector Art -->
+  <g transform="translate(0, 0)">
+    
+      <!-- 3D Poly Tunnel / Spaceship -->
+      <polygon points='150,55 215,190 150,170 85,190' fill='#a855f7' stroke='#e9d5ff' stroke-width='3' filter='url(#glow)'/>
+      <polygon points='150,55 150,170 85,190' fill='#7c3aed' opacity='0.85'/>
+      <polygon points='150,55 215,190 150,170' fill='#c084fc' opacity='0.9'/>
+      <!-- Cockpit Core -->
+      <polygon points='150,95 165,145 150,140 135,145' fill='#38bdf8' filter='url(#brightGlow)'/>
+      <!-- Thruster Exhaust -->
+      <polygon points='150,170 162,235 150,215 138,235' fill='#06b6d4' opacity='0.9' filter='url(#brightGlow)'/>
+      <polygon points='150,175 156,250 150,230 144,250' fill='#f43f5e' filter='url(#brightGlow)'/>
+      <!-- Speed Tunnel Rings -->
+      <polygon points='150,25 265,260 35,260' fill='none' stroke='#c084fc' stroke-width='2' stroke-dasharray='12 8' opacity='0.4'/>
+      <polygon points='150,45 225,230 75,230' fill='none' stroke='#06b6d4' stroke-width='2' opacity='0.3'/>
+    
+  </g>
+</svg>

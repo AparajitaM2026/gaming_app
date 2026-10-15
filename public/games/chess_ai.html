@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Master Chess — You vs Smart Computer AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #0B0E1B;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      user-select: none;
+    }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+    
+    .chess-square {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      cursor: pointer;
+      position: relative;
+      transition: background-color 0.15s;
+    }
+    @media (max-width: 480px) {
+      .chess-square { font-size: 1.5rem; }
+    }
+    .sq-white { background: #E2E8F0; color: #0F172A; }
+    .sq-dark { background: #475569; color: #0F172A; }
+    .sq-selected { background: #FDE047 !important; }
+    .sq-valid { 
+      background: #065F46 !important; 
+      cursor: pointer;
+    }
+    .sq-valid:hover {
+      background: #047857 !important;
+    }
+  </style>
+</head>
+<body class="h-full w-full flex flex-col items-center justify-between p-2 sm:p-3 max-w-md mx-auto box-border overflow-hidden">
+
+  <!-- Header -->
+  <div class="w-full shrink-0 space-y-1.5">
+    <div class="w-full flex items-center justify-between bg-slate-900 border border-slate-700/60 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-lg">
+      <div class="flex items-center gap-2">
+        <span class="text-lg">♔</span>
+        <span class="text-xs font-bold text-white">YOU (WHITE)</span>
+      </div>
+      <span class="orbitron font-extrabold text-xs text-amber-300" id="turnStatus">YOUR TURN</span>
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-bold text-purple-300">AI (BLACK)</span>
+        <span class="text-lg text-purple-300">♚</span>
+      </div>
+    </div>
+
+    <!-- Hint Banner -->
+    <div id="chessHint" class="w-full text-center text-[10px] sm:text-[11px] font-semibold text-emerald-300 bg-emerald-950/40 border border-emerald-500/30 px-2 py-1 rounded-lg flex items-center justify-center gap-1.5">
+      <i class="fa-solid fa-chess text-emerald-400"></i>
+      <span id="hintText">Tap any White piece to see valid green move squares!</span>
+    </div>
+  </div>
+
+  <!-- 8x8 Chess Board (Responsive Fit) -->
+  <div class="flex-1 min-h-0 w-full flex items-center justify-center py-1 overflow-hidden">
+    <div class="h-full aspect-square max-w-full p-1 sm:p-1.5 rounded-2xl bg-slate-900 border-2 sm:border-4 border-slate-700 shadow-2xl flex items-center justify-center">
+      <div class="grid grid-cols-8 grid-rows-8 w-full h-full rounded-xl overflow-hidden border border-slate-600" id="board">
+        <!-- 64 squares -->
+      </div>
+    </div>
+  </div>
+
+  <!-- "How to Play" Info Box -->
+  <div class="w-full shrink-0 bg-slate-900/90 border border-slate-700/80 rounded-xl p-2 text-[10px] space-y-1 shadow-lg">
+    <div class="flex items-center justify-between font-bold text-slate-200">
+      <span class="flex items-center gap-1.5 text-amber-400 orbitron text-xs">
+        <i class="fa-solid fa-circle-question"></i> HOW TO PLAY CHESS
+      </span>
+      <span class="text-[10px] text-gray-300">White Moves First</span>
+    </div>
+    <div class="grid grid-cols-2 gap-2 text-slate-300 text-[10.5px]">
+      <div class="bg-slate-950/60 p-2 rounded-xl border border-white/5 space-y-1">
+        <div class="font-bold text-emerald-400">Tap Piece → Tap Green</div>
+        <p class="leading-tight text-gray-300">Select any White piece. Tap highlighted <strong class="text-emerald-400">GREEN</strong> squares to move or capture.</p>
+      </div>
+      <div class="bg-slate-950/60 p-2 rounded-xl border border-white/5 space-y-1">
+        <div class="font-bold text-amber-400">Checkmate King</div>
+        <p class="leading-tight text-gray-300">Pawns move forward, Knights jump in L-shape. Capture the AI's Black King to win!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Deck -->
+  <div class="w-full flex gap-3 pt-2">
+    <button onclick="resetChess()" class="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold orbitron text-xs uppercase shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
+      <i class="fa-solid fa-rotate-right"></i>
+      <span>Reset Game</span>
+    </button>
+    <button onclick="window.parent.closeGameTheater()" class="flex-1 py-3 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-xs hover:bg-white/20 active:scale-95 transition-all flex items-center justify-center gap-2">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span>Exit to Games</span>
+    </button>
+  </div>
+
+  <!-- VICTORY MODAL -->
+  <div id="chessModal" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md rounded-2xl">
+    <div class="w-full max-w-xs bg-slate-900 border border-amber-500/50 rounded-2xl p-5 text-center shadow-2xl space-y-4">
+      <div id="chessIcon" class="w-16 h-16 mx-auto rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-amber-400 text-3xl shadow-lg shadow-amber-500/30">
+        <i class="fa-solid fa-trophy"></i>
+      </div>
+      <div>
+        <h3 id="chessTitle" class="text-xl font-black orbitron text-white">CHECKMATE!</h3>
+        <p id="chessDesc" class="text-xs text-gray-300 mt-1">You checkmated the Black King!</p>
+      </div>
+      <div class="space-y-2 pt-1">
+        <button onclick="resetChess()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-black font-extrabold orbitron text-xs uppercase shadow-lg shadow-amber-500/30 hover:opacity-90 active:scale-95 transition-all">
+          <i class="fa-solid fa-rotate-right mr-1"></i> Play Again
+        </button>
+        <button onclick="window.parent.closeGameTheater()" class="w-full py-2.5 rounded-xl bg-slate-800 border border-white/10 text-white font-bold text-xs hover:bg-slate-700 active:scale-95 transition-all">
+          <i class="fa-solid fa-arrow-left mr-1"></i> Exit to Games
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PIECES = {
+      wP: '♙', wR: '♖', wN: '♘', wB: '♗', wQ: '♕', wK: '♔',
+      bP: '♟', bR: '♜', bN: '♞', bB: '♝', bQ: '♛', bK: '♚'
+    };
+
+    const initialBoard = [
+      ['bR','bN','bB','bQ','bK','bB','bN','bR'],
+      ['bP','bP','bP','bP','bP','bP','bP','bP'],
+      ['','','','','','','',''],
+      ['','','','','','','',''],
+      ['','','','','','','',''],
+      ['','','','','','','',''],
+      ['wP','wP','wP','wP','wP','wP','wP','wP'],
+      ['wR','wN','wB','wQ','wK','wB','wN','wR']
+    ];
+
+    let boardState = JSON.parse(JSON.stringify(initialBoard));
+    let selectedSquare = null;
+    let validTargets = [];
+    let isWhiteTurn = true;
+    let gameOver = false;
+
+    function getLegalTargets(piece, r, c) {
+      const targets = [];
+      const isWhite = piece.startsWith('w');
+      const type = piece[1];
+
+      if (type === 'P') {
+        const dir = isWhite ? -1 : 1;
+        const startRow = isWhite ? 6 : 1;
+        // 1 step forward
+        if (r + dir >= 0 && r + dir < 8 && boardState[r + dir][c] === '') {
+          targets.push({ r: r + dir, c });
+          // 2 steps forward from start
+          if (r === startRow && boardState[r + dir * 2][c] === '') {
+            targets.push({ r: r + dir * 2, c });
+          }
+        }
+        // Diagonal captures
+        for (const dc of [-1, 1]) {
+          const nc = c + dc;
+          const nr = r + dir;
+          if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+            const opp = boardState[nr][nc];
+            if (opp && (isWhite ? opp.startsWith('b') : opp.startsWith('w'))) {
+              targets.push({ r: nr, c: nc });
+            }
+          }
+        }
+      } else if (type === 'N') {
+        const jumps = [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]];
+        for (const [dr, dc] of jumps) {
+          const nr = r + dr, nc = c + dc;
+          if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+            const target = boardState[nr][nc];
+            if (!target || (isWhite ? target.startsWith('b') : target.startsWith('w'))) {
+              targets.push({ r: nr, c: nc });
+            }
+          }
+        }
+      } else if (type === 'B' || type === 'R' || type === 'Q') {
+        const dirs = [];
+        if (type === 'B' || type === 'Q') dirs.push([1,1], [1,-1], [-1,1], [-1,-1]);
+        if (type === 'R' || type === 'Q') dirs.push([1,0], [-1,0], [0,1], [0,-1]);
+
+        for (const [dr, dc] of dirs) {
+          let step = 1;
+          while (true) {
+            const nr = r + dr * step, nc = c + dc * step;
+            if (nr < 0 || nr >= 8 || nc < 0 || nc >= 8) break;
+            const target = boardState[nr][nc];
+            if (!target) {
+              targets.push({ r: nr, c: nc });
+            } else {
+              if (isWhite ? target.startsWith('b') : target.startsWith('w')) {
+                targets.push({ r: nr, c: nc });
+              }
+              break;
+            }
+            step++;
+          }
+        }
+      } else if (type === 'K') {
+        const dirs = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+        for (const [dr, dc] of dirs) {
+          const nr = r + dr, nc = c + dc;
+          if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+            const target = boardState[nr][nc];
+            if (!target || (isWhite ? target.startsWith('b') : target.startsWith('w'))) {
+              targets.push({ r: nr, c: nc });
+            }
+          }
+        }
+      }
+
+      return targets;
+    }
+
+    function renderBoard() {
+      const boardEl = document.getElementById('board');
+      boardEl.innerHTML = '';
+
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const sq = document.createElement('div');
+          const isDark = (r + c) % 2 === 1;
+          sq.className = `chess-square ${isDark ? 'sq-dark' : 'sq-white'}`;
+          sq.id = `sq-${r}-${c}`;
+
+          const isSelected = selectedSquare && selectedSquare.r === r && selectedSquare.c === c;
+          const isValid = validTargets.find(t => t.r === r && t.c === c);
+
+          if (isSelected) {
+            sq.classList.add('sq-selected');
+          } else if (isValid) {
+            sq.classList.add('sq-valid');
+          }
+
+          const piece = boardState[r][c];
+          if (piece) {
+            sq.textContent = PIECES[piece];
+            if (piece.startsWith('b')) sq.style.color = '#7C3AED';
+            else sq.style.color = '#0F172A';
+          }
+
+          if (isValid) {
+            const dot = document.createElement('div');
+            dot.className = "w-4 h-4 rounded-full bg-emerald-400 border-2 border-white shadow-[0_0_8px_#34d399] absolute z-20 pointer-events-none animate-pulse";
+            sq.appendChild(dot);
+          }
+
+          sq.onclick = () => onSquareClick(r, c);
+          boardEl.appendChild(sq);
+        }
+      }
+    }
+
+    function onSquareClick(r, c) {
+      if (!isWhiteTurn || gameOver) return;
+
+      const piece = boardState[r][c];
+
+      if (selectedSquare) {
+        if (selectedSquare.r === r && selectedSquare.c === c) {
+          selectedSquare = null;
+          validTargets = [];
+          document.getElementById('hintText').textContent = "Piece deselected. Tap any White piece to move.";
+          renderBoard();
+          return;
+        }
+
+        // Switch to another White piece
+        if (piece && piece.startsWith('w')) {
+          selectedSquare = { r, c };
+          validTargets = getLegalTargets(piece, r, c);
+          document.getElementById('hintText').textContent = `Selected piece has ${validTargets.length} move(s). Tap any green square!`;
+          renderBoard();
+          return;
+        }
+
+        // Check if destination is valid target
+        const isTarget = validTargets.find(t => t.r === r && t.c === c);
+        if (isTarget) {
+          executeMove(selectedSquare.r, selectedSquare.c, r, c);
+          selectedSquare = null;
+          validTargets = [];
+          renderBoard();
+
+          if (gameOver) return;
+
+          isWhiteTurn = false;
+          document.getElementById('turnStatus').textContent = "AI IS THINKING...";
+          document.getElementById('hintText').textContent = "AI Bot is calculating counter-move...";
+          setTimeout(runAiTurn, 700);
+        } else {
+          document.getElementById('hintText').textContent = "Invalid square! Tap a GREEN target or select another piece.";
+        }
+      } else {
+        if (piece && piece.startsWith('w')) {
+          selectedSquare = { r, c };
+          validTargets = getLegalTargets(piece, r, c);
+          if (validTargets.length === 0) {
+            document.getElementById('hintText').textContent = "This piece cannot move right now. Choose another White piece!";
+          } else {
+            document.getElementById('hintText').textContent = `Tap any highlighted GREEN square to move!`;
+          }
+          renderBoard();
+        }
+      }
+    }
+
+    function executeMove(fromR, fromC, toR, toC) {
+      const piece = boardState[fromR][fromC];
+      const capturedTarget = boardState[toR][toC];
+      boardState[fromR][fromC] = '';
+      
+      // Pawn promotion to Queen
+      if (piece === 'wP' && toR === 0) boardState[toR][toC] = 'wQ';
+      else if (piece === 'bP' && toR === 7) boardState[toR][toC] = 'bQ';
+      else boardState[toR][toC] = piece;
+
+      // King capture ends game
+      if (capturedTarget === 'bK') {
+        showChessModal(true);
+      } else if (capturedTarget === 'wK') {
+        showChessModal(false);
+      }
+    }
+
+    function showChessModal(playerWon) {
+      gameOver = true;
+      const modal = document.getElementById('chessModal');
+      const title = document.getElementById('chessTitle');
+      const desc = document.getElementById('chessDesc');
+      const icon = document.getElementById('chessIcon');
+
+      if (playerWon) {
+        title.textContent = "CHECKMATE! YOU WON!";
+        title.className = "text-xl font-black orbitron text-amber-400";
+        desc.textContent = "Brilliant tactics! You checkmated the Black King!";
+        icon.innerHTML = '<i class="fa-solid fa-trophy text-amber-400 text-3xl animate-bounce"></i>';
+        document.getElementById('turnStatus').textContent = "🏆 YOU WON!";
+      } else {
+        title.textContent = "CHECKMATE! AI WON!";
+        title.className = "text-xl font-black orbitron text-rose-400";
+        desc.textContent = "The Tactical Bot got checkmate on your King.";
+        icon.innerHTML = '<i class="fa-solid fa-robot text-rose-400 text-3xl"></i>';
+        document.getElementById('turnStatus').textContent = "AI WON!";
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function runAiTurn() {
+      if (gameOver) return;
+
+      const moves = [];
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const piece = boardState[r][c];
+          if (piece && piece.startsWith('b')) {
+            const targets = getLegalTargets(piece, r, c);
+            targets.forEach(t => moves.push({ from: { r, c }, to: t, piece }));
+          }
+        }
+      }
+
+      if (moves.length === 0) {
+        document.getElementById('turnStatus').textContent = "STALEMATE!";
+        gameOver = true;
+        return;
+      }
+
+      // Prioritize capture
+      let chosenMove = moves.find(m => boardState[m.to.r][m.to.c].startsWith('w'));
+      if (!chosenMove) {
+        chosenMove = moves[Math.floor(Math.random() * moves.length)];
+      }
+
+      executeMove(chosenMove.from.r, chosenMove.from.c, chosenMove.to.r, chosenMove.to.c);
+      renderBoard();
+
+      if (!gameOver) {
+        isWhiteTurn = true;
+        document.getElementById('turnStatus').textContent = "YOUR TURN (WHITE)";
+        document.getElementById('hintText').textContent = "Your turn! Tap any White piece to move.";
+      }
+    }
+
+    function resetChess() {
+      boardState = JSON.parse(JSON.stringify(initialBoard));
+      selectedSquare = null;
+      validTargets = [];
+      isWhiteTurn = true;
+      gameOver = false;
+      document.getElementById('chessModal').classList.add('hidden');
+      document.getElementById('turnStatus').textContent = "YOUR TURN (WHITE)";
+      document.getElementById('hintText').textContent = "Tap any White piece to see valid green move squares!";
+      renderBoard();
+    }
+
+    renderBoard();
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  voltixz-arena:
+    build: .
+    container_name: voltixz_gaming_arena
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://neondb_owner:npg_u8e9bHatFTpY@ep-misty-recipe-b4mm6qtl-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require
+      - JWT_SECRET=super_secret_voltixz_gaming_jwt_key_2026

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#220902" />
+      <stop offset="100%" stop-color="#0c0300" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="brightGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 2 0" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <pattern id="gridPattern" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#ea580c" stroke-width="1" stroke-opacity="0.15" />
+    </pattern>
+  </defs>
+
+  <!-- Background Layer -->
+  <rect width="300" height="300" fill="url(#bgGrad)" />
+  <rect width="300" height="300" fill="url(#gridPattern)" />
+  <circle cx="150" cy="150" r="110" fill="#dc2626" opacity="0.16" filter="url(#brightGlow)" />
+
+  <!-- VIP Crown Badge Accent on Artwork -->
+  <g transform="translate(242, 18) scale(0.7)">
+    <polygon points="12,0 16,10 24,4 20,20 4,20 0,4 8,10" fill="#eab308" filter="url(#brightGlow)"/>
+  </g>
+
+  <!-- High-Def Custom 3D Vector Art -->
+  <g transform="translate(0, 0)">
+    
+      <!-- Red Dynamite Bundle -->
+      <rect x='90' y='125' width='26' height='75' rx='5' fill='#dc2626' stroke='#fca5a5' stroke-width='2' filter='url(#glow)'/>
+      <rect x='120' y='120' width='26' height='80' rx='5' fill='#ef4444' stroke='#fee2e2' stroke-width='2' filter='url(#glow)'/>
+      <rect x='150' y='120' width='26' height='80' rx='5' fill='#ef4444' stroke='#fee2e2' stroke-width='2' filter='url(#glow)'/>
+      <rect x='180' y='125' width='26' height='75' rx='5' fill='#dc2626' stroke='#fca5a5' stroke-width='2' filter='url(#glow)'/>
+      <!-- Yellow TNT Label Band -->
+      <rect x='85' y='145' width='126' height='26' rx='3' fill='#facc15' stroke='#1c1917' stroke-width='1.5'/>
+      <text x='148' y='163' font-size='16' font-weight='900' fill='#000000' text-anchor='middle' font-family='Arial Black, sans-serif' letter-spacing='2'>TNT</text>
+      <!-- Sparking Fuse Wire -->
+      <path d='M133 120 Q145 95 160 85' fill='none' stroke='#f59e0b' stroke-width='3'/>
+      <!-- Sizzling Fuse Spark -->
+      <circle cx='162' cy='83' r='12' fill='#ea580c' filter='url(#brightGlow)'/>
+      <circle cx='162' cy='83' r='6' fill='#fef08a'/>
+      <polygon points='162,65 166,77 178,79 168,88 171,100 162,93 153,100 156,88 146,79 158,77' fill='#fde047' filter='url(#brightGlow)'/>
+    
+  </g>
+</svg>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a0604" />
+      <stop offset="50%" stop-color="#080c18" />
+      <stop offset="100%" stop-color="#c2410c" stop-opacity="0.8" />
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="brightGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="blur1" />
+      <feGaussianBlur stdDeviation="3" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur1" />
+        <feMergeNode in="blur2" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <radialGradient id="cyanSphere" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="40%" stop-color="#00f0ff" />
+      <stop offset="100%" stop-color="#0369a1" />
+    </radialGradient>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#eab308" />
+      <stop offset="100%" stop-color="#a16207" />
+    </linearGradient>
+    <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 20 M 0 0 L 20 20" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.04" />
+    </pattern>
+  </defs>
+
+  <rect width="300" height="300" fill="url(#bgGrad)" />
+  <rect width="300" height="300" fill="url(#gridPattern)" />
+  <circle cx="150" cy="150" r="120" fill="#f97316" opacity="0.18" filter="url(#brightGlow)" />
+
+  <g transform="translate(0, 5)">
+    
+      <g filter="url(#glow)">
+        <circle cx="150" cy="140" r="48" fill="#18181b" stroke="#71717a" stroke-width="4.5" />
+        <rect x="144" y="78" width="12" height="24" rx="4" fill="#a1a1aa" />
+        <rect x="144" y="178" width="12" height="24" rx="4" fill="#a1a1aa" />
+        <rect x="88" y="134" width="24" height="12" rx="4" fill="#a1a1aa" />
+        <rect x="188" y="134" width="24" height="12" rx="4" fill="#a1a1aa" />
+        <circle cx="150" cy="140" r="16" fill="#ef4444" filter="url(#brightGlow)" />
+        <polygon points="50,210 50,165 95,188" fill="#ef4444" stroke="#ffffff" stroke-width="2" filter="url(#brightGlow)" />
+        <line x1="50" y1="165" x2="50" y2="255" stroke="#d4d4d8" stroke-width="4.5" stroke-linecap="round" />
+        <rect x="200" y="200" width="50" height="50" rx="10" fill="#27272a" stroke="#52525b" stroke-width="2.5" />
+        <text x="225" y="236" font-family="'Orbitron', sans-serif" font-weight="900" font-size="32" fill="#ef4444" text-anchor="middle">3</text>
+      </g>
+  </g>
+</svg>

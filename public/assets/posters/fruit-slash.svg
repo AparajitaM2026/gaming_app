@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a0604" />
+      <stop offset="50%" stop-color="#080c18" />
+      <stop offset="100%" stop-color="#c2410c" stop-opacity="0.8" />
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="brightGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="blur1" />
+      <feGaussianBlur stdDeviation="3" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur1" />
+        <feMergeNode in="blur2" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <radialGradient id="cyanSphere" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="40%" stop-color="#00f0ff" />
+      <stop offset="100%" stop-color="#0369a1" />
+    </radialGradient>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#eab308" />
+      <stop offset="100%" stop-color="#a16207" />
+    </linearGradient>
+    <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 20 M 0 0 L 20 20" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.04" />
+    </pattern>
+  </defs>
+
+  <rect width="300" height="300" fill="url(#bgGrad)" />
+  <rect width="300" height="300" fill="url(#gridPattern)" />
+  <circle cx="150" cy="150" r="120" fill="#f97316" opacity="0.18" filter="url(#brightGlow)" />
+
+  <g transform="translate(0, 5)">
+    
+      <g filter="url(#glow)">
+        <path d="M50 130 A 55 55 0 0 0 145 175 Z" fill="#22c55e" stroke="#15803d" stroke-width="4" />
+        <path d="M57 135 A 46 46 0 0 0 137 172 Z" fill="#ef4444" />
+        <path d="M165 90 A 55 55 0 0 0 240 165 Z" fill="#22c55e" stroke="#15803d" stroke-width="4" />
+        <path d="M172 96 A 46 46 0 0 0 233 160 Z" fill="#ef4444" />
+        <circle cx="90" cy="225" r="36" fill="#f97316" stroke="#fbbf24" stroke-width="4" />
+        <path d="M25 70 Q 150 170 275 190" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" filter="url(#brightGlow)" />
+        <circle cx="145" cy="130" r="5" fill="#ef4444" /><circle cx="160" cy="145" r="6" fill="#ef4444" />
+      </g>
+  </g>
+</svg>

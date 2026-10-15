@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cyber Dice Duel 1v1</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #13112c 0%, #07080e 100%);
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      user-select: none;
+    }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+    
+    @keyframes rollAnimation {
+      0% { transform: rotate(0deg) scale(0.9); }
+      50% { transform: rotate(180deg) scale(1.1); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+    .dice-rolling {
+      animation: rollAnimation 0.5s ease-in-out;
+    }
+  </style>
+</head>
+<body class="h-full w-full flex flex-col items-center justify-between p-2 sm:p-3 max-w-lg mx-auto box-border overflow-hidden">
+  
+  <!-- Header: Prize Pool -->
+  <div class="w-full shrink-0 flex items-center justify-between bg-white/5 border border-purple-500/30 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl backdrop-blur-md">
+    <div class="flex items-center gap-2">
+      <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span class="orbitron text-xs font-bold text-gray-300">1v1 BATTLE</span>
+    </div>
+    <div class="flex items-center gap-2 bg-amber-500/20 border border-amber-500/40 px-2.5 py-1 rounded-lg">
+      <span>🪙</span>
+      <span class="orbitron font-extrabold text-xs sm:text-sm text-amber-300" id="prizeDisplay">24 COINS PRIZE</span>
+    </div>
+  </div>
+
+  <!-- Score Board: Player vs Opponent -->
+  <div class="w-full shrink-0 grid grid-cols-2 gap-2 sm:gap-3 my-1 sm:my-2">
+    <!-- P1 Box -->
+    <div id="p1Card" class="p-4 rounded-2xl bg-cyan-950/40 border-2 border-cyan-400 text-center space-y-2 shadow-lg shadow-cyan-500/10 transition-all">
+      <img id="p1Avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=P1" class="w-12 h-12 mx-auto rounded-full border border-cyan-400">
+      <span id="p1Name" class="font-bold text-xs text-cyan-300 block truncate">You</span>
+      <div class="text-3xl font-black orbitron text-white" id="p1Score">0</div>
+      <div class="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
+        <div id="p1Bar" class="bg-cyan-400 h-full w-0 transition-all duration-300"></div>
+      </div>
+      <span class="text-[10px] text-gray-400">Goal: 25 pts</span>
+    </div>
+
+    <!-- P2 Box -->
+    <div id="p2Card" class="p-4 rounded-2xl bg-purple-950/30 border border-purple-500/30 text-center space-y-2 transition-all">
+      <img id="p2Avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=P2" class="w-12 h-12 mx-auto rounded-full border border-purple-400">
+      <span id="p2Name" class="font-bold text-xs text-purple-300 block truncate">Opponent</span>
+      <div class="text-3xl font-black orbitron text-white" id="p2Score">0</div>
+      <div class="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
+        <div id="p2Bar" class="bg-purple-400 h-full w-0 transition-all duration-300"></div>
+      </div>
+      <span class="text-[10px] text-gray-400">Goal: 25 pts</span>
+    </div>
+  </div>
+
+  <!-- Central Dice Stage -->
+  <div class="flex-1 flex flex-col items-center justify-center space-y-6">
+    <div class="text-xs uppercase tracking-widest text-gray-400 font-bold" id="turnIndicator">
+      Your Turn to Roll!
+    </div>
+
+    <!-- 3D Dice Element -->
+    <div id="diceFace" class="w-28 h-28 rounded-3xl bg-gradient-to-br from-cyan-400 via-blue-600 to-indigo-700 p-1 flex items-center justify-center shadow-2xl shadow-cyan-500/30 border border-white/40 cursor-pointer select-none">
+      <div class="w-full h-full rounded-2xl bg-gray-950 flex items-center justify-center text-5xl font-black orbitron text-white" id="diceNumber">
+        🎲
+      </div>
+    </div>
+
+    <div class="text-xs text-cyan-300 font-semibold" id="lastRollText">
+      First to reach 25 wins the coin pot!
+    </div>
+  </div>
+
+  <!-- Action Button -->
+  <div class="w-full shrink-0 pb-1">
+    <button id="rollBtn" onclick="rollDice()" class="w-full py-2.5 sm:py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-black orbitron font-black text-xs sm:text-sm uppercase tracking-wider hover:opacity-95 shadow-xl shadow-cyan-500/20 active:scale-95 transition-all">
+      <i class="fa-solid fa-dice mr-2"></i> ROLL DICE
+    </button>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get('roomId') || 'DEMO';
+    const p1Name = urlParams.get('p1Name') || 'You';
+    const p2Name = urlParams.get('p2Name') || 'SmartBot';
+    const prize = urlParams.get('prize') || '24';
+    const isBot = urlParams.get('isBot') === 'true';
+
+    document.getElementById('p1Name').textContent = p1Name;
+    document.getElementById('p2Name').textContent = p2Name;
+    document.getElementById('prizeDisplay').textContent = `${prize} COINS PRIZE`;
+    document.getElementById('p1Avatar').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${p1Name}`;
+    document.getElementById('p2Avatar').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${p2Name}`;
+
+    let p1Score = 0;
+    let p2Score = 0;
+    const targetScore = 25;
+    let isMyTurn = true;
+    let gameOver = false;
+
+    function rollDice() {
+      if (!isMyTurn || gameOver) return;
+
+      const rollBtn = document.getElementById('rollBtn');
+      const diceEl = document.getElementById('diceFace');
+      const numEl = document.getElementById('diceNumber');
+
+      rollBtn.disabled = true;
+      rollBtn.classList.add('opacity-50');
+      diceEl.classList.add('dice-rolling');
+
+      setTimeout(() => {
+        const roll = Math.floor(Math.random() * 6) + 1;
+        diceEl.classList.remove('dice-rolling');
+        numEl.textContent = roll;
+        p1Score += roll;
+        updateScores();
+
+        document.getElementById('lastRollText').textContent = `You rolled a ${roll}!`;
+
+        if (p1Score >= targetScore) {
+          endGame(true);
+          return;
+        }
+
+        // Switch turn to opponent / bot
+        isMyTurn = false;
+        setTurnState('opponent');
+
+        // Opponent bot logic with realistic thinking delay
+        setTimeout(botTurn, 1400);
+      }, 500);
+    }
+
+    function botTurn() {
+      if (gameOver) return;
+      const diceEl = document.getElementById('diceFace');
+      const numEl = document.getElementById('diceNumber');
+
+      diceEl.classList.add('dice-rolling');
+
+      setTimeout(() => {
+        const botRoll = Math.floor(Math.random() * 6) + 1;
+        diceEl.classList.remove('dice-rolling');
+        numEl.textContent = botRoll;
+        p2Score += botRoll;
+        updateScores();
+
+        document.getElementById('lastRollText').textContent = `${p2Name} rolled a ${botRoll}!`;
+
+        if (p2Score >= targetScore) {
+          endGame(false);
+          return;
+        }
+
+        isMyTurn = true;
+        setTurnState('me');
+        const rollBtn = document.getElementById('rollBtn');
+        rollBtn.disabled = false;
+        rollBtn.classList.remove('opacity-50');
+      }, 500);
+    }
+
+    function setTurnState(who) {
+      const p1Card = document.getElementById('p1Card');
+      const p2Card = document.getElementById('p2Card');
+      const turnIndicator = document.getElementById('turnIndicator');
+
+      if (who === 'me') {
+        p1Card.className = "p-4 rounded-2xl bg-cyan-950/40 border-2 border-cyan-400 text-center space-y-2 shadow-lg shadow-cyan-500/10";
+        p2Card.className = "p-4 rounded-2xl bg-purple-950/30 border border-purple-500/30 text-center space-y-2 opacity-60";
+        turnIndicator.textContent = "Your Turn to Roll!";
+        turnIndicator.className = "text-xs uppercase tracking-widest text-cyan-300 font-bold animate-pulse";
+      } else {
+        p1Card.className = "p-4 rounded-2xl bg-cyan-950/40 border border-cyan-400/30 text-center space-y-2 opacity-60";
+        p2Card.className = "p-4 rounded-2xl bg-purple-950/40 border-2 border-purple-400 text-center space-y-2 shadow-lg shadow-purple-500/10";
+        turnIndicator.textContent = `${p2Name} is thinking...`;
+        turnIndicator.className = "text-xs uppercase tracking-widest text-purple-300 font-bold";
+      }
+    }
+
+    function updateScores() {
+      document.getElementById('p1Score').textContent = p1Score;
+      document.getElementById('p2Score').textContent = p2Score;
+      document.getElementById('p1Bar').style.width = `${Math.min(100, (p1Score / targetScore) * 100)}%`;
+      document.getElementById('p2Bar').style.width = `${Math.min(100, (p2Score / targetScore) * 100)}%`;
+    }
+
+    function endGame(iWon) {
+      gameOver = true;
+      const rollBtn = document.getElementById('rollBtn');
+      const turnIndicator = document.getElementById('turnIndicator');
+
+      if (iWon) {
+        turnIndicator.textContent = "🏆 VICTORY!";
+        turnIndicator.className = "text-base uppercase tracking-widest text-amber-300 font-black animate-bounce";
+        rollBtn.textContent = `YOU WON ${prize} COINS!`;
+        rollBtn.className = "w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-black orbitron font-black text-sm uppercase tracking-wider";
+        rollBtn.disabled = false;
+        rollBtn.onclick = () => window.parent.closeGameTheater();
+      } else {
+        turnIndicator.textContent = `DEFEAT! ${p2Name} WON!`;
+        turnIndicator.className = "text-sm uppercase tracking-widest text-red-400 font-bold";
+        rollBtn.textContent = "EXIT TO LOBBY";
+        rollBtn.className = "w-full py-4 rounded-2xl bg-red-950 border border-red-500 text-red-300 orbitron font-bold text-xs uppercase tracking-wider";
+        rollBtn.disabled = false;
+        rollBtn.onclick = () => window.parent.closeGameTheater();
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#040d21" />
+      <stop offset="50%" stop-color="#080c18" />
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="0.8" />
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="brightGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="blur1" />
+      <feGaussianBlur stdDeviation="3" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur1" />
+        <feMergeNode in="blur2" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <radialGradient id="cyanSphere" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="40%" stop-color="#00f0ff" />
+      <stop offset="100%" stop-color="#0369a1" />
+    </radialGradient>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#eab308" />
+      <stop offset="100%" stop-color="#a16207" />
+    </linearGradient>
+    <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 20 M 0 0 L 20 20" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.04" />
+    </pattern>
+  </defs>
+
+  <rect width="300" height="300" fill="url(#bgGrad)" />
+  <rect width="300" height="300" fill="url(#gridPattern)" />
+  <circle cx="150" cy="150" r="120" fill="#00f0ff" opacity="0.18" filter="url(#brightGlow)" />
+
+  <g transform="translate(0, 5)">
+    
+      <g filter="url(#glow)">
+        <!-- Puffy Cloud Base -->
+        <path d="M70 210 C 60 180 90 160 120 170 C 130 140 170 140 185 170 C 215 160 240 180 230 210 Z" fill="#ffffff" opacity="0.9" filter="url(#brightGlow)" />
+        <!-- Fluffy Cartoon Sheep -->
+        <ellipse cx="150" cy="125" rx="45" ry="35" fill="#f8fafc" stroke="#cbd5e1" stroke-width="4" filter="url(#brightGlow)" />
+        <circle cx="115" cy="115" r="18" fill="#1e293b" />
+        <circle cx="112" cy="112" r="3" fill="#ffffff" />
+        <!-- Sheep Ears -->
+        <ellipse cx="102" cy="122" rx="8" ry="4" fill="#1e293b" />
+      </g>
+  </g>
+</svg>

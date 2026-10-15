@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a040b" />
+      <stop offset="50%" stop-color="#080c18" />
+      <stop offset="100%" stop-color="#991b1b" stop-opacity="0.8" />
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="brightGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="blur1" />
+      <feGaussianBlur stdDeviation="3" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur1" />
+        <feMergeNode in="blur2" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <radialGradient id="cyanSphere" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="40%" stop-color="#00f0ff" />
+      <stop offset="100%" stop-color="#0369a1" />
+    </radialGradient>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#eab308" />
+      <stop offset="100%" stop-color="#a16207" />
+    </linearGradient>
+    <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 20 M 0 0 L 20 20" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.04" />
+    </pattern>
+  </defs>
+
+  <rect width="300" height="300" fill="url(#bgGrad)" />
+  <rect width="300" height="300" fill="url(#gridPattern)" />
+  <circle cx="150" cy="150" r="120" fill="#ef4444" opacity="0.18" filter="url(#brightGlow)" />
+
+  <g transform="translate(0, 5)">
+    
+      <g filter="url(#glow)">
+        <rect x="175" y="55" width="85" height="60" rx="6" fill="#ffffff" stroke="#dc2626" stroke-width="4" opacity="0.9" />
+        <line x1="170" y1="115" x2="220" y2="115" stroke="#ea580c" stroke-width="6" stroke-linecap="round" />
+        <polygon points="175,115 215,115 205,165 185,165" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="4 4" opacity="0.8" />
+        <circle cx="100" cy="180" r="38" fill="#ea580c" stroke="#431407" stroke-width="3" filter="url(#brightGlow)" />
+        <path d="M68 165 Q 100 180 132 165" fill="none" stroke="#431407" stroke-width="3" />
+        <path d="M68 195 Q 100 180 132 195" fill="none" stroke="#431407" stroke-width="3" />
+        <line x1="100" y1="142" x2="100" y2="218" stroke="#431407" stroke-width="3" />
+        <path d="M100 180 Q 125 95 190 115" fill="none" stroke="#facc15" stroke-width="4.5" stroke-dasharray="8 6" filter="url(#brightGlow)" />
+      </g>
+  </g>
+</svg>

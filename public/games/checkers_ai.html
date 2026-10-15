@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Classic Checkers — You vs AI Bot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #0B0E1B;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      user-select: none;
+    }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+    
+    .sq-dark { background: #334155; }
+    .sq-light { background: #CBD5E1; }
+    .sq-selected { background: #FACC15 !important; box-shadow: inset 0 0 12px #ca8a04; }
+    .sq-valid { 
+      background: #064E3B !important; 
+      position: relative;
+      cursor: pointer;
+    }
+    .sq-valid:hover {
+      background: #047857 !important;
+    }
+    .piece-movable {
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.8), inset 0 0 6px rgba(255, 255, 255, 0.6);
+      animation: pulseMovable 2s infinite ease-in-out;
+    }
+    @keyframes pulseMovable {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+  </style>
+</head>
+<body class="h-full w-full flex flex-col items-center justify-between p-2 sm:p-3 max-w-md mx-auto box-border overflow-hidden">
+
+  <!-- Header -->
+  <div class="w-full shrink-0 space-y-1.5">
+    <div class="w-full flex items-center justify-between bg-slate-900 border border-slate-700/60 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-lg">
+      <div class="flex items-center gap-2">
+        <div class="w-3.5 h-3.5 rounded-full bg-red-600 border-2 border-white shadow-md"></div>
+        <span class="text-xs font-bold text-red-400">YOU (RED)</span>
+      </div>
+      <span class="orbitron font-extrabold text-xs text-amber-300" id="turnBanner">YOUR TURN</span>
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-bold text-slate-300">AI (BLACK)</span>
+        <div class="w-3.5 h-3.5 rounded-full bg-slate-950 border border-slate-500 shadow-md"></div>
+      </div>
+    </div>
+
+    <!-- Move Hint Banner -->
+    <div id="hintBanner" class="w-full text-center text-[10px] sm:text-[11px] font-semibold text-emerald-300 bg-emerald-950/40 border border-emerald-500/30 px-2 py-1 rounded-lg flex items-center justify-center gap-1.5">
+      <i class="fa-solid fa-hand-pointer text-emerald-400"></i>
+      <span id="hintText">Tap any glowing RED piece to see its valid green moves!</span>
+    </div>
+  </div>
+
+  <!-- Checkers 8x8 Board (Responsive Fit) -->
+  <div class="flex-1 min-h-0 w-full flex items-center justify-center py-1 overflow-hidden">
+    <div class="h-full aspect-square max-w-full p-1 sm:p-1.5 rounded-2xl bg-slate-900 border-2 sm:border-4 border-slate-700 shadow-2xl flex items-center justify-center">
+      <div class="grid grid-cols-8 grid-rows-8 w-full h-full rounded-xl overflow-hidden border border-slate-600" id="checkersBoard">
+        <!-- 64 squares rendered via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- "How to Play" Info Box -->
+  <div class="w-full shrink-0 bg-slate-900/90 border border-slate-700/80 rounded-xl p-2 text-[10px] space-y-1 shadow-lg">
+    <div class="flex items-center justify-between font-bold text-slate-200">
+      <span class="flex items-center gap-1.5 text-cyan-400 orbitron text-xs">
+        <i class="fa-solid fa-circle-question"></i> HOW TO PLAY CHECKERS
+      </span>
+      <span class="text-[10px] text-amber-300">Rules & Controls</span>
+    </div>
+    <div class="grid grid-cols-2 gap-2 text-slate-300 text-[10.5px]">
+      <div class="bg-slate-950/60 p-2 rounded-xl border border-white/5 space-y-1">
+        <div class="font-bold text-emerald-400 flex items-center gap-1">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> Diagonal Moves
+        </div>
+        <p class="leading-tight text-gray-300">Pieces move 1 step diagonally forward on dark squares. Tap highlighted <strong class="text-emerald-400">GREEN</strong> dots to move.</p>
+      </div>
+      <div class="bg-slate-950/60 p-2 rounded-xl border border-white/5 space-y-1">
+        <div class="font-bold text-rose-400 flex items-center gap-1">
+          <i class="fa-solid fa-skull"></i> Jump to Capture
+        </div>
+        <p class="leading-tight text-gray-300">Jump over an adjacent AI piece into an empty square to capture it! Reach row 1 to crown a King 👑.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Deck -->
+  <div class="w-full flex gap-3 pt-2">
+    <button onclick="resetCheckers()" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-red-600 to-rose-700 text-white font-extrabold orbitron text-xs uppercase shadow-lg shadow-red-600/30 hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2">
+      <i class="fa-solid fa-rotate-right"></i>
+      <span>Reset Game</span>
+    </button>
+    <button onclick="window.parent.closeGameTheater()" class="flex-1 py-3 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-xs hover:bg-white/20 active:scale-95 transition-all flex items-center justify-center gap-2">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span>Exit to Games</span>
+    </button>
+  </div>
+
+  <!-- VICTORY MODAL -->
+  <div id="checkersModal" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md rounded-2xl">
+    <div class="w-full max-w-xs bg-slate-900 border border-red-500/50 rounded-2xl p-5 text-center shadow-2xl space-y-4">
+      <div id="chkIcon" class="w-16 h-16 mx-auto rounded-full bg-red-500/20 border-2 border-red-400 flex items-center justify-center text-red-400 text-3xl shadow-lg shadow-red-500/30">
+        <i class="fa-solid fa-trophy"></i>
+      </div>
+      <div>
+        <h3 id="chkTitle" class="text-xl font-black orbitron text-white">YOU WON!</h3>
+        <p id="chkDesc" class="text-xs text-gray-300 mt-1">You captured all AI pieces!</p>
+      </div>
+      <div class="space-y-2 pt-1">
+        <button onclick="resetCheckers()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-700 text-white font-extrabold orbitron text-xs uppercase shadow-lg shadow-red-500/30 hover:opacity-90 active:scale-95 transition-all">
+          <i class="fa-solid fa-rotate-right mr-1"></i> Play Again
+        </button>
+        <button onclick="window.parent.closeGameTheater()" class="w-full py-2.5 rounded-xl bg-slate-800 border border-white/10 text-white font-bold text-xs hover:bg-slate-700 active:scale-95 transition-all">
+          <i class="fa-solid fa-arrow-left mr-1"></i> Exit to Games
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ROWS = 8;
+    const COLS = 8;
+    // 0: empty, 1: Red (Player), -1: Black (AI), 2: Red King, -2: Black King
+    let board = [];
+    let selectedSquare = null;
+    let validMoves = [];
+    let isHumanTurn = true;
+    let gameOver = false;
+
+    function initBoard() {
+      board = Array(ROWS).fill(null).map(() => Array(COLS).fill(0));
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if ((r + c) % 2 === 1) {
+            if (r < 3) board[r][c] = -1; // AI Black
+            else if (r > 4) board[r][c] = 1; // Player Red
+          }
+        }
+      }
+    }
+
+    function getValidMovesFor(r, c) {
+      const piece = board[r][c];
+      if (piece <= 0) return [];
+      const moves = [];
+      const isKing = Math.abs(piece) === 2;
+
+      // Directions: Red regular moves up (dr = -1). King moves dr = -1 and dr = 1.
+      const rowDeltas = isKing ? [-1, 1] : [-1];
+      const colDeltas = [-1, 1];
+
+      // 1. Regular 1-step moves
+      for (const dr of rowDeltas) {
+        for (const dc of colDeltas) {
+          const nr = r + dr;
+          const nc = c + dc;
+          if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && board[nr][nc] === 0) {
+            moves.push({ toR: nr, toC: nc, isJump: false });
+          }
+        }
+      }
+
+      // 2. Jump captures (2 steps)
+      for (const dr of [-1, 1]) {
+        if (!isKing && dr !== -1) continue;
+        for (const dc of [-1, 1]) {
+          const jumpR = r + dr * 2;
+          const jumpC = c + dc * 2;
+          const midR = r + dr;
+          const midC = c + dc;
+          if (jumpR >= 0 && jumpR < ROWS && jumpC >= 0 && jumpC < COLS && board[jumpR][jumpC] === 0) {
+            if (board[midR][midC] < 0) { // Over opponent piece
+              moves.push({ toR: jumpR, toC: jumpC, isJump: true, midR, midC });
+            }
+          }
+        }
+      }
+
+      return moves;
+    }
+
+    function hasAnyValidMoves(r, c) {
+      return getValidMovesFor(r, c).length > 0;
+    }
+
+    function updateHint(msg, isError = false) {
+      const hint = document.getElementById('hintText');
+      const box = document.getElementById('hintBanner');
+      if (hint) hint.textContent = msg;
+      if (box) {
+        if (isError) {
+          box.className = "w-full text-center text-[11px] font-semibold text-rose-300 bg-rose-950/60 border border-rose-500/40 px-3 py-1.5 rounded-xl flex items-center justify-center gap-2";
+        } else {
+          box.className = "w-full text-center text-[11px] font-semibold text-emerald-300 bg-emerald-950/40 border border-emerald-500/30 px-3 py-1.5 rounded-xl flex items-center justify-center gap-2";
+        }
+      }
+    }
+
+    function renderBoard() {
+      const el = document.getElementById('checkersBoard');
+      el.innerHTML = '';
+
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const sq = document.createElement('div');
+          const isDark = (r + c) % 2 === 1;
+          sq.className = `w-full h-full aspect-square flex items-center justify-center relative cursor-pointer ${isDark ? 'sq-dark' : 'sq-light'}`;
+          
+          const isSelected = selectedSquare && selectedSquare.r === r && selectedSquare.c === c;
+          const validMove = validMoves.find(m => m.toR === r && m.toC === c);
+
+          if (isSelected) {
+            sq.classList.add('sq-selected');
+          } else if (validMove) {
+            sq.classList.add('sq-valid');
+          }
+
+          const val = board[r][c];
+          if (val !== 0) {
+            const piece = document.createElement('div');
+            const isRed = val > 0;
+            const isKing = Math.abs(val) === 2;
+            const canMove = isRed && isHumanTurn && !gameOver && hasAnyValidMoves(r, c);
+
+            piece.className = `w-4/5 h-4/5 rounded-full flex items-center justify-center shadow-lg border-2 z-10 transition-transform ${
+              isRed ? 'bg-red-600 border-red-300' : 'bg-slate-950 border-slate-600'
+            } ${canMove ? 'piece-movable cursor-pointer' : ''}`;
+
+            if (isKing) {
+              piece.innerHTML = '<i class="fa-solid fa-crown text-amber-300 text-xs"></i>';
+            }
+
+            sq.appendChild(piece);
+          }
+
+          // If square is a valid target move, render glowing destination target
+          if (validMove) {
+            const dot = document.createElement('div');
+            dot.className = "w-5 h-5 rounded-full bg-emerald-400 border-2 border-white shadow-[0_0_12px_#34d399] flex items-center justify-center pointer-events-none animate-pulse";
+            if (validMove.isJump) {
+              dot.innerHTML = '<i class="fa-solid fa-bolt text-[9px] text-emerald-950"></i>';
+            }
+            sq.appendChild(dot);
+          }
+
+          sq.onclick = () => onSquareClick(r, c);
+          el.appendChild(sq);
+        }
+      }
+    }
+
+    function onSquareClick(r, c) {
+      if (!isHumanTurn || gameOver) return;
+
+      const val = board[r][c];
+
+      // Case 1: Clicking an already selected square deselects it
+      if (selectedSquare && selectedSquare.r === r && selectedSquare.c === c) {
+        selectedSquare = null;
+        validMoves = [];
+        updateHint("Piece deselected. Select any glowing Red piece to move.");
+        renderBoard();
+        return;
+      }
+
+      // Case 2: Clicking another Red piece switches selection
+      if (val > 0) {
+        const moves = getValidMovesFor(r, c);
+        selectedSquare = { r, c };
+        validMoves = moves;
+        if (moves.length === 0) {
+          updateHint("⚠️ This piece is blocked by your own pieces! Select a piece with open moves.", true);
+        } else {
+          updateHint(`Selected piece has ${moves.length} valid move(s). Tap any GREEN square to move!`);
+        }
+        renderBoard();
+        return;
+      }
+
+      // Case 3: If a piece is selected and player clicks a valid target destination
+      if (selectedSquare) {
+        const move = validMoves.find(m => m.toR === r && m.toC === c);
+        if (move) {
+          executeMove(selectedSquare.r, selectedSquare.c, move.toR, move.toC);
+          selectedSquare = null;
+          validMoves = [];
+          renderBoard();
+
+          if (checkWin()) return;
+
+          isHumanTurn = false;
+          document.getElementById('turnBanner').textContent = "AI IS THINKING...";
+          updateHint("AI Bot is analyzing tactical counter-move...");
+          setTimeout(runAiTurn, 700);
+        } else {
+          updateHint("Invalid move! Tap a highlighted GREEN square or select another Red piece.", true);
+        }
+      }
+    }
+
+    function executeMove(fromR, fromC, toR, toC) {
+      const piece = board[fromR][fromC];
+      board[fromR][fromC] = 0;
+
+      // Jump capture removal
+      if (Math.abs(toR - fromR) === 2) {
+        const midR = fromR + (toR - fromR) / 2;
+        const midC = fromC + (toC - fromC) / 2;
+        board[midR][midC] = 0;
+      }
+
+      // Crown King at row 0 (for player) or row 7 (for AI)
+      if (piece === 1 && toR === 0) {
+        board[toR][toC] = 2; // Red King
+        updateHint("👑 CROWNED! Your piece reached the back rank and became a King!");
+      } else if (piece === -1 && toR === 7) {
+        board[toR][toC] = -2; // Black King
+      } else {
+        board[toR][toC] = piece;
+      }
+    }
+
+    function checkWin() {
+      let redCount = 0;
+      let blackCount = 0;
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (board[r][c] > 0) redCount++;
+          if (board[r][c] < 0) blackCount++;
+        }
+      }
+
+      if (blackCount === 0) {
+        showWinModal(true, "You captured all AI pieces!");
+        return true;
+      }
+      if (redCount === 0) {
+        showWinModal(false, "AI captured all your pieces!");
+        return true;
+      }
+      return false;
+    }
+
+    function showWinModal(playerWon, reason) {
+      gameOver = true;
+      const modal = document.getElementById('checkersModal');
+      const title = document.getElementById('chkTitle');
+      const desc = document.getElementById('chkDesc');
+      const icon = document.getElementById('chkIcon');
+
+      if (playerWon) {
+        title.textContent = "YOU WON!";
+        title.className = "text-xl font-black orbitron text-emerald-400";
+        desc.textContent = reason;
+        icon.innerHTML = '<i class="fa-solid fa-trophy text-emerald-400 text-3xl animate-bounce"></i>';
+        document.getElementById('turnBanner').textContent = "🏆 VICTORY!";
+      } else {
+        title.textContent = "AI BOT WON";
+        title.className = "text-xl font-black orbitron text-rose-400";
+        desc.textContent = reason;
+        icon.innerHTML = '<i class="fa-solid fa-robot text-rose-400 text-3xl"></i>';
+        document.getElementById('turnBanner').textContent = "GAME OVER";
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function runAiTurn() {
+      if (gameOver) return;
+
+      const moves = [];
+      const jumps = [];
+
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const piece = board[r][c];
+          if (piece < 0) {
+            const isKing = Math.abs(piece) === 2;
+            const deltas = isKing ? [[1,1], [1,-1], [-1,1], [-1,-1]] : [[1,1], [1,-1]];
+            
+            for (const [dr, dc] of deltas) {
+              // Check Jump
+              const toR = r + dr * 2;
+              const toC = c + dc * 2;
+              if (toR >= 0 && toR < ROWS && toC >= 0 && toC < COLS && board[toR][toC] === 0) {
+                const midVal = board[r + dr][c + dc];
+                if (midVal > 0) jumps.push({ fromR: r, fromC: c, toR, toC });
+              }
+
+              // Check Regular Step
+              const nR = r + dr;
+              const nC = c + dc;
+              if (nR >= 0 && nR < ROWS && nC >= 0 && nC < COLS && board[nR][nC] === 0) {
+                moves.push({ fromR: r, fromC: c, toR: nR, toC: nC });
+              }
+            }
+          }
+        }
+      }
+
+      if (jumps.length === 0 && moves.length === 0) {
+        showWinModal(true, "AI has no legal moves left!");
+        return;
+      }
+
+      // Priority: Jumps first
+      const chosen = jumps.length > 0 ? jumps[Math.floor(Math.random() * jumps.length)] : moves[Math.floor(Math.random() * moves.length)];
+      executeMove(chosen.fromR, chosen.fromC, chosen.toR, chosen.toC);
+      renderBoard();
+
+      if (!checkWin()) {
+        isHumanTurn = true;
+        document.getElementById('turnBanner').textContent = "YOUR TURN (RED)";
+        updateHint("Your turn! Tap any glowing Red piece to move.");
+      }
+    }
+
+    function resetCheckers() {
+      initBoard();
+      selectedSquare = null;
+      validMoves = [];
+      isHumanTurn = true;
+      gameOver = false;
+      document.getElementById('checkersModal').classList.add('hidden');
+      document.getElementById('turnBanner').textContent = "YOUR TURN (RED)";
+      updateHint("New game started! Tap any glowing Red piece to begin.");
+      renderBoard();
+    }
+
+    // Start
+    initBoard();
+    renderBoard();
+  </script>
+</body>
+</html>

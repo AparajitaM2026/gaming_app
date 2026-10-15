@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Voltixz — Gaming Platform</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Poppins & Orbitron -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800;900&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            poppins: ['Poppins', 'sans-serif'],
+            orbitron: ['Orbitron', 'sans-serif'],
+          },
+          colors: {
+            portalBg: '#080B16',
+            portalCard: '#0F1424',
+            portalNav: '#0A0E1C',
+            neonCyan: '#00F0FF',
+            neonPurple: '#A855F7',
+            neonGold: '#F59E0B',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #060914;
+      background-image: 
+        radial-gradient(circle at 10% 10%, rgba(30, 41, 75, 0.45) 0%, transparent 40%),
+        radial-gradient(circle at 90% 90%, rgba(15, 23, 42, 0.6) 0%, transparent 50%);
+      background-attachment: fixed;
+      font-family: 'Poppins', sans-serif;
+      color: #F8FAFC;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Horizontal Carousel scrollbar hide */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Poster Card Style matching exact reference screenshot */
+    .game-poster-card {
+      width: 145px;
+      min-width: 145px;
+      height: 215px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #0B1020;
+      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.22s ease, box-shadow 0.22s ease;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    @media (min-width: 640px) {
+      .game-poster-card {
+        width: 165px;
+        min-width: 165px;
+        height: 232px;
+        border-radius: 18px;
+      }
+    }
+    .game-poster-card:hover {
+      transform: translateY(-5px) scale(1.03);
+      border-color: #00F0FF;
+      box-shadow: 0 14px 28px -4px rgba(0, 240, 255, 0.4), 0 0 15px rgba(0, 240, 255, 0.2);
+    }
+
+    /* 3D Poster Text Styles matching reference image */
+    .poster-logo-3d {
+      font-family: 'Orbitron', 'Poppins', sans-serif;
+      font-weight: 900;
+      text-transform: uppercase;
+      text-align: center;
+      line-height: 1.05;
+      letter-spacing: 0.5px;
+    }
+
+    .title-3d-fire {
+      color: #FFFFFF;
+      text-shadow: 
+        0 1px 0 #F59E0B, 
+        0 2px 0 #D97706, 
+        0 3px 0 #92400E, 
+        0 4px 6px rgba(0,0,0,0.9),
+        0 0 12px rgba(245, 158, 11, 0.8);
+    }
+
+    .title-3d-cyber {
+      color: #FFFFFF;
+      text-shadow: 
+        0 1px 0 #00F0FF, 
+        0 2px 0 #0284C7, 
+        0 3px 0 #0369A1, 
+        0 4px 6px rgba(0,0,0,0.9),
+        0 0 14px rgba(0, 240, 255, 0.9);
+    }
+
+    .title-3d-cartoon {
+      color: #FACC15;
+      text-shadow: 
+        -2px -2px 0 #000, 
+        2px -2px 0 #000, 
+        -2px 2px 0 #000, 
+        2px 2px 0 #000, 
+        0 3px 0 #CA8A04, 
+        0 5px 0 #000, 
+        0 6px 8px rgba(0,0,0,0.9);
+    }
+
+    .title-3d-gold {
+      color: #FEF08A;
+      text-shadow: 
+        0 1px 0 #EAB308, 
+        0 2px 0 #CA8A04, 
+        0 3px 0 #854D0E, 
+        0 4px 6px rgba(0,0,0,0.9),
+        0 0 10px rgba(234, 179, 8, 0.6);
+    }
+
+    .title-3d-speed {
+      color: #FFFFFF;
+      font-style: italic;
+      text-shadow: 
+        0 1px 0 #EF4444, 
+        0 2px 0 #DC2626, 
+        0 3px 0 #991B1B, 
+        0 4px 6px rgba(0,0,0,0.9),
+        0 0 12px rgba(239, 68, 68, 0.8);
+    }
+
+    .title-3d-purple {
+      color: #FFFFFF;
+      text-shadow: 
+        0 1px 0 #E879F9, 
+        0 2px 0 #C026D3, 
+        0 3px 0 #701A75, 
+        0 4px 6px rgba(0,0,0,0.9),
+        0 0 12px rgba(232, 121, 249, 0.8);
+    }
+
+    .title-3d-emerald {
+      color: #FFFFFF;
+      text-shadow: 
+        0 1px 0 #34D399, 
+        0 2px 0 #059669, 
+        0 3px 0 #064E3B, 
+        0 4px 6px rgba(0,0,0,0.9),
+        0 0 12px rgba(52, 211, 153, 0.8);
+    }
+
+    /* Carousel navigation circle buttons */
+    .carousel-nav-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(11, 16, 32, 0.85);
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      z-index: 25;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    .carousel-nav-btn:hover {
+      background: #00F0FF;
+      color: #000000;
+      border-color: #00F0FF;
+      box-shadow: 0 0 18px rgba(0, 240, 255, 0.7);
+      transform: scale(1.1);
+    }
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin-slow {
+      animation: spinSlow 8s linear infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased pb-12">
+
+  <!-- ======================================================== -->
+  <!-- TOP NAVIGATION BAR -->
+  <!-- ======================================================== -->
+  <header class="sticky top-0 z-40 bg-portalNav/95 backdrop-blur-xl border-b border-white/10 px-3 sm:px-6 py-3">
+    <div class="w-full max-w-[98%] 2xl:max-w-[1800px] mx-auto flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+          <i class="fa-solid fa-gamepad text-white text-xl"></i>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="font-orbitron font-black text-xl sm:text-2xl tracking-wider text-white">
+            VOLTIXZ <span class="text-neonCyan">GAMES</span>
+          </span>
+          <span class="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+            FREE
+          </span>
+        </div>
+      </div>
+
+      <!-- Center Search -->
+      <div class="hidden md:flex relative min-w-[320px] lg:min-w-[420px]">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-xs text-gray-400"></i>
+        <input type="text" id="globalSearchInput" onkeyup="handleSearch(this.value)" placeholder="Search any game..." class="w-full bg-slate-900/90 border border-white/15 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-gray-400 focus:outline-none focus:border-neonCyan transition-all">
+      </div>
+
+      <!-- Right User Controls -->
+      <div class="flex items-center gap-2 sm:gap-2.5">
+        <!-- Coin Balance Pill (Opens Wallet) -->
+        <button onclick="openWalletModal('wallet')" id="coinNavBtn" title="Your Coin Wallet & Daily Rewards" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-yellow-500/20 to-amber-500/15 border border-amber-400/50 hover:border-amber-300 text-amber-300 font-extrabold text-xs flex items-center gap-1.5 sm:gap-2 shadow-lg shadow-amber-500/10 hover:scale-105 active:scale-95 transition-all cursor-pointer">
+          <span class="text-sm sm:text-base leading-none">🪙</span>
+          <span id="navCoinBalance" class="font-orbitron font-black text-white text-xs sm:text-sm tracking-wide">100</span>
+          <span class="text-[9px] uppercase tracking-wider text-amber-400 font-black hidden md:inline">COINS</span>
+        </button>
+
+        <!-- Lucky Spin Button -->
+        <button onclick="openWalletModal('spin')" id="spinWheelNavBtn" title="Spin & Win Free Coins or VIP" class="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/40 hover:border-pink-300 text-pink-300 font-extrabold text-xs flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all cursor-pointer">
+          <i class="fa-solid fa-dharmachakra text-pink-400 animate-spin-slow"></i>
+          <span class="hidden md:inline text-[10px] uppercase font-black tracking-wider">LUCKY SPIN</span>
+        </button>
+
+        <!-- Daily Bonus Gift Button -->
+        <button onclick="claimDailyBonusReward()" id="dailyBonusNavBtn" title="Claim Free Daily Bonus" class="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-400/40 hover:border-emerald-300 text-emerald-300 font-extrabold text-xs flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all cursor-pointer">
+          <i class="fa-solid fa-gift text-emerald-400 animate-bounce"></i>
+          <span class="hidden lg:inline text-[10px] uppercase font-black tracking-wider">DAILY BONUS</span>
+        </button>
+
+        <!-- Leaderboard Button -->
+        <button onclick="openLeaderboardModal()" id="leaderboardNavBtn" title="Global Champions Leaderboard" class="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-amber-400/30 hover:border-amber-400 text-amber-300 font-extrabold text-xs flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all cursor-pointer">
+          <i class="fa-solid fa-trophy text-amber-400 text-xs"></i>
+          <span class="hidden xl:inline text-[10px] uppercase font-black tracking-wider">RANKS</span>
+        </button>
+
+        <!-- Sound FX Toggle Button -->
+        <button onclick="toggleSoundFX()" id="soundToggleBtn" title="Arcade Sound Effects (On/Off)" class="w-8 h-8 rounded-xl bg-slate-900 border border-white/15 hover:border-neonCyan text-neonCyan text-xs flex items-center justify-center transition-all cursor-pointer">
+          <i class="fa-solid fa-volume-high" id="soundToggleIcon"></i>
+        </button>
+
+        <!-- Multiplayer / Party Button -->
+        <button onclick="openPartyModal()" id="partyNavBtn" title="Realtime Multiplayer Party & 1v1 Battle" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-fuchsia-600 via-pink-600 to-rose-600 text-white font-black text-xs uppercase tracking-wider hover:opacity-95 shadow-md shadow-pink-500/30 transition-all flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-users text-white text-xs"></i>
+          <span>PARTY LIVE</span>
+        </button>
+
+        <button onclick="openSubscriptionModal()" id="vipNavBtn" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-black font-extrabold text-xs uppercase tracking-wider hover:opacity-95 shadow-md shadow-amber-500/25 transition-all flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-crown text-black text-xs"></i>
+          <span>VIP Pass</span>
+        </button>
+
+        <div id="authNavContainer" class="flex items-center gap-2.5">
+          <button onclick="openAuthModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-neonCyan to-blue-600 text-black font-extrabold text-xs uppercase tracking-wider hover:opacity-90 shadow-md transition-all flex items-center gap-1.5">
+            <i class="fa-solid fa-user-lock"></i>
+            <span>Sign In</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ======================================================== -->
+  <!-- MAIN CONTENT CONTAINER -->
+  <!-- ======================================================== -->
+  <main class="flex-1 w-full max-w-[98%] 2xl:max-w-[1800px] mx-auto px-2 sm:px-5 py-5 space-y-9">
+    
+    <!-- ======================================================== -->
+    <!-- TOP HERO SPOTLIGHT BANNER / THUMBNAIL -->
+    <!-- ======================================================== -->
+    <section class="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-gradient-to-r from-[#170a2c] via-[#0d1527] to-[#080d1a]">
+      <div class="relative z-10 p-5 sm:p-7 flex flex-col md:flex-row items-center justify-between gap-6">
+        
+        <!-- Left Content -->
+        <div class="space-y-3.5 max-w-xl text-center md:text-left">
+          <div class="flex items-center justify-center md:justify-start gap-2">
+            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center gap-1.5 shadow">
+              <i class="fa-solid fa-fire text-amber-400 animate-pulse"></i> FEATURED SPOTLIGHT
+            </span>
+            <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+              SMART AI BOT
+            </span>
+          </div>
+
+          <div>
+            <h1 class="font-orbitron font-black text-2xl sm:text-4xl text-white tracking-wide leading-tight">
+              LUDO <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-rose-500 to-cyan-400">HERO</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-gray-300 mt-2 font-medium">
+              Authentic 15x15 Indian classic board! Roll the dice, capture tokens, and race home against the smart AI bot.
+            </p>
+          </div>
+
+          <div class="flex items-center justify-center md:justify-start gap-3 pt-2">
+            <button onclick="launchGameBySlug('ludo-hero-ai')" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-neonCyan via-blue-600 to-purple-600 text-black font-black text-xs uppercase tracking-wider shadow-lg shadow-cyan-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+              <i class="fa-solid fa-play text-xs"></i>
+              <span>PLAY NOW — FREE</span>
+            </button>
+            <button onclick="launchGameBySlug('carrom-clash-ai')" class="px-5 py-2.5 rounded-2xl bg-slate-900/90 border border-white/20 hover:border-amber-400 text-amber-300 font-extrabold text-xs uppercase tracking-wider transition-all flex items-center gap-2">
+              <i class="fa-solid fa-circle-dot text-xs"></i>
+              <span>CARROM CLASH</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Artwork Thumbnail (User's Ludo image) -->
+        <div class="relative w-44 sm:w-52 md:w-60 aspect-square rounded-2xl overflow-hidden shadow-2xl border-2 border-white/15 bg-gradient-to-tr from-purple-900/50 to-slate-900/50 flex items-center justify-center group cursor-pointer" onclick="launchGameBySlug('ludo-hero-ai')">
+          <img src="/assets/ludo_art.png" alt="Ludo Hero" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent flex items-end p-3">
+            <span class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5 drop-shadow">
+              <i class="fa-solid fa-circle-play text-rose-500 text-sm"></i> Instant Free Play
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Background Glow Orbs -->
+      <div class="absolute -top-24 -left-24 w-72 h-72 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-cyan-600/20 rounded-full blur-3xl pointer-events-none"></div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- ZONE: VOLTIXZ MULTIPLAYER & FRIENDS PARTY ARENA -->
+    <!-- ======================================================== -->
+    <section class="relative rounded-3xl p-5 sm:p-6 bg-gradient-to-r from-purple-950/70 via-[#101429] to-fuchsia-950/70 border border-fuchsia-500/30 shadow-2xl shadow-pink-500/10 flex flex-col lg:flex-row items-center justify-between gap-5 overflow-hidden">
+      <div class="relative z-10 space-y-2 text-center lg:text-left">
+        <div class="flex items-center justify-center lg:justify-start gap-2 flex-wrap">
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/40 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> REALTIME WEBSOCKET
+          </span>
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+            100% FREE TO PLAY
+          </span>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-black font-orbitron text-white tracking-wide">
+          MULTIPLAYER <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-fuchsia-400 to-cyan-400">& FRIENDS PARTY</span>
+        </h2>
+        <p class="text-xs sm:text-sm text-gray-300 max-w-xl font-medium">
+          Challenge friends with a 6-digit room code or jump into an instant 1v1 battle! Neon Dice Duel, Tic-Tac-Toe, and live chat reactions.
+        </p>
+      </div>
+
+      <div class="relative z-10 flex items-center justify-center gap-2.5 sm:gap-3 flex-wrap">
+        <button onclick="openPartyWithTab('quick')" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-black font-black text-xs uppercase tracking-wider shadow-lg shadow-cyan-500/25 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer">
+          <i class="fa-solid fa-bolt text-xs"></i>
+          <span>Quick 1v1 Battle</span>
+        </button>
+        <button onclick="openPartyWithTab('host')" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-fuchsia-600 via-pink-600 to-rose-600 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-pink-500/25 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer">
+          <i class="fa-solid fa-plus-circle text-xs"></i>
+          <span>Create Room</span>
+        </button>
+        <button onclick="openPartyWithTab('join')" class="px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-white/20 hover:border-pink-400 text-pink-300 font-extrabold text-xs uppercase tracking-wider hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer">
+          <i class="fa-solid fa-key text-xs"></i>
+          <span>Enter Code</span>
+        </button>
+      </div>
+
+      <!-- Neon Aura Glow -->
+      <div class="absolute -right-16 -top-16 w-60 h-60 bg-pink-500/15 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -left-16 -bottom-16 w-60 h-60 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- ZONE 0: VOLTIXZ EXCLUSIVE VIP ARENA (15 PREMIUM 3D GAMES) -->
+    <!-- ======================================================== -->
+    <section class="space-y-3.5 relative p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-950/40 via-[#0d1424] to-purple-950/40 border border-amber-500/35 shadow-2xl shadow-amber-500/10" id="vip-section">
+      <div class="flex items-center justify-between px-1">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 via-yellow-400 to-amber-600 flex items-center justify-center text-black font-black text-sm shadow-md shadow-amber-500/30">
+            <i class="fa-solid fa-crown text-base"></i>
+          </div>
+          <div>
+            <h2 class="text-base sm:text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 tracking-wide font-orbitron flex items-center gap-2">
+              <span>VOLTIXZ VIP EXCLUSIVE ARENA</span>
+              <span id="vipStatusBadge" class="text-[9px] uppercase font-black px-2 py-0.5 rounded-full bg-amber-500/25 text-amber-300 border border-amber-400/50">
+                SUBSCRIBE TO UNLOCK
+              </span>
+            </h2>
+            <p class="text-[11px] text-gray-400">15 Exclusive 3D action, racing & sports hits</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="vipSubscribeHeaderBtn" onclick="openSubscriptionModal()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-black font-black text-xs uppercase tracking-wider shadow-md hover:scale-105 transition-all flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-gem text-xs"></i>
+            <span>Unlock VIP</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Carousel Row with Left & Right Arrow Buttons -->
+      <div class="relative group/carousel">
+        <button onclick="scrollRow('vipRow', -360)" class="carousel-nav-btn absolute -left-2 sm:-left-3.5 top-1/2 -translate-y-1/2 opacity-90 hover:opacity-100 transition-all z-20" aria-label="Previous">
+          <i class="fa-solid fa-chevron-left text-xs"></i>
+        </button>
+        <button onclick="scrollRow('vipRow', 360)" class="carousel-nav-btn absolute -right-2 sm:-right-3.5 top-1/2 -translate-y-1/2 opacity-90 hover:opacity-100 transition-all z-20" aria-label="Next">
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+        </button>
+
+        <div id="vipRow" class="flex gap-3.5 sm:gap-4 overflow-x-auto no-scrollbar py-2 px-1 scroll-smooth">
+          <!-- Rendered dynamically by app.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- ZONE 1: PLAY WITH AI ZONE (CAROUSEL WITH ARROWS) -->
+    <!-- ======================================================== -->
+    <section class="space-y-3 relative">
+      <div class="flex items-center justify-between px-1">
+        <div class="flex items-center gap-2.5">
+          <h2 class="text-base sm:text-lg font-bold text-white tracking-wide flex items-center gap-2">
+            <span>Play With AI Zone</span>
+          </h2>
+        </div>
+        <button onclick="scrollToSection('ai-zone')" class="text-xs font-semibold text-blue-400 hover:text-neonCyan transition-colors">
+          See All
+        </button>
+      </div>
+
+      <!-- Carousel Row with Left & Right Arrow Buttons -->
+      <div class="relative group/carousel">
+        <button onclick="scrollRow('aiRow', -360)" class="carousel-nav-btn absolute -left-2 sm:-left-3.5 top-1/2 -translate-y-1/2 opacity-90 hover:opacity-100 transition-all" aria-label="Previous">
+          <i class="fa-solid fa-chevron-left text-xs"></i>
+        </button>
+        <button onclick="scrollRow('aiRow', 360)" class="carousel-nav-btn absolute -right-2 sm:-right-3.5 top-1/2 -translate-y-1/2 opacity-90 hover:opacity-100 transition-all" aria-label="Next">
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+        </button>
+
+        <div id="aiRow" class="flex gap-3.5 sm:gap-4 overflow-x-auto no-scrollbar py-2 px-1 scroll-smooth">
+          <!-- Rendered dynamically by app.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- ZONE 2: PRIME PLAY ZONE (FEATURED HIT POSTERS) -->
+    <!-- ======================================================== -->
+    <section class="space-y-3 relative">
+      <div class="flex items-center justify-between px-1">
+        <h2 class="text-base sm:text-lg font-bold text-white tracking-wide">
+          Prime Play Zone
+        </h2>
+        <button onclick="scrollToSection('prime-zone')" class="text-xs font-semibold text-blue-400 hover:text-neonCyan transition-colors">
+          See All
+        </button>
+      </div>
+
+      <div class="relative group/carousel">
+        <button onclick="scrollRow('primeRow', -360)" class="carousel-nav-btn absolute -left-2 sm:-left-3.5 top-1/2 -translate-y-1/2 opacity-90 hover:opacity-100 transition-all" aria-label="Previous">
+          <i class="fa-solid fa-chevron-left text-xs"></i>
+        </button>
+        <button onclick="scrollRow('primeRow', 360)" class="carousel-nav-btn absolute -right-2 sm:-right-3.5 top-1/2 -translate-y-1/2 opacity-90 hover:opacity-100 transition-all" aria-label="Next">
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+        </button>
+
+        <div id="primeRow" class="flex gap-3.5 sm:gap-4 overflow-x-auto no-scrollbar py-2 px-1 scroll-smooth">
+          <!-- Rendered dynamically by app.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- ZONE 3: RAPID FIRE GAMES (ACTION & ARCADE HITS) -->
+    <!-- ======================================================== -->
+    <section class="space-y-3 relative">
+      <div class="flex items-center justify-between px-1">
+        <h2 class="text-base sm:text-lg font-bold text-white tracking-wide">
+          Rapid Fire Games
+        </h2>
+        <button onclick="scrollToSection('rapid-zone')" class="text-xs font-semibold text-blue-400 hover:text-neonCyan transition-colors">
+          See All
+        </button>
+      </div>
+
+      <div class="relative group/carousel">
+        <button onclick="scrollRow('rapidRow', -360)" class="carousel-nav-btn absolute -left-2 sm:-left-3.5 top-1/2 -translate-y-1/2 opacity-90 hover:opacity-100 transition-all" aria-label="Previous">
+          <i class="fa-solid fa-chevron-left text-xs"></i>
+        </button>
+        <button onclick="scrollRow('rapidRow', 360)" class="carousel-nav-btn absolute -right-2 sm:-right-3.5 top-1/2 -translate-y-1/2 opacity-90 hover:opacity-100 transition-all" aria-label="Next">
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+        </button>
+
+        <div id="rapidRow" class="flex gap-3.5 sm:gap-4 overflow-x-auto no-scrollbar py-2 px-1 scroll-smooth">
+          <!-- Rendered dynamically by app.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- ZONE 4: BRAIN & PUZZLE ZONE -->
+    <!-- ======================================================== -->
+    <section class="space-y-3 relative">
+      <div class="flex items-center justify-between px-1">
+        <h2 class="text-base sm:text-lg font-bold text-white tracking-wide">
+          Brain & Puzzle Arena
+        </h2>
+        <button onclick="scrollToSection('puzzle-zone')" class="text-xs font-semibold text-blue-400 hover:text-neonCyan transition-colors">
+          See All
+        </button>
+      </div>
+
+      <div class="relative group/carousel">
+        <button onclick="scrollRow('puzzleRow', -360)" class="carousel-nav-btn absolute -left-2 sm:-left-3.5 top-1/2 -translate-y-1/2 opacity-90 hover:opacity-100 transition-all" aria-label="Previous">
+          <i class="fa-solid fa-chevron-left text-xs"></i>
+        </button>
+        <button onclick="scrollRow('puzzleRow', 360)" class="carousel-nav-btn absolute -right-2 sm:-right-3.5 top-1/2 -translate-y-1/2 opacity-90 hover:opacity-100 transition-all" aria-label="Next">
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+        </button>
+
+        <div id="puzzleRow" class="flex gap-3.5 sm:gap-4 overflow-x-auto no-scrollbar py-2 px-1 scroll-smooth">
+          <!-- Rendered dynamically by app.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- ALL GAMES FULL GRID (SEARCH / BROWSE EXPLORER) -->
+    <!-- ======================================================== -->
+    <section class="space-y-4 pt-4 border-t border-white/10" id="all-games-container">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 px-1">
+        <div>
+          <h2 class="text-lg font-bold text-white tracking-wide">
+            Explore All Games
+          </h2>
+          <span class="text-xs text-gray-400" id="allCountSubtitle">Instant Free Play</span>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar" id="categoryFilterTabs">
+          <button onclick="filterAllCategory('all')" data-cat="all" class="cat-pill active px-3.5 py-1.5 rounded-lg text-xs font-bold bg-neonCyan text-black transition-all">All</button>
+          <button onclick="filterAllCategory('favorites')" data-cat="favorites" class="cat-pill px-3.5 py-1.5 rounded-lg text-xs font-bold bg-rose-500/20 border border-rose-500/40 text-rose-300 hover:bg-rose-500 hover:text-white transition-all flex items-center gap-1.5"><i class="fa-solid fa-heart text-[10px]"></i><span>Favorites</span></button>
+          <button onclick="filterAllCategory('premium')" data-cat="premium" class="cat-pill px-3.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-400 hover:text-black transition-all flex items-center gap-1.5"><i class="fa-solid fa-crown text-[10px]"></i><span>VIP Premium</span></button>
+          <button onclick="filterAllCategory('arcade')" data-cat="arcade" class="cat-pill px-3.5 py-1.5 rounded-lg text-xs font-bold bg-slate-900 border border-white/10 text-gray-300 hover:border-neonCyan transition-all">Arcade</button>
+          <button onclick="filterAllCategory('puzzle')" data-cat="puzzle" class="cat-pill px-3.5 py-1.5 rounded-lg text-xs font-bold bg-slate-900 border border-white/10 text-gray-300 hover:border-neonCyan transition-all">Puzzle</button>
+          <button onclick="filterAllCategory('action')" data-cat="action" class="cat-pill px-3.5 py-1.5 rounded-lg text-xs font-bold bg-slate-900 border border-white/10 text-gray-300 hover:border-neonCyan transition-all">Action</button>
+          <button onclick="filterAllCategory('sports')" data-cat="sports" class="cat-pill px-3.5 py-1.5 rounded-lg text-xs font-bold bg-slate-900 border border-white/10 text-gray-300 hover:border-neonCyan transition-all">Sports</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-3 sm:gap-4" id="allGamesGrid">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: SIGN IN & SIGN UP (JWT + NEON DB) -->
+  <!-- ======================================================== -->
+  <div id="authModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+    <div class="relative w-full max-w-md bg-portalCard border border-white/15 rounded-2xl p-6 shadow-2xl space-y-5">
+      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="text-center space-y-1">
+        <div class="w-12 h-12 mx-auto rounded-xl bg-neonCyan/20 border border-neonCyan flex items-center justify-center text-neonCyan text-2xl mb-2">
+          <i class="fa-solid fa-user-circle"></i>
+        </div>
+        <h3 class="text-xl font-orbitron font-bold text-white">PLAYER ACCOUNT</h3>
+        <p class="text-xs text-gray-400">Sign in to save scores and game progress</p>
+      </div>
+
+      <div class="flex border-b border-white/10 text-xs font-bold">
+        <button id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 py-2 text-neonCyan border-b-2 border-neonCyan">Sign In</button>
+        <button id="tabRegisterBtn" onclick="switchAuthTab('register')" class="flex-1 py-2 text-gray-400 hover:text-white">Sign Up</button>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-[11px] text-gray-400 mb-1">Username or Phone</label>
+          <input type="text" id="loginIdentifier" required placeholder="Enter username or phone number" class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-neonCyan">
+        </div>
+        <div>
+          <label class="block text-[11px] text-gray-400 mb-1">Password</label>
+          <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-neonCyan">
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-neonCyan to-blue-600 text-black font-extrabold text-xs uppercase tracking-wider hover:opacity-90">
+          Sign In
+        </button>
+      </form>
+
+      <form id="registerForm" onsubmit="handleRegisterSubmit(event)" class="space-y-3.5 hidden">
+        <div>
+          <label class="block text-[11px] text-gray-400 mb-1">Choose Username</label>
+          <input type="text" id="regUsername" required placeholder="e.g. CyberPlayer" class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-neonCyan">
+        </div>
+        <div>
+          <label class="block text-[11px] text-gray-400 mb-1">Phone Number or Email</label>
+          <input type="text" id="regPhone" required placeholder="+91 9876543210" class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-neonCyan">
+        </div>
+        <div>
+          <label class="block text-[11px] text-gray-400 mb-1">Create Password</label>
+          <input type="password" id="regPassword" required placeholder="Min 6 characters" class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-neonCyan">
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-neonCyan to-emerald-400 text-black font-extrabold text-xs uppercase tracking-wider hover:opacity-90">
+          Create Account
+        </button>
+      </form>
+
+      <div class="relative flex py-1 items-center">
+        <div class="flex-grow border-t border-white/10"></div>
+        <span class="flex-shrink mx-3 text-[10px] text-gray-500 uppercase">OR QUICK ACCESS</span>
+        <div class="flex-grow border-t border-white/10"></div>
+      </div>
+
+      <button onclick="handleGuestLogin()" class="w-full py-2.5 rounded-xl bg-slate-900 border border-white/15 hover:border-neonCyan text-gray-300 font-bold text-xs flex items-center justify-center gap-2 transition-all">
+        <i class="fa-solid fa-bolt text-neonCyan"></i>
+        <span>1-Click Guest Sign In</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- PROFILE MODAL -->
+  <div id="profileModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+    <div class="relative w-full max-w-sm bg-portalCard border border-white/15 rounded-2xl p-6 shadow-2xl space-y-4">
+      <button onclick="closeProfileModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="text-center space-y-2">
+        <img id="profileAvatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Gamer" class="w-16 h-16 mx-auto rounded-full border-2 border-neonCyan">
+        <h3 class="text-lg font-orbitron font-bold text-white" id="profileUsername">Username</h3>
+        <p class="text-xs text-gray-400" id="profilePhone">Phone/Email</p>
+      </div>
+
+      <div class="p-3 rounded-xl bg-slate-900 border border-white/10 space-y-2 text-xs">
+        <div class="flex justify-between text-gray-400">
+          <span>Member Status</span>
+          <span class="text-emerald-400 font-bold">Verified Free</span>
+        </div>
+        <div class="flex justify-between text-gray-400">
+          <span>Database</span>
+          <span class="text-white font-bold">Neon PostgreSQL</span>
+        </div>
+      </div>
+
+      <button onclick="handleLogout()" class="w-full py-2.5 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-xs font-bold hover:bg-red-900/50 transition-all flex items-center justify-center gap-2">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Sign Out</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- GAME THEATER OVERLAY -->
+  <div id="gameTheaterOverlay" class="hidden fixed inset-0 z-50 bg-black flex flex-col">
+    <div class="bg-portalNav border-b border-white/10 px-3 sm:px-5 py-2.5 flex items-center justify-between shadow-2xl z-50">
+      <div class="flex items-center gap-3">
+        <button onclick="closeGameTheater()" class="px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-red-600/30 transition-all active:scale-95">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Exit to Games</span>
+        </button>
+        <span id="theaterGameTitle" class="font-orbitron font-extrabold text-sm sm:text-base text-white tracking-wide truncate max-w-[200px] sm:max-w-md">Game Title</span>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Screen Size / Cabinet Ratio Toggle -->
+        <div class="flex items-center bg-slate-900 border border-white/15 rounded-xl p-0.5 text-[11px] font-bold">
+          <button id="theaterSizeMobile" onclick="setTheaterSize('mobile')" title="Phone / Mobile Mode" class="px-2.5 py-1 rounded-lg text-gray-400 hover:text-white transition-all flex items-center gap-1.5">
+            <i class="fa-solid fa-mobile-screen"></i>
+            <span class="hidden sm:inline">Mobile</span>
+          </button>
+          <button id="theaterSizeStandard" onclick="setTheaterSize('standard')" title="Standard Arcade Mode" class="px-2.5 py-1 rounded-lg text-gray-400 hover:text-white transition-all flex items-center gap-1.5">
+            <i class="fa-solid fa-gamepad"></i>
+            <span class="hidden sm:inline">Arcade</span>
+          </button>
+          <button id="theaterSizeWide" onclick="setTheaterSize('wide')" title="Full Widescreen Mode" class="px-2.5 py-1 rounded-lg text-gray-400 hover:text-white transition-all flex items-center gap-1.5">
+            <i class="fa-solid fa-desktop"></i>
+            <span class="hidden sm:inline">Full</span>
+          </button>
+        </div>
+
+        <button onclick="openHowToPlayModal()" title="How to Play & Rules" class="px-3 py-1.5 rounded-xl bg-cyan-500/20 border border-cyan-500/50 hover:bg-neonCyan hover:text-black text-cyan-300 font-bold text-xs flex items-center gap-1.5 transition-all shadow-md">
+          <i class="fa-solid fa-circle-question"></i>
+          <span class="hidden sm:inline">How to Play</span>
+        </button>
+
+        <button onclick="reloadCurrentGame()" title="Restart / Play Again" class="px-3 py-1.5 rounded-xl bg-amber-500/25 border border-amber-400 hover:bg-amber-400 hover:text-black text-amber-300 font-extrabold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/20">
+          <i class="fa-solid fa-rotate-right"></i>
+          <span>Restart</span>
+        </button>
+
+        <!-- Favorite Game Button -->
+        <button id="theaterFavoriteBtn" onclick="toggleCurrentTheaterFavorite()" title="Add to Favorites" class="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-white/15 text-gray-300 hover:text-rose-400 text-xs flex items-center gap-1.5 transition-all cursor-pointer">
+          <i class="fa-regular fa-heart text-rose-400" id="theaterFavoriteIcon"></i>
+        </button>
+
+        <!-- Share Game Button -->
+        <button onclick="shareCurrentGame()" title="Share Game Link & Challenge" class="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-white/15 text-gray-300 hover:text-white text-xs flex items-center gap-1.5 transition-all cursor-pointer">
+          <i class="fa-solid fa-share-nodes text-neonCyan"></i>
+          <span class="hidden md:inline">Share</span>
+        </button>
+
+        <button onclick="toggleTheaterFullscreen()" title="Fullscreen" class="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-white/15 text-gray-300 hover:text-white text-xs cursor-pointer">
+          <i class="fa-solid fa-expand"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Centered Responsive Arcade Cabinet Container -->
+    <div class="flex-1 w-full min-h-0 relative bg-[#04060d] flex items-center justify-center p-0 sm:p-1.5 overflow-hidden">
+      <div id="theaterFrameContainer" onclick="document.getElementById('gameTheaterFrame')?.focus()" class="w-full h-full max-w-full max-h-full bg-black rounded-none sm:rounded-2xl overflow-hidden shadow-2xl border-0 sm:border border-white/10 transition-all duration-300 flex items-center justify-center relative">
+        <iframe id="gameTheaterFrame" src="about:blank" class="w-full h-full border-0" allow="autoplay; fullscreen; gamepad; keyboard-map; clipboard-write; accelerometer; gyroscope"></iframe>
+      </div>
+    </div>
+
+    <!-- Dedicated "How to Play & Controls" Sticky Bottom Bar (Slim & Responsive) -->
+    <div id="theaterHowToPlayBar" class="bg-[#0b1020]/95 backdrop-blur-md border-t border-white/15 px-2.5 sm:px-5 py-1.5 sm:py-2 flex items-center justify-between gap-2 z-40 shrink-0 text-xs shadow-2xl">
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+        <span class="px-2 py-0.5 rounded-lg bg-neonCyan/20 text-neonCyan border border-neonCyan/40 font-orbitron font-bold text-[10px] tracking-wider uppercase shrink-0 flex items-center gap-1">
+          <i class="fa-solid fa-gamepad"></i> CONTROLS
+        </span>
+        <div class="truncate text-gray-200 font-medium text-[11px] sm:text-xs">
+          <span id="theaterControlsSummary" class="text-white font-semibold">Mouse Click / Touch / Spacebar</span>
+          <span class="text-gray-400 mx-1.5 hidden sm:inline">•</span>
+          <span id="theaterRulesSummary" class="text-amber-300 hidden md:inline">Follow objective to win!</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <button onclick="openHowToPlayModal()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/20 text-cyan-300 hover:text-white font-bold text-xs flex items-center gap-1.5 transition-all active:scale-95 shadow">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>How to Play & Rules</span>
+        </button>
+        <button onclick="reloadCurrentGame()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-black font-extrabold text-xs flex items-center gap-1.5 transition-all active:scale-95 shadow-md shadow-amber-500/20">
+          <i class="fa-solid fa-rotate-right"></i>
+          <span>Play Again</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: HOW TO PLAY & GAME RULES (English) -->
+  <div id="howToPlayModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md">
+    <div class="relative w-full max-w-lg bg-portalCard border border-white/20 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <button onclick="closeHowToPlayModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-neonCyan/20 border border-neonCyan flex items-center justify-center text-neonCyan text-2xl shadow-lg shadow-cyan-500/20 shrink-0">
+          <i class="fa-solid fa-book-open"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-orbitron font-extrabold text-white" id="modalGameTitle">How to Play</h3>
+          <p class="text-xs text-amber-300 font-semibold" id="modalCategoryBadge">Controls & Step-by-Step Rules</p>
+        </div>
+      </div>
+
+      <!-- Quick Highlights Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+        <div class="bg-slate-900/90 border border-white/10 rounded-xl p-3 space-y-1">
+          <span class="text-[10px] uppercase font-bold text-cyan-400 flex items-center gap-1">
+            <i class="fa-solid fa-crosshairs"></i> GAME OBJECTIVE
+          </span>
+          <p class="text-xs text-gray-200 leading-snug" id="modalObjective">Reach high score or defeat the bot.</p>
+        </div>
+        <div class="bg-slate-900/90 border border-white/10 rounded-xl p-3 space-y-1">
+          <span class="text-[10px] uppercase font-bold text-amber-400 flex items-center gap-1">
+            <i class="fa-solid fa-keyboard"></i> CONTROLS
+          </span>
+          <p class="text-xs text-gray-200 leading-snug" id="modalControls">Tap screen or use Keyboard.</p>
+        </div>
+      </div>
+
+      <!-- Step-by-Step Rules -->
+      <div class="bg-slate-900/90 border border-white/10 rounded-xl p-3.5 space-y-2">
+        <span class="text-[10px] uppercase font-bold text-emerald-400 flex items-center gap-1">
+          <i class="fa-solid fa-list-check"></i> STEP-BY-STEP RULES
+        </span>
+        <div class="text-xs text-gray-300 leading-relaxed whitespace-pre-line" id="modalRules"></div>
+      </div>
+
+      <!-- Winning Strategy & Pro Tips -->
+      <div class="bg-gradient-to-r from-cyan-950/40 to-slate-900 border border-cyan-500/30 rounded-xl p-3.5 space-y-2">
+        <span class="text-[10px] uppercase font-bold text-cyan-400 flex items-center gap-1">
+          <i class="fa-solid fa-lightbulb"></i> WINNING STRATEGY & PRO TIPS
+        </span>
+        <div class="text-xs text-cyan-200/90 leading-relaxed whitespace-pre-line" id="modalTips"></div>
+      </div>
+
+      <div class="pt-2 flex gap-3">
+        <button onclick="closeHowToPlayModal()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-neonCyan to-blue-600 text-black font-extrabold text-xs uppercase tracking-wider hover:opacity-90 active:scale-95 shadow transition-all">
+          Got It, Let's Play!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: VIP SUBSCRIPTION PASS -->
+  <!-- ======================================================== -->
+  <div id="subscriptionModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+    <div class="relative w-full max-w-lg bg-portalCard border-2 border-amber-500/40 rounded-3xl p-6 sm:p-7 shadow-2xl shadow-amber-500/20 space-y-6 max-h-[95vh] overflow-y-auto">
+      <button onclick="closeSubscriptionModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white transition-colors">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+
+      <!-- Header -->
+      <div class="text-center space-y-2">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-600 flex items-center justify-center text-black text-3xl shadow-lg shadow-amber-500/40 animate-bounce">
+          <i class="fa-solid fa-crown"></i>
+        </div>
+        <h3 class="text-2xl font-orbitron font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-500">
+          VOLTIXZ VIP CLUB
+        </h3>
+        <p class="text-xs text-gray-300 max-w-sm mx-auto font-medium">
+          Unlock the complete suite of 15 exclusive 3D games with zero ads!
+        </p>
+      </div>
+
+      <!-- Perks Card Grid -->
+      <div class="grid grid-cols-2 gap-2.5 text-left text-xs">
+        <div class="p-3 rounded-xl bg-slate-900/90 border border-amber-500/20 flex items-start gap-2.5">
+          <i class="fa-solid fa-gamepad text-amber-400 mt-0.5 text-sm"></i>
+          <div>
+            <div class="font-bold text-white">15 Exclusive Games</div>
+            <div class="text-[10px] text-gray-400 leading-tight">Speedster, Turbo Drift, Striker King & more</div>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-900/90 border border-amber-500/20 flex items-start gap-2.5">
+          <i class="fa-solid fa-bolt text-amber-400 mt-0.5 text-sm"></i>
+          <div>
+            <div class="font-bold text-white">Ad-Free & Instant</div>
+            <div class="text-[10px] text-gray-400 leading-tight">Zero popups, uninterrupted high-FPS play</div>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-900/90 border border-amber-500/20 flex items-start gap-2.5">
+          <i class="fa-solid fa-coins text-amber-400 mt-0.5 text-sm"></i>
+          <div>
+            <div class="font-bold text-white">2X Daily Coins</div>
+            <div class="text-[10px] text-gray-400 leading-tight">Double claim bonus in upcoming rewards</div>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-900/90 border border-amber-500/20 flex items-start gap-2.5">
+          <i class="fa-solid fa-ticket text-amber-400 mt-0.5 text-sm"></i>
+          <div>
+            <div class="font-bold text-white">Coupon Store Access</div>
+            <div class="text-[10px] text-gray-400 leading-tight">Priority access to upcoming coupon perks</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subscription Action Box -->
+      <div class="p-4 rounded-2xl bg-gradient-to-r from-amber-950/50 via-slate-900 to-purple-950/50 border border-amber-500/30 text-center space-y-3">
+        <div class="flex items-center justify-between px-2">
+          <div class="text-left">
+            <span class="text-[10px] uppercase font-black text-amber-400 tracking-wider">SPECIAL ALL-ACCESS PASS</span>
+            <div class="text-base font-extrabold text-white">30-Day VIP Membership</div>
+          </div>
+          <div class="text-right">
+            <span class="text-xs line-through text-gray-500">₹299</span>
+            <span class="text-lg font-black text-amber-300 ml-1.5">FREE PREVIEW</span>
+          </div>
+        </div>
+
+        <button onclick="handleSubscribeSubmit()" id="activateSubBtn" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-400 text-black font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer">
+          <i class="fa-solid fa-crown text-sm"></i>
+          <span>ACTIVATE VIP PASS NOW</span>
+        </button>
+        <p class="text-[10px] text-gray-400">Instant unlock • No payment details needed for preview</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: PLAYER WALLET, COIN STORE & LUCKY SPIN WHEEL -->
+  <!-- ======================================================== -->
+  <div id="walletModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md">
+    <div class="relative w-full max-w-lg bg-portalCard border-2 border-amber-500/40 rounded-3xl p-5 sm:p-6 shadow-2xl shadow-amber-500/20 space-y-4 max-h-[95vh] overflow-y-auto no-scrollbar">
+      
+      <button onclick="closeWalletModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white transition-colors cursor-pointer">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+
+      <!-- Modal Title -->
+      <div class="text-center space-y-1">
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-600 flex items-center justify-center text-black text-2xl shadow-lg shadow-amber-500/30">
+          <span>🪙</span>
+        </div>
+        <h3 class="text-xl sm:text-2xl font-orbitron font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-500">
+          REWARDS & WALLET HUB
+        </h3>
+        <p class="text-xs text-gray-300">Earn coins, redeem VIP passes, and test your luck on the wheel!</p>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="flex items-center p-1 rounded-xl bg-slate-900/90 border border-white/10 gap-1 text-[11px] sm:text-xs">
+        <button id="walletTabBtn_wallet" onclick="switchWalletTab('wallet')" class="flex-1 py-2 rounded-lg font-bold transition-all text-center flex items-center justify-center gap-1 bg-gradient-to-r from-amber-500 to-yellow-500 text-black shadow-md cursor-pointer">
+          <span>🪙</span> <span>Wallet</span>
+        </button>
+        <button id="walletTabBtn_quests" onclick="switchWalletTab('quests')" class="flex-1 py-2 rounded-lg font-bold transition-all text-center flex items-center justify-center gap-1 text-gray-300 hover:text-white cursor-pointer">
+          <span>🎯</span> <span>Quests</span>
+        </button>
+        <button id="walletTabBtn_store" onclick="switchWalletTab('store')" class="flex-1 py-2 rounded-lg font-bold transition-all text-center flex items-center justify-center gap-1 text-gray-300 hover:text-white cursor-pointer">
+          <span>🛍️</span> <span>Store</span>
+        </button>
+        <button id="walletTabBtn_spin" onclick="switchWalletTab('spin')" class="flex-1 py-2 rounded-lg font-bold transition-all text-center flex items-center justify-center gap-1 text-gray-300 hover:text-white cursor-pointer">
+          <span>🎡</span> <span>Spin</span>
+        </button>
+      </div>
+
+      <!-- ==================== TAB 1: WALLET & REWARDS ==================== -->
+      <div id="walletTab_wallet" class="space-y-4">
+        <!-- Live Balance Card -->
+        <div class="p-4 rounded-2xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-[#121829] border border-amber-500/40 flex items-center justify-between">
+          <div class="space-y-1">
+            <span class="text-[10px] uppercase font-black tracking-wider text-amber-400">CURRENT BALANCE</span>
+            <div class="flex items-baseline gap-2">
+              <span id="walletModalBalance" class="text-3xl font-orbitron font-black text-white">100</span>
+              <span class="text-xs font-bold text-amber-300">COINS</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] text-gray-400 font-medium block">Starter Bonus</span>
+            <span class="text-xs font-bold text-emerald-400">+<span id="walletModalBonus">50</span> Coins</span>
+          </div>
+        </div>
+
+        <!-- Daily Bonus Action Card -->
+        <div class="p-4 rounded-2xl bg-slate-900/90 border border-white/10 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-gift text-emerald-400 text-lg"></i>
+              <div>
+                <div class="text-xs font-bold text-white">Daily Lucky Reward</div>
+                <div class="text-[10px] text-gray-400">Claim free coins every 24 hours (2X for VIPs!)</div>
+              </div>
+            </div>
+            <span class="text-xs font-black text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/40">+50 🪙</span>
+          </div>
+          <button id="claimDailyModalBtn" onclick="claimDailyBonusReward()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-black text-xs uppercase tracking-wider shadow-md shadow-emerald-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-gift"></i>
+            <span>CLAIM +50 FREE COINS</span>
+          </button>
+        </div>
+
+        <!-- Promo / Coupon Code Section -->
+        <div class="p-4 rounded-2xl bg-slate-900/90 border border-amber-500/25 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-ticket"></i> Redeem Coupon Code
+            </span>
+            <span class="text-[10px] text-gray-400">Single-use promo codes</span>
+          </div>
+          <div class="flex gap-2">
+            <input type="text" id="couponCodeInput" placeholder="e.g. WELCOME100, BONUS500, VOLTIXVIP" class="flex-1 bg-black/60 border border-white/20 focus:border-amber-400 rounded-xl px-3 py-2 text-xs text-white uppercase tracking-wider placeholder-gray-500 outline-none">
+            <button onclick="handleCouponRedeem()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-extrabold text-xs uppercase hover:opacity-95 active:scale-95 transition-all cursor-pointer">
+              Apply
+            </button>
+          </div>
+          <!-- Quick Code Suggestions -->
+          <div id="quickCouponsContainer" class="flex items-center gap-1.5 flex-wrap text-[10px]">
+            <span class="text-gray-400">Try:</span>
+            <button id="couponBtn_WELCOME100" onclick="applyQuickCoupon('WELCOME100')" class="px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono hover:bg-amber-400 hover:text-black transition-colors">WELCOME100</button>
+            <button id="couponBtn_BONUS500" onclick="applyQuickCoupon('BONUS500')" class="px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono hover:bg-amber-400 hover:text-black transition-colors">BONUS500</button>
+            <button id="couponBtn_VOLTIXVIP" onclick="applyQuickCoupon('VOLTIXVIP')" class="px-2 py-0.5 rounded-md bg-purple-500/15 border border-purple-500/30 text-purple-300 font-mono hover:bg-purple-400 hover:text-black transition-colors">VOLTIXVIP (VIP Pass)</button>
+          </div>
+        </div>
+
+        <!-- How to Earn Coins Info Grid -->
+        <div class="grid grid-cols-2 gap-2 text-[11px]">
+          <div class="p-2.5 rounded-xl bg-slate-900/60 border border-white/10 flex items-center gap-2">
+            <span class="text-base">🎮</span>
+            <div>
+              <div class="font-bold text-white leading-tight">Play Any Game</div>
+              <div class="text-[9.5px] text-amber-400 font-semibold">+10 Coins per session</div>
+            </div>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-900/60 border border-white/10 flex items-center gap-2">
+            <span class="text-base">🏆</span>
+            <div>
+              <div class="font-bold text-white leading-tight">Beat AI Opponents</div>
+              <div class="text-[9.5px] text-emerald-400 font-semibold">+50 Coins per victory</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Transactions Activity -->
+        <div class="space-y-2">
+          <span class="text-[11px] font-bold text-gray-300 uppercase tracking-wider block">Recent Activity</span>
+          <div id="walletTransactionsList" class="space-y-1.5 max-h-32 overflow-y-auto no-scrollbar text-xs">
+            <div class="p-2 rounded-xl bg-slate-900/40 border border-white/5 flex items-center justify-between text-gray-400 text-[11px]">
+              <span>Starter Welcome Pack</span>
+              <span class="text-emerald-400 font-bold">+150 🪙</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB: DAILY QUESTS & MILESTONES ==================== -->
+      <div id="walletTab_quests" class="hidden space-y-3">
+        <div class="flex items-center justify-between px-1 text-xs">
+          <span class="text-gray-300 font-medium">Complete daily missions to earn bonus coins:</span>
+          <span class="text-[10px] uppercase font-black text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30">RESETS 24H</span>
+        </div>
+
+        <div id="questsContainer" class="space-y-2.5 text-xs">
+          <!-- Dynamically rendered by app.js -->
+        </div>
+      </div>
+
+      <!-- ==================== TAB 2: REDEEM STORE ==================== -->
+      <div id="walletTab_store" class="hidden space-y-3.5">
+        <!-- Redeemed Voucher Notification Banner (Dynamic) -->
+        <div id="storeVoucherBanner" class="hidden p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-slate-900 to-emerald-950/60 border-2 border-emerald-400/60 space-y-2 text-center animate-pulse">
+          <div class="text-xs font-black text-emerald-300 uppercase tracking-wider flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-circle-check"></i> <span id="storeVoucherTitle">REDEEMED SUCCESSFULLY</span>
+          </div>
+          <div class="flex items-center justify-center gap-2 bg-black/60 p-2 rounded-xl border border-white/10">
+            <span id="storeVoucherCode" class="font-mono font-black text-amber-300 text-sm tracking-widest">AMAZ-OTT-4892</span>
+            <button onclick="copyStoreVoucherCode()" class="px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-[10px] font-black uppercase transition-all">
+              Copy
+            </button>
+          </div>
+          <p class="text-[10px] text-gray-400">Save this code! Use it when redeeming your reward or VIP membership.</p>
+        </div>
+
+        <div class="flex items-center justify-between text-xs px-1">
+          <span class="text-gray-300 font-medium">Use your earned coins to redeem passes & vouchers:</span>
+          <span class="font-orbitron font-bold text-amber-300 text-xs"><span id="storeBalanceBadge">100</span> 🪙</span>
+        </div>
+
+        <!-- Store Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+          
+          <!-- Item 1: 7-Day VIP Pass -->
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-purple-500/30 flex flex-col justify-between hover:border-purple-400/60 transition-all group">
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-lg">👑</span>
+                <span class="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-black text-[10px] border border-purple-500/30">VIP ACCESS</span>
+              </div>
+              <div class="font-extrabold text-white text-sm">7-Day VIP Pass</div>
+              <p class="text-[10px] text-gray-400 leading-tight">Instant access to 15 exclusive 3D games & double coins.</p>
+            </div>
+            <div class="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between">
+              <span class="font-orbitron font-black text-amber-300 text-xs">300 🪙</span>
+              <button onclick="redeemStoreItem('vip_7_days', '7-Day VIP Pass', 300)" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white font-black text-[10px] uppercase shadow-md shadow-purple-500/20 active:scale-95 transition-all cursor-pointer">
+                Redeem
+              </button>
+            </div>
+          </div>
+
+          <!-- Item 2: 30-Day VIP Pass -->
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-amber-500/30 flex flex-col justify-between hover:border-amber-400/60 transition-all group">
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-lg">⭐</span>
+                <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-black text-[10px] border border-amber-500/30">BEST VALUE</span>
+              </div>
+              <div class="font-extrabold text-white text-sm">30-Day VIP Pass</div>
+              <p class="text-[10px] text-gray-400 leading-tight">Full month of unlimited VIP library, ad-free & high FPS.</p>
+            </div>
+            <div class="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between">
+              <span class="font-orbitron font-black text-amber-300 text-xs">1,000 🪙</span>
+              <button onclick="redeemStoreItem('vip_30_days', '30-Day VIP Pass', 1000)" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-black font-black text-[10px] uppercase shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer">
+                Redeem
+              </button>
+            </div>
+          </div>
+
+          <!-- Item 3: ₹100 Amazon Voucher -->
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-cyan-500/30 flex flex-col justify-between hover:border-cyan-400/60 transition-all group">
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-lg">🛍️</span>
+                <span class="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-black text-[10px] border border-cyan-500/30">SHOPPING</span>
+              </div>
+              <div class="font-extrabold text-white text-sm">₹100 Amazon Voucher</div>
+              <p class="text-[10px] text-gray-400 leading-tight">Digital gift card code redeemable on Amazon India.</p>
+            </div>
+            <div class="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between">
+              <span class="font-orbitron font-black text-amber-300 text-xs">1,500 🪙</span>
+              <button onclick="redeemStoreItem('amazon_100', '₹100 Amazon Voucher', 1500)" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-black text-[10px] uppercase shadow-md shadow-cyan-500/20 active:scale-95 transition-all cursor-pointer">
+                Redeem
+              </button>
+            </div>
+          </div>
+
+          <!-- Item 4: ₹150 Food Coupon -->
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-rose-500/30 flex flex-col justify-between hover:border-rose-400/60 transition-all group">
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-lg">🍕</span>
+                <span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-black text-[10px] border border-rose-500/30">FOOD & MEALS</span>
+              </div>
+              <div class="font-extrabold text-white text-sm">₹150 Food Voucher</div>
+              <p class="text-[10px] text-gray-400 leading-tight">Instant coupon code for Swiggy / Zomato deliveries.</p>
+            </div>
+            <div class="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between">
+              <span class="font-orbitron font-black text-amber-300 text-xs">2,000 🪙</span>
+              <button onclick="redeemStoreItem('food_150', '₹150 Food Voucher', 2000)" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 text-white font-black text-[10px] uppercase shadow-md shadow-rose-500/20 active:scale-95 transition-all cursor-pointer">
+                Redeem
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ==================== TAB 3: LUCKY SPIN WHEEL ==================== -->
+      <div id="walletTab_spin" class="hidden space-y-4 text-center">
+        <!-- Wheel Container -->
+        <div class="relative w-64 h-64 mx-auto flex items-center justify-center">
+          <!-- Outer Neon Ring -->
+          <div class="absolute inset-0 rounded-full border-4 border-amber-400/40 shadow-xl shadow-amber-500/20 pointer-events-none"></div>
+          
+          <!-- Wheel Pointer Indicator (Top Arrow) -->
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-20 w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[22px] border-t-amber-400 drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)]"></div>
+          
+          <!-- Canvas Spinning Element -->
+          <canvas id="spinWheelCanvas" width="256" height="256" class="rounded-full shadow-2xl transition-transform ease-out"></canvas>
+          
+          <!-- Center Wheel Cap -->
+          <div class="absolute w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 via-yellow-300 to-amber-600 border-2 border-white shadow-lg flex items-center justify-center text-black font-black text-xs z-10 pointer-events-none">
+            <span>🎡</span>
+          </div>
+        </div>
+
+        <!-- Spin Action Status & Controls -->
+        <div class="space-y-2">
+          <div id="spinResultBanner" class="hidden p-2.5 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 font-extrabold text-xs">
+            🎉 You won 50 Coins!
+          </div>
+
+          <button id="spinActionBtn" onclick="spinLuckyWheel()" class="w-full py-3 rounded-2xl bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500 hover:opacity-95 active:scale-98 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-purple-500/30 flex items-center justify-center gap-2 cursor-pointer transition-all">
+            <i class="fa-solid fa-dharmachakra"></i>
+            <span id="spinBtnText">SPIN THE WHEEL (FREE 1X DAILY)</span>
+          </button>
+
+          <p class="text-[10px] text-gray-400">
+            1 Free Lucky Spin available every 24 hours. Resets daily!
+          </p>
+        </div>
+
+        <!-- Wheel Prizes Legend -->
+        <div class="p-2.5 rounded-xl bg-slate-900/60 border border-white/5 flex flex-wrap items-center justify-center gap-1.5 text-[9.5px]">
+          <span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">50 Coins</span>
+          <span class="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">10 Coins</span>
+          <span class="px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">👑 1-Day VIP</span>
+          <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">20 Coins</span>
+          <span class="px-2 py-0.5 rounded bg-yellow-500/10 text-yellow-300 border border-yellow-500/20">100 Coins</span>
+          <span class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">200 Coins</span>
+          <span class="px-2 py-0.5 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20">🌟 500 Coins Jackpot</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: GLOBAL CHAMPIONS LEADERBOARD -->
+  <!-- ======================================================== -->
+  <div id="leaderboardModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md">
+    <div class="relative w-full max-w-lg bg-portalCard border-2 border-amber-400/40 rounded-3xl p-5 sm:p-6 shadow-2xl shadow-amber-500/20 space-y-4 max-h-[92vh] overflow-y-auto no-scrollbar">
+      
+      <button onclick="closeLeaderboardModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white transition-colors cursor-pointer">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+
+      <div class="text-center space-y-1">
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-tr from-amber-400 via-yellow-400 to-amber-600 flex items-center justify-center text-black text-2xl shadow-lg shadow-amber-500/30">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+        <h3 class="text-xl sm:text-2xl font-orbitron font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-500">
+          CHAMPIONS LEADERBOARD
+        </h3>
+        <p class="text-xs text-gray-300">Top arcade players ranked by coins and victory records</p>
+      </div>
+
+      <!-- Top 3 Podium Cards -->
+      <div id="leaderboardPodium" class="grid grid-cols-3 gap-2 text-center pt-1">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Full Ranked Players List -->
+      <div class="space-y-1.5 pt-1">
+        <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block px-1">Top Rankings</span>
+        <div id="leaderboardList" class="space-y-1.5 max-h-52 overflow-y-auto no-scrollbar text-xs">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Current User Standing Card -->
+      <div id="myRankContainer" class="p-3 rounded-2xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-[#121829] border border-amber-500/40 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2.5">
+          <span class="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-300 font-orbitron font-black flex items-center justify-center text-xs border border-amber-500/40" id="myRankBadge">#1</span>
+          <div>
+            <div class="font-extrabold text-white" id="myRankUsername">You</div>
+            <div class="text-[10px] text-gray-400" id="myRankSubtitle">Play more games to climb higher!</div>
+          </div>
+        </div>
+        <div class="text-right">
+          <span class="font-orbitron font-black text-amber-300 text-sm" id="myRankCoins">100</span>
+          <span class="text-[10px] text-gray-400 block font-bold">COINS</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: VOLTIXZ MULTIPLAYER & PARTY ARENA (REALTIME WEBSOCKET) -->
+  <!-- ======================================================== -->
+  <div id="partyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-md">
+    <div class="relative w-full max-w-2xl bg-portalCard border-2 border-fuchsia-500/40 rounded-3xl p-5 sm:p-6 shadow-2xl shadow-pink-500/25 space-y-5 max-h-[95vh] overflow-y-auto no-scrollbar">
+      
+      <!-- Close Button -->
+      <button onclick="closePartyModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white transition-colors cursor-pointer z-20">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+
+      <!-- Modal Header -->
+      <div class="text-center space-y-1">
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-tr from-fuchsia-600 via-pink-600 to-rose-600 flex items-center justify-center text-white text-2xl shadow-lg shadow-pink-500/30">
+          <i class="fa-solid fa-users"></i>
+        </div>
+        <h3 class="text-xl sm:text-2xl font-orbitron font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-fuchsia-300 to-cyan-400">
+          VOLTIXZ PARTY ARENA
+        </h3>
+        <p class="text-xs text-gray-300 font-medium">Realtime 1v1 Battles & Private Friends Rooms</p>
+      </div>
+
+      <!-- Guest / User Identity Bar -->
+      <div id="partyUserIdentityBar" class="p-3 rounded-2xl bg-slate-900/90 border border-white/10 flex items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2.5">
+          <img id="partyUserAvatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=VoltixGamer" alt="Avatar" class="w-9 h-9 rounded-xl border border-neonCyan/40 bg-slate-800 object-cover">
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span id="partyUserName" class="font-extrabold text-white">Player</span>
+              <span id="partyUserTag" class="text-[9px] px-1.5 py-0.2 rounded font-black uppercase bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">GUEST</span>
+            </div>
+            <span class="text-[10px] text-gray-400">Ready for Live Battle</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="text" id="partyGuestNameInput" placeholder="Change Name" maxlength="15" class="px-2.5 py-1 text-xs rounded-lg bg-black/60 border border-white/15 text-white focus:border-neonCyan outline-none w-28 sm:w-36">
+          <button onclick="updatePartyGuestName()" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-all cursor-pointer">Set</button>
+        </div>
+      </div>
+
+      <!-- SCREEN 1: MODE SELECTION & SETUP TABS -->
+      <div id="partyModeSelectScreen" class="space-y-4">
+        <!-- Tabs -->
+        <div class="flex rounded-xl bg-slate-900/90 p-1 border border-white/10 text-xs font-bold">
+          <button onclick="switchPartyTab('quick')" id="partyTabQuick" class="flex-1 py-2 rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 text-black font-black uppercase tracking-wider transition-all cursor-pointer">
+            <i class="fa-solid fa-bolt mr-1"></i> Quick 1v1
+          </button>
+          <button onclick="switchPartyTab('host')" id="partyTabHost" class="flex-1 py-2 rounded-lg text-gray-400 hover:text-white uppercase tracking-wider transition-all cursor-pointer">
+            <i class="fa-solid fa-crown mr-1"></i> Create Room
+          </button>
+          <button onclick="switchPartyTab('join')" id="partyTabJoin" class="flex-1 py-2 rounded-lg text-gray-400 hover:text-white uppercase tracking-wider transition-all cursor-pointer">
+            <i class="fa-solid fa-key mr-1"></i> Join Room
+          </button>
+        </div>
+
+        <!-- TAB CONTENT: QUICK 1v1 MATCH -->
+        <div id="partyTabContentQuick" class="space-y-4 text-center py-2">
+          <div class="p-5 rounded-2xl bg-gradient-to-b from-cyan-950/30 to-slate-900/60 border border-cyan-500/20 space-y-3">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-cyan-500/10 border border-cyan-400/40 flex items-center justify-center text-cyan-400 text-2xl animate-pulse">
+              <i class="fa-solid fa-gamepad"></i>
+            </div>
+            <h4 class="font-orbitron font-extrabold text-white text-base">Instant 1v1 Dice & Trivia Battle</h4>
+            <p class="text-xs text-gray-300 max-w-sm mx-auto">
+              Auto-matched with an online player in 5 seconds. If no one is waiting, a smart AI bot steps in instantly. Winner earns <span class="text-amber-300 font-bold">+25 Coins</span>!
+            </p>
+
+            <div id="quickMatchStatusBox" class="hidden py-3 space-y-2">
+              <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/20 border border-cyan-400/50 text-cyan-300 text-xs font-bold animate-pulse">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span id="quickMatchStatusText">Searching for opponent (5s)...</span>
+              </div>
+              <div>
+                <button onclick="cancelQuickMatch()" class="text-xs text-rose-400 hover:text-rose-300 underline font-bold cursor-pointer">Cancel</button>
+              </div>
+            </div>
+
+            <button onclick="startQuickMatchmaking()" id="startQuickMatchBtn" class="w-full sm:w-auto px-8 py-3 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 text-black font-black text-xs uppercase tracking-wider shadow-lg shadow-cyan-500/30 hover:scale-105 active:scale-95 transition-all cursor-pointer">
+              <i class="fa-solid fa-magnifying-glass mr-1.5"></i> FIND INSTANT OPPONENT
+            </button>
+          </div>
+        </div>
+
+        <!-- TAB CONTENT: CREATE PRIVATE ROOM -->
+        <div id="partyTabContentHost" class="hidden space-y-4">
+          <div class="p-4 rounded-2xl bg-slate-900/80 border border-white/10 space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">Select Game</label>
+              <div class="grid grid-cols-2 gap-3 text-xs">
+                <label class="p-3 rounded-xl border border-fuchsia-500/60 bg-fuchsia-950/30 flex items-center gap-2.5 cursor-pointer hover:border-fuchsia-400 transition-all">
+                  <input type="radio" name="partyGameChoice" value="dice-duel" checked class="accent-pink-500">
+                  <div>
+                    <span class="font-extrabold text-white block">🎲 Neon Dice Duel</span>
+                    <span class="text-[10px] text-gray-400">Race to 30 on neon track</span>
+                  </div>
+                </label>
+                <label class="p-3 rounded-xl border border-white/15 bg-slate-900 flex items-center gap-2.5 cursor-pointer hover:border-cyan-400 transition-all">
+                  <input type="radio" name="partyGameChoice" value="tictactoe-neon" class="accent-cyan-400">
+                  <div>
+                    <span class="font-extrabold text-white block">⭕❌ Neon Tic-Tac-Toe</span>
+                    <span class="text-[10px] text-gray-400">1v1 Instant Duel</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">Max Players</label>
+              <div class="flex gap-3 text-xs">
+                <label class="flex-1 p-2.5 rounded-xl border border-white/15 bg-slate-900 text-center cursor-pointer hover:border-pink-500 transition-all">
+                  <input type="radio" name="partyMaxPlayers" value="2" class="accent-pink-500">
+                  <span class="font-extrabold text-white ml-1">2 Players (1v1)</span>
+                </label>
+                <label class="flex-1 p-2.5 rounded-xl border border-pink-500/60 bg-pink-950/30 text-center cursor-pointer hover:border-pink-500 transition-all">
+                  <input type="radio" name="partyMaxPlayers" value="4" checked class="accent-pink-500">
+                  <span class="font-extrabold text-white ml-1">4 Players (Party)</span>
+                </label>
+              </div>
+            </div>
+
+            <button onclick="createPartyRoom()" class="w-full py-3 rounded-2xl bg-gradient-to-r from-fuchsia-600 via-pink-600 to-rose-600 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-pink-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer">
+              <i class="fa-solid fa-plus-circle mr-1.5"></i> CREATE PARTY ROOM NOW
+            </button>
+          </div>
+        </div>
+
+        <!-- TAB CONTENT: JOIN WITH CODE -->
+        <div id="partyTabContentJoin" class="hidden space-y-4">
+          <div class="p-5 rounded-2xl bg-slate-900/80 border border-white/10 space-y-4 text-center">
+            <h4 class="font-orbitron font-extrabold text-white text-sm uppercase">Join Your Friend's Party</h4>
+            <p class="text-xs text-gray-300">Apne dost dwara share kiya gaya 6-character room code dalein:</p>
+
+            <div class="max-w-xs mx-auto space-y-2">
+              <input type="text" id="partyJoinCodeInput" placeholder="Type Room Code (e.g. VX-9482)" maxlength="8" class="w-full text-center tracking-widest text-lg font-orbitron font-black uppercase py-3 px-4 rounded-2xl bg-black/70 border-2 border-white/20 text-neonCyan focus:border-neonCyan outline-none transition-all">
+              <div id="partyJoinErrorMsg" class="hidden text-xs text-rose-400 font-bold bg-rose-950/40 border border-rose-500/30 p-2 rounded-xl"></div>
+            </div>
+
+            <button onclick="joinPartyRoom()" class="px-8 py-3 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-pink-500/25 hover:scale-105 active:scale-95 transition-all cursor-pointer">
+              <i class="fa-solid fa-right-to-bracket mr-1.5"></i> ENTER ROOM
+            </button>
+
+            <!-- Quick Alternatives If User Has No Code -->
+            <div class="pt-3 border-t border-white/10 space-y-2 text-left">
+              <p class="text-[11px] text-gray-400 text-center font-bold">Room Code nahi hai? Direct khele ya naya room banaye:</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button onclick="switchPartyTab('quick'); startQuickMatchmaking();" class="p-2.5 rounded-xl bg-cyan-950/40 border border-cyan-500/30 hover:border-cyan-400 text-cyan-300 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                  <i class="fa-solid fa-bolt text-amber-400"></i> Play Quick 1v1 Now
+                </button>
+                <button onclick="switchPartyTab('host')" class="p-2.5 rounded-xl bg-purple-950/40 border border-fuchsia-500/30 hover:border-fuchsia-400 text-fuchsia-300 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                  <i class="fa-solid fa-crown text-amber-400"></i> Create New Room
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN 2: WAITING LOBBY (HOST & GUESTS ASSEMBLE) -->
+      <div id="partyLobbyScreen" class="hidden space-y-4">
+        <!-- Room Info Bar -->
+        <div class="p-4 rounded-2xl bg-gradient-to-r from-purple-950/60 to-slate-900 border border-fuchsia-500/30 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="text-center sm:text-left">
+            <span class="text-[10px] text-gray-400 uppercase font-black tracking-wider block">ROOM CODE</span>
+            <span class="text-2xl font-orbitron font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-cyan-400 tracking-wider" id="lobbyRoomCodeDisplay">VX-0000</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="copyPartyCode()" title="Copy Code" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer">
+              <i class="fa-regular fa-copy"></i>
+              <span id="copyCodeBtnText">Copy Code</span>
+            </button>
+            <button onclick="copyPartyInviteLink()" title="Copy WhatsApp/Browser Invite Link" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer">
+              <i class="fa-solid fa-share-nodes"></i>
+              <span id="copyLinkBtnText">Share Link</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Players Grid -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between px-1 text-xs">
+            <span class="font-extrabold text-gray-300 uppercase tracking-wider">Party Members (<span id="lobbyPlayerCount">1</span>/<span id="lobbyMaxPlayerCount">4</span>)</span>
+            <span class="text-[10px] text-cyan-300 font-bold" id="lobbyGameNameBadge">Neon Dice Duel</span>
+          </div>
+          <div id="lobbyPlayersGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Host Action & Leave Row -->
+        <div class="flex items-center justify-between pt-2 gap-2">
+          <button onclick="leavePartyRoom()" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-white/15 hover:border-rose-500 text-rose-400 font-extrabold text-xs uppercase transition-all cursor-pointer">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Leave
+          </button>
+          
+          <div class="flex items-center gap-2">
+            <button id="lobbyAddBotBtn" onclick="partyAddBot()" class="hidden px-3.5 py-2 rounded-xl bg-purple-900/60 border border-fuchsia-500/50 hover:bg-purple-800/80 text-fuchsia-200 font-extrabold text-xs uppercase tracking-wider transition-all cursor-pointer">
+              <i class="fa-solid fa-robot mr-1 text-cyan-300"></i> + Add Bot
+            </button>
+            <button id="lobbyStartGameBtn" onclick="startPartyGame()" class="hidden px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-black text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/25 hover:scale-105 active:scale-95 transition-all cursor-pointer">
+              <i class="fa-solid fa-play mr-1.5"></i> START MATCH
+            </button>
+          </div>
+
+          <div id="lobbyWaitingNotice" class="text-xs text-gray-400 font-medium animate-pulse">
+            Waiting for host to start...
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN 3: LIVE GAME ARENA (DICE DUEL / TIC-TAC-TOE) -->
+      <div id="partyGameArenaScreen" class="hidden space-y-4">
+        <!-- Live Turn Header -->
+        <div class="p-3 rounded-2xl bg-gradient-to-r from-purple-950/70 via-slate-900 to-[#0e1424] border border-cyan-500/30 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span id="arenaActivePlayerAvatar" class="w-8 h-8 rounded-xl bg-cyan-500/20 flex items-center justify-center font-black text-cyan-300 border border-cyan-400">P</span>
+            <div>
+              <div class="font-orbitron font-extrabold text-xs sm:text-sm text-white" id="arenaTurnIndicator">YOUR TURN!</div>
+              <div class="text-[10px] text-gray-400" id="arenaTurnSubText">Roll the dice to advance on the track</div>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] text-gray-400 uppercase font-black block">TARGET</span>
+            <span class="font-orbitron font-black text-amber-300 text-sm" id="arenaTargetScore">30 PTS</span>
+          </div>
+        </div>
+
+        <!-- Arena Game Container (Dice Duel or Tic-Tac-Toe) -->
+        <div id="arenaGameBoardContainer" class="p-3 sm:p-4 rounded-2xl bg-slate-950/90 border border-white/10 min-h-[260px] flex flex-col justify-between">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Live Reactions Bar & Chat -->
+        <div class="space-y-2">
+          <!-- Emoji Row -->
+          <div class="flex items-center justify-center gap-2 py-1">
+            <button onclick="sendPartyEmoji('🔥')" class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/20 border border-white/10 text-base hover:scale-125 transition-transform cursor-pointer">🔥</button>
+            <button onclick="sendPartyEmoji('😂')" class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/20 border border-white/10 text-base hover:scale-125 transition-transform cursor-pointer">😂</button>
+            <button onclick="sendPartyEmoji('👏')" class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/20 border border-white/10 text-base hover:scale-125 transition-transform cursor-pointer">👏</button>
+            <button onclick="sendPartyEmoji('🚀')" class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/20 border border-white/10 text-base hover:scale-125 transition-transform cursor-pointer">🚀</button>
+            <button onclick="sendPartyEmoji('💀')" class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/20 border border-white/10 text-base hover:scale-125 transition-transform cursor-pointer">💀</button>
+            <button onclick="sendPartyEmoji('🎯')" class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/20 border border-white/10 text-base hover:scale-125 transition-transform cursor-pointer">🎯</button>
+          </div>
+
+          <!-- Chat Bar -->
+          <div class="flex items-center gap-2">
+            <input type="text" id="partyChatInput" placeholder="Send message to party..." maxlength="80" class="flex-1 px-3 py-2 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:border-neonCyan outline-none">
+            <button onclick="sendPartyChatMessage()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-neonCyan to-blue-600 text-black font-bold text-xs uppercase hover:opacity-90 transition-all cursor-pointer">Send</button>
+          </div>
+
+          <!-- Chat Messages Floating Stream -->
+          <div id="partyChatMessagesStream" class="space-y-1 max-h-24 overflow-y-auto no-scrollbar text-xs">
+            <!-- Messages stream here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN 4: GAME OVER & VICTORY -->
+      <div id="partyGameOverScreen" class="hidden text-center space-y-4 py-3">
+        <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-amber-400 via-yellow-400 to-amber-600 flex items-center justify-center text-black text-4xl shadow-2xl shadow-amber-500/40 animate-bounce">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+
+        <div>
+          <span class="text-xs font-black uppercase tracking-widest text-amber-300 block">VICTORY CELEBRATION</span>
+          <h3 class="text-2xl sm:text-3xl font-orbitron font-black text-white mt-1" id="partyWinnerName">Player_1 Wins!</h3>
+          <p class="text-xs text-gray-300 mt-1">Conquered the Voltixz Arena! <span class="text-amber-300 font-bold">+50 Coins</span> awarded.</p>
+        </div>
+
+        <div id="partyFinalScoresList" class="max-w-sm mx-auto p-3 rounded-2xl bg-slate-900/90 border border-white/10 space-y-1.5 text-xs">
+          <!-- Final scores -->
+        </div>
+
+        <div class="flex items-center justify-center gap-3 pt-2">
+          <button onclick="backToPartyLobby()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white font-black text-xs uppercase tracking-wider shadow-lg hover:scale-105 transition-all cursor-pointer">
+            <i class="fa-solid fa-rotate-left mr-1.5"></i> Play Again
+          </button>
+          <button onclick="closePartyModal()" class="px-5 py-2.5 rounded-xl bg-slate-900 border border-white/20 text-gray-300 font-extrabold text-xs uppercase hover:text-white transition-all cursor-pointer">
+            Exit
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="/app.js?v=4.0"></script>
+</body>
+</html>

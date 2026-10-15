@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+      <base href="https://games.cdn.famobi.com/html5games/d/drift-cup-racing/v620/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=e8ca54ee-cfbe-417c-b69e-e4f4858a9957&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472">
+      <script>
+        (function() {
+          // Block external popup/tab hijacking
+          window.open = function() { 
+            return { closed: true, focus: function(){}, close: function(){} }; 
+          };
+
+          // Safe onbeforeunload clear
+          try {
+            if (window.top && window.top !== window.self) {
+              window.top.onbeforeunload = null;
+            }
+          } catch(e) {}
+
+          // Intercept ALL <a> link clicks so games cannot navigate away to third-party portals or related games
+          document.addEventListener('click', function(e) {
+            const a = e.target.closest('a');
+            if (a) {
+              e.preventDefault();
+              e.stopPropagation();
+              return false;
+            }
+          }, true);
+
+          // Continuously scrub injected toolbars, fixed banners, and footer elements so canvas receives all clicks
+          const scrubInterval = setInterval(function() {
+            var el = document.getElementById('game-footer');
+            if (el) el.remove();
+            var rel = document.querySelector('.gz-related-games');
+            if (rel) rel.remove();
+            var spl = document.getElementById('splash-screen');
+            if (spl) spl.remove();
+            var fixtop = document.querySelector('.fix-top') || document.querySelector('a[href*="gamezipper.com"]');
+            if (fixtop) fixtop.remove();
+            var nav = document.querySelector('.nav') || document.querySelector('#gz-topnav');
+            if (nav) nav.remove();
+            var faq = document.querySelector('[itemtype*="FAQPage"]');
+            if (faq) {
+              var parentDiv = faq.closest('div');
+              if (parentDiv && parentDiv !== document.body) parentDiv.remove();
+              else faq.remove();
+            }
+          }, 100);
+          setTimeout(function() { clearInterval(scrubInterval); }, 15000);
+
+          // Keep window focused for keyboard controls
+          window.focus();
+          document.addEventListener('pointerdown', function() { window.focus(); }, true);
+          document.addEventListener('mousedown', function() { window.focus(); }, true);
+          document.addEventListener('touchstart', function() { window.focus(); }, true);
+          window.addEventListener('click', function() { window.focus(); });
+
+          // Universal Keyboard Event Bridge (forwards arrow keys and spacebar directly to game window)
+          window.addEventListener('message', function(ev) {
+            if (ev.data && ev.data.type === 'KEY_EVENT') {
+              try {
+                const kEvent = new KeyboardEvent(ev.data.action, {
+                  key: ev.data.key,
+                  code: ev.data.code,
+                  bubbles: true,
+                  cancelable: true
+                });
+                Object.defineProperty(kEvent, 'keyCode', { get: function() { return ev.data.keyCode; } });
+                Object.defineProperty(kEvent, 'which', { get: function() { return ev.data.which || ev.data.keyCode; } });
+                window.dispatchEvent(kEvent);
+                document.dispatchEvent(kEvent);
+                const canvases = document.querySelectorAll('canvas');
+                canvases.forEach(function(c) { c.dispatchEvent(kEvent); });
+              } catch(err) {}
+            }
+          });
+
+          // Construct 2 data.json 404 fix for Windows (resolves black screen in Penalty Shooters 2)
+          try {
+            const origXhrOpen = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function(method, url) {
+              if (typeof url === 'string' && url.includes('data.json')) {
+                arguments[1] = url.replace('data.json', 'data.js');
+              }
+              return origXhrOpen.apply(this, arguments);
+            };
+          } catch(e) {}
+
+          // Suppress disruptive alert popups from WebGL/WASM engines
+          window.LocalizationData = window.LocalizationData || "{}";
+          window.alert = function(msg) {
+            console.warn('Game alert intercepted:', msg);
+          };
+
+          // Defensive getElementById so missing UI buttons never crash game engines
+          const origGetElementById = document.getElementById.bind(document);
+          document.getElementById = function(id) {
+            const el = origGetElementById(id);
+            if (el) return el;
+            if (id === 'sound-toggle' || id === 'soundToggle' || id === 'start-btn' || id === 'mute-btn') {
+              const dummy = document.createElement('div');
+              dummy.id = id;
+              dummy.style.display = 'none';
+              document.body.appendChild(dummy);
+              return dummy;
+            }
+            return null;
+          };
+
+          // Famobi Autonomous Emulator (bypasses anti-embed redirects and loads game assets directly)
+          const _famobiStore = {};
+          const mockStorage = {
+            getItem: function(k) {
+              try {
+                const v = window.localStorage.getItem(k);
+                if (v !== null && v !== undefined) return v;
+              } catch(e) {}
+              return _famobiStore[k] !== undefined ? _famobiStore[k] : null;
+            },
+            setItem: function(k, v) {
+              try { window.localStorage.setItem(k, String(v)); } catch(e) {}
+              _famobiStore[k] = String(v);
+            },
+            removeItem: function(k) {
+              try { window.localStorage.removeItem(k); } catch(e) {}
+              delete _famobiStore[k];
+            },
+            clear: function() {
+              try { window.localStorage.clear(); } catch(e) {}
+              Object.keys(_famobiStore).forEach(k => delete _famobiStore[k]);
+            },
+            key: function(i) {
+              try { return window.localStorage.key(i); } catch(e) {}
+              return Object.keys(_famobiStore)[i] || null;
+            },
+            hasItem: function(k) {
+              return this.getItem(k) !== null;
+            },
+            get length() {
+              try { return window.localStorage.length; } catch(e) {}
+              return Object.keys(_famobiStore).length;
+            }
+          };
+
+          const famobiBase = {
+            storage: mockStorage,
+            localStorage: mockStorage,
+            getStorage: function() { return mockStorage; },
+            hasFeature: function(f) { return true; },
+            getOffsets: function() { return { top: 0, bottom: 0, left: 0, right: 0 }; },
+            onOffsetChange: function(cb) {},
+            onRequest: function(type, cb) { if(typeof cb === 'function') cb(); },
+            showInterstitialAd: function(cb) { if(typeof cb === 'function') setTimeout(cb, 10); },
+            showInterstitial: function(cb) { if(typeof cb === 'function') setTimeout(cb, 10); },
+            hasRewardedAd: function() { return false; },
+            rewardedAd: function(cb) { if(typeof cb === 'function') setTimeout(cb, 10); },
+            forceAd: function(cb) { if(typeof cb === 'function') setTimeout(cb, 10); },
+            showAd: function(cb) { if(typeof cb === 'function') setTimeout(cb, 10); },
+            getVolume: function() { return 1; },
+            setPreloadProgress: function() {},
+            gameReady: function() {},
+            moreGamesLink: function() { return 'javascript:void(0)'; },
+            getMoreGamesURL: function() { return 'javascript:void(0)'; },
+            getMoreGamesButtonImage: function() {
+              return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+            },
+            submitHighscore: function() {},
+            log: function() {},
+            getFeatureProperties: function() { return {}; },
+            _: function(k) { return k || ''; },
+            __t: function(k) { return k || ''; },
+            getCurrentLanguage: function() { return 'en'; },
+            getLanguage: function() { return 'en'; },
+            getOrientation: function() {
+              return (window.innerWidth < window.innerHeight) ? 'portrait' : 'landscape';
+            },
+            adapters: {}
+          };
+
+          window.famobi = new Proxy(famobiBase, {
+            get: function(target, prop) {
+              if (prop in target) return target[prop];
+              if (prop === 'storage' || prop === 'localStorage') return mockStorage;
+              if (prop === 'then') return undefined;
+              return function() { return target; };
+            }
+          });
+          window.fg_api = function() {};
+          window.famobi_analytics = { trackScreen: function(){}, trackEvent: function(){} };
+          
+          const mockGameInterfaceBase = {
+            init: function(files) {
+              if (Array.isArray(files)) {
+                files.forEach(function(f) {
+                  if (typeof f === 'string') {
+                    const s = document.createElement('script');
+                    s.src = f;
+                    s.async = false;
+                    document.head.appendChild(s);
+                  } else if (typeof f === 'function') {
+                    try { f(); } catch(e) {}
+                  }
+                });
+              }
+              return Promise.resolve(true);
+            },
+            storage: mockStorage,
+            localStorage: mockStorage,
+            getStorage: function() { return mockStorage; },
+            hasFeature: function(f) { return true; },
+            getFeatureProperties: function() { return {}; },
+            sendPreloadProgress: function(p) {},
+            gameReady: function() {},
+            track: function() {},
+            getOrientation: function() {
+              return (window.innerWidth < window.innerHeight) ? 'portrait' : 'landscape';
+            },
+            onMuteStateChange: function() {},
+            onPauseStateChange: function() {},
+            onOffsetChange: function() {},
+            hasRewardedAd: function() { return Promise.resolve(false); },
+            hasInterstitialAd: function() { return Promise.resolve(false); },
+            hasAd: function() { return Promise.resolve(false); },
+            showInterstitialAd: function(cb) { if (typeof cb === 'function') cb(); return Promise.resolve(true); },
+            showRewardedAd: function() { return Promise.resolve({ isRewardGranted: true }); }
+          };
+          const mockGameInterface = new Proxy(mockGameInterfaceBase, {
+            get: function(target, prop) {
+              if (prop in target) return target[prop];
+              if (prop === 'storage' || prop === 'localStorage') return mockStorage;
+              if (prop === 'then') return undefined;
+              return function() { return Promise.resolve(true); };
+            }
+          });
+          window.GameInterface = mockGameInterface;
+          window.gameInterface = mockGameInterface;
+
+          function runFamobiQueue() {
+            if (!window.famobi_gameJS || !Array.isArray(window.famobi_gameJS) || window.famobi_gameJS.length === 0) return;
+            const item = window.famobi_gameJS.shift();
+            if (typeof item === 'function') {
+              try { item(); } catch(e) { console.error('Famobi starter err:', e); }
+              runFamobiQueue();
+            } else if (typeof item === 'string') {
+              const s = document.createElement('script');
+              s.src = item;
+              s.onload = runFamobiQueue;
+              s.onerror = function(err) {
+                console.warn('Script failed: ' + item, err);
+                runFamobiQueue();
+              };
+              document.head.appendChild(s);
+            } else {
+              runFamobiQueue();
+            }
+          }
+          const famobiPoll = setInterval(runFamobiQueue, 50);
+          setTimeout(function() { clearInterval(famobiPoll); }, 20000);
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', runFamobiQueue);
+          } else {
+            setTimeout(runFamobiQueue, 10);
+          }
+
+          // Continuously dispatch startup events if game engine is waiting on start_game
+          let startTries = 0;
+          const startInterval = setInterval(function() {
+            startTries++;
+            try {
+              const contentEl = document.getElementById('content') || document.body;
+              if (contentEl) {
+                contentEl.dispatchEvent(new Event('start_game'));
+                contentEl.dispatchEvent(new Event('SDK_GAME_START'));
+              }
+              window.dispatchEvent(new Event('start_game'));
+              window.dispatchEvent(new Event('SDK_GAME_START'));
+            } catch(e) {}
+            if (startTries > 25) clearInterval(startInterval);
+          }, 400);
+
+          // Auto-clear white cover overlay (#x_ovl) for WebGL games
+          setTimeout(function() {
+            try {
+              if (typeof window.onGameStarted === 'function') window.onGameStarted();
+            } catch(e) {}
+            var ovl = document.getElementById('x_ovl');
+            if (ovl) {
+              ovl.style.opacity = '0';
+              ovl.style.pointerEvents = 'none';
+              setTimeout(function() { if (ovl) ovl.style.display = 'none'; }, 400);
+            }
+          }, 3500);
+
+          // Monitor Unity finish state to ensure loading containers disappear smoothly
+          const unityWatcher = setInterval(function() {
+            const lc = document.getElementById('unity-loading-container');
+            if (lc && lc.classList.contains('finished')) {
+              lc.style.opacity = '0';
+              lc.style.pointerEvents = 'none';
+              setTimeout(function() { if (lc) lc.style.display = 'none'; }, 600);
+              clearInterval(unityWatcher);
+            }
+          }, 300);
+          setTimeout(function() {
+            const lc = document.getElementById('unity-loading-container');
+            if (lc) {
+              lc.classList.add('finished');
+              lc.style.opacity = '0';
+              lc.style.pointerEvents = 'none';
+              setTimeout(function() { if (lc) lc.style.display = 'none'; }, 600);
+            }
+            clearInterval(unityWatcher);
+          }, 25000);
+        })();
+      </script>
+      <style>
+        #splash-screen,
+        .splash-screen,
+        [id*="splash-screen"],
+        #game-footer,
+        div#game-footer,
+        .game-footer,
+        [id*="game-footer"],
+        .gz-toolbar,
+        #gz-toolbar,
+        .gz-toolbar,
+        #gz-toolbar,
+        .gz-related-bar,
+        [class*="gz-related"],
+        #gz-r703-playbtn-css,
+        #gz-topnav,
+        nav#gz-topnav,
+        .gz-topnav,
+        .nav,
+        div.nav,
+        #soundToggle,
+        .fix-top,
+        a.fix-top,
+        [id*="gz-ad"], 
+        [class*="gz-injected"], 
+        [id*="banner"], 
+        [class*="banner"], 
+        [id*="ad-"], 
+        .gz-banner, 
+        .gz-overlay,
+        .gz-seo-section,
+        .gz-seo-content,
+        article,
+        footer,
+        .gz-footer,
+        .gz-related-games,
+        section.gz-related-games,
+        section[aria-label="Related games"],
+        .gz-related-grid,
+        .gz-blog-links,
+        #game-info,
+        section#game-info,
+        [id*="game-info"],
+        a[href*="gamezipper.com"],
+        a[href*="/blog/"],
+        a[title="Home"],
+        .gz-home-btn,
+        .nav a,
+        div.nav a,
+        #gz-ad-above-game,
+        #gz-ad-below-canvas,
+        #gz-ad-below-game,
+        h3,
+        div[style*="max-width:800px"],
+        div[style*="max-width: 800px"] {
+          display: none !important;
+          opacity: 0 !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+          height: 0 !important;
+          max-height: 0 !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          overflow: hidden !important;
+          position: absolute !important;
+          top: -99999px !important;
+          left: -99999px !important;
+          z-index: -9999 !important;
+        }
+        * {
+          filter: none !important;
+          backdrop-filter: none !important;
+        }
+        /* Natural responsive centering with pure seamless dark canvas */
+        html, body {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+          max-width: 100% !important;
+          max-height: 100% !important;
+          background: #000000 !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+          justify-content: center !important;
+          align-items: center !important;
+        }
+        /* Compact game headers so board gets maximum screen height */
+        .ms-header {
+          margin: 0 !important;
+          padding: 6px 12px 2px !important;
+        }
+        .ms-title {
+          font-size: 18px !important;
+          margin-bottom: 0 !important;
+        }
+        .ms-subtitle {
+          display: none !important;
+        }
+        /* Keep game canvas prominent, centered, and never squeezed */
+        #content,
+        .ms-canvas-wrap,
+        .canvas-wrap,
+        #game-container,
+        #game {
+          width: 100% !important;
+          height: 100% !important;
+          flex-shrink: 0 !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          margin: 0 auto !important;
+          padding: 0 !important;
+          background: #000000 !important;
+        }
+        /* Responsive arcade and puzzle wrap centering */
+        #wrap {
+          display: flex !important;
+          flex-direction: column !important;
+          justify-content: center !important;
+          align-items: center !important;
+          margin: auto !important;
+          width: 100% !important;
+          max-width: min(500px, calc(100vh - 120px)) !important;
+          height: 100% !important;
+          max-height: 100vh !important;
+          padding: 4px 6px !important;
+          box-sizing: border-box !important;
+          background: transparent !important;
+        }
+        /* Landscape 3:2 games like Pong get wider horizontal bounds */
+        #wrap:has(#hud) {
+          max-width: min(680px, calc((100vh - 110px) * 1.5)) !important;
+        }
+        #wrap #header {
+          width: 100% !important;
+          max-width: 480px !important;
+          margin: 0 auto 6px auto !important;
+          flex-shrink: 0 !important;
+        }
+        #wrap #hud,
+        #hud {
+          width: 100% !important;
+          max-width: 600px !important;
+          margin: 0 auto 6px auto !important;
+          flex-shrink: 0 !important;
+        }
+        #canvas-wrap {
+          position: relative !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          margin: 0 auto !important;
+          background: transparent !important;
+        }
+        #wrap:has(#hud) #canvas-wrap {
+          max-width: min(680px, calc((100vh - 120px) * 1.5)) !important;
+        }
+        #controls {
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          gap: 12px !important;
+          margin-top: 8px !important;
+          flex-shrink: 0 !important;
+        }
+        #controls a,
+        a[href*="gamezipper.com"] {
+          display: none !important;
+        }
+        #ms-canvas {
+          height: auto !important;
+          max-height: calc(100vh - 140px) !important;
+          width: auto !important;
+          max-width: calc(100vw - 16px) !important;
+          aspect-ratio: 1 / 1 !important;
+          margin: 0 auto !important;
+        }
+        /* Clean modern slim scrollbar */
+        ::-webkit-scrollbar {
+          width: 4px;
+          height: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 4px;
+        }
+        ::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        canvas {
+          display: block !important;
+          margin: auto !important;
+          max-width: 100vw !important;
+          max-height: 100vh !important;
+          object-fit: contain !important;
+        }
+        #wrap canvas,
+        #canvas-wrap canvas,
+        canvas#c {
+          display: block !important;
+          margin: auto !important;
+          max-width: 100% !important;
+          max-height: calc(100vh - 110px) !important;
+          object-fit: contain !important;
+        }
+        #unity-container {
+          width: 100% !important;
+          height: 100% !important;
+          background: #000000 !important;
+        }
+        #unity-canvas {
+          background-color: #000000 !important;
+        }
+        #orientation {
+          display: none !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+          width: 0 !important;
+          height: 0 !important;
+          opacity: 0 !important;
+        }
+        /* Bubble Shooter overlay click-through fix */
+        #gameScreen.screen.active {
+          pointer-events: none !important;
+        }
+        #gameScreen #gameUI, #gameScreen button, #gameScreen .btn {
+          pointer-events: auto !important;
+        }
+        #hintBox {
+          pointer-events: none !important;
+        }
+        #gameCanvas {
+          pointer-events: auto !important;
+          cursor: crosshair;
+        }
+      </style>
+    
+	<title>Drift Cup Racing</title>
+	<meta charset="utf-8">
+	<meta name="apple-mobile-web-app-capable" content="no" />
+	<meta name="viewport" content="initial-scale=1.0,maximum-scale=1.01, minimal-ui" />
+	<style>
+		body {
+			margin: 0px;
+			padding: 0px;
+			width: 100%;
+			overflow:hidden;
+
+		}
+
+		canvas {
+			-ms-touch-action: none;
+			image-rendering: -o-crisp-edges;
+			image-rendering: optimize-contrast;
+			-ms-interpolation-mode: nearest-neighbor;
+			-webkit-tap-highlight-color: rgba(0,0,0,0);
+			-moz-tap-highlight-color: rgba(0,0,0,0);
+			tap-highlight-color: rgba(0,0,0,0);
+			user-select: none;
+			-webkit-touch-callout: none;
+			-webkit-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+		}
+	</style>
+
+	<script>
+		window.famobi_gameID = "drift-cup-racing"; // the actual GAMEID is added to the final version by Famobi
+		window.famobi_gameJS = ['js/all.js',
+			function() {
+				extGameLoad();
+			}
+		];
+		
+	</script>
+
+</head>
+
+	<body>
+		<div id="canvas-wrapper" style="overflow:hidden; width:100%; height:100%; margin:0; padding:0; position:absolute;">
+		   <canvas id="canvas" moz-opaque></canvas>
+		</div>
+	</body>
+</html>

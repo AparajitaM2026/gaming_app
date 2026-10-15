@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#051329" />
+      <stop offset="100%" stop-color="#020914" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="brightGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 2 0" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <pattern id="gridPattern" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#2563eb" stroke-width="1" stroke-opacity="0.12" />
+    </pattern>
+  </defs>
+
+  <rect width="300" height="300" fill="url(#bgGrad)" />
+  <rect width="300" height="300" fill="url(#gridPattern)" />
+  <circle cx="150" cy="150" r="110" fill="#3b82f6" opacity="0.15" filter="url(#brightGlow)" />
+
+  <g transform="translate(0, 5)">
+    
+      <g filter="url(#glow)">
+        <!-- 3D Table Tennis Board -->
+        <polygon points="40,160 260,160 230,260 70,260" fill="#0284c7" stroke="#38bdf8" stroke-width="3"/>
+        <line x1="150" y1="160" x2="150" y2="260" stroke="#ffffff" stroke-width="3"/>
+        <!-- Net -->
+        <rect x="35" y="145" width="230" height="16" fill="rgba(255,255,255,0.3)" stroke="#ffffff" stroke-width="2"/>
+        <!-- Red Table Tennis Paddle -->
+        <g transform="translate(180, 100) rotate(25)">
+          <ellipse cx="0" cy="0" rx="32" ry="36" fill="#dc2626" stroke="#fca5a5" stroke-width="3" filter="url(#brightGlow)"/>
+          <rect x="-8" y="36" width="16" height="40" rx="5" fill="#78350f" stroke="#d97706" stroke-width="2"/>
+        </g>
+        <!-- Fast Bouncing Ping Pong Ball -->
+        <circle cx="110" cy="120" r="12" fill="#ffffff" stroke="#facc15" stroke-width="2" filter="url(#brightGlow)"/>
+        <!-- Motion Trails -->
+        <path d="M165 95 Q 135 105 110 120" stroke="#facc15" stroke-width="3" stroke-dasharray="6 4"/>
+      </g>
+  </g>
+</svg>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a040b" />
+      <stop offset="50%" stop-color="#080c18" />
+      <stop offset="100%" stop-color="#991b1b" stop-opacity="0.8" />
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="brightGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="blur1" />
+      <feGaussianBlur stdDeviation="3" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur1" />
+        <feMergeNode in="blur2" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <radialGradient id="cyanSphere" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="40%" stop-color="#00f0ff" />
+      <stop offset="100%" stop-color="#0369a1" />
+    </radialGradient>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#eab308" />
+      <stop offset="100%" stop-color="#a16207" />
+    </linearGradient>
+    <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 20 M 0 0 L 20 20" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.04" />
+    </pattern>
+  </defs>
+
+  <rect width="300" height="300" fill="url(#bgGrad)" />
+  <rect width="300" height="300" fill="url(#gridPattern)" />
+  <circle cx="150" cy="150" r="120" fill="#ef4444" opacity="0.18" filter="url(#brightGlow)" />
+
+  <g transform="translate(0, 5)">
+    
+      <g filter="url(#glow)">
+        <!-- Rice Base -->
+        <rect x="80" y="160" width="140" height="50" rx="25" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3" />
+        <!-- Salmon Topping -->
+        <path d="M70 160 C 100 130 200 130 230 160 L 220 180 C 190 150 110 150 80 180 Z" fill="#f97316" stroke="#c2410c" stroke-width="2.5" filter="url(#brightGlow)" />
+        <!-- Nori Seaweed Band -->
+        <rect x="135" y="140" width="30" height="75" rx="4" fill="#064e3b" stroke="#022c22" stroke-width="2" />
+        <!-- Wasabi Leaf -->
+        <circle cx="220" cy="195" r="12" fill="#84cc16" />
+        <!-- Chopsticks -->
+        <line x1="60" y1="90" x2="160" y2="150" stroke="#b45309" stroke-width="5" stroke-linecap="round" />
+        <line x1="80" y1="80" x2="175" y2="155" stroke="#b45309" stroke-width="5" stroke-linecap="round" />
+      </g>
+  </g>
+</svg>

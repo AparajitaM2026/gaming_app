@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Carrom Clash — You vs AI Bot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    body {
+      background: #0E101D;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      user-select: none;
+    }
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #0B0E1B;
+    }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+    canvas {
+      touch-action: none;
+    }
+  </style>
+</head>
+<body class="h-full w-full flex flex-col items-center justify-between p-2 sm:p-3 relative box-border overflow-hidden">
+
+  <!-- Header -->
+  <div class="w-full max-w-lg shrink-0 flex items-center justify-between bg-slate-900 border border-slate-700/60 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-lg">
+    <div class="flex items-center gap-2">
+      <div class="w-3.5 h-3.5 rounded-full bg-white border border-slate-400 shadow"></div>
+      <div class="flex flex-col">
+        <span class="text-xs font-bold text-white leading-none">YOU (WHITE)</span>
+        <span class="text-[9.5px] text-gray-400" id="playerScoreText">0 Pkts</span>
+      </div>
+    </div>
+    <span class="orbitron font-extrabold text-[11px] sm:text-xs text-amber-300 tracking-wide" id="statusBanner">DRAG TO AIM & RELEASE</span>
+    <div class="flex items-center gap-2 text-right">
+      <div class="flex flex-col">
+        <span class="text-xs font-bold text-amber-500 leading-none">AI (BLACK)</span>
+        <span class="text-[9.5px] text-gray-400" id="aiScoreText">0 Pkts</span>
+      </div>
+      <div class="w-3.5 h-3.5 rounded-full bg-slate-950 border border-amber-500 shadow"></div>
+    </div>
+  </div>
+
+  <!-- Carrom Board Canvas Container (Responsive Square Fit) -->
+  <div id="boardWrap" class="flex-1 min-h-0 w-full flex items-center justify-center p-1 sm:p-2 overflow-hidden">
+    <div id="boardFrame" class="p-1.5 bg-amber-950 rounded-2xl shadow-2xl border-2 sm:border-4 border-amber-900 flex items-center justify-center overflow-hidden relative" style="aspect-ratio: 1 / 1; width: 440px; height: 440px; max-width: 100%; max-height: 100%;">
+      <canvas id="carromCanvas" class="w-full h-full rounded-xl bg-amber-100" style="display: block; width: 100%; height: 100%;"></canvas>
+
+    <!-- GAME OVER / VICTORY MODAL OVERLAY -->
+    <div id="gameOverModal" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md rounded-xl">
+      <div class="w-full max-w-xs bg-slate-900 border border-amber-500/50 rounded-2xl p-5 text-center shadow-2xl space-y-4">
+        <div id="winnerIcon" class="w-16 h-16 mx-auto rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-amber-400 text-3xl shadow-lg shadow-amber-500/30">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+        <div>
+          <h3 id="winnerText" class="text-xl font-black orbitron text-white">YOU WON!</h3>
+          <p id="winnerSubtext" class="text-xs text-gray-300 mt-1">All your white coins were pocketed!</p>
+        </div>
+        <div class="p-3 bg-slate-950 rounded-xl border border-white/10 flex justify-around text-xs">
+          <div>
+            <span class="text-gray-400 block text-[10px]">YOU (WHITE)</span>
+            <span id="finalPScore" class="font-bold text-white text-base">0 Pkts</span>
+          </div>
+          <div class="border-r border-white/10"></div>
+          <div>
+            <span class="text-gray-400 block text-[10px]">AI (BLACK)</span>
+            <span id="finalAScore" class="font-bold text-amber-400 text-base">0 Pkts</span>
+          </div>
+        </div>
+        <div class="space-y-2 pt-1">
+          <button onclick="resetCarrom()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-black font-extrabold orbitron text-xs uppercase shadow-lg shadow-amber-500/30 hover:opacity-90 active:scale-95 transition-all">
+            <i class="fa-solid fa-rotate-right mr-1"></i> Play Again
+          </button>
+          <button onclick="window.parent.closeGameTheater()" class="w-full py-2.5 rounded-xl bg-slate-800 border border-white/10 text-white font-bold text-xs hover:bg-slate-700 active:scale-95 transition-all">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Exit to Games
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Bottom Deck -->
+  <div class="w-full max-w-lg shrink-0 flex gap-2 sm:gap-3 pt-1">
+    <button onclick="resetCarrom()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-extrabold orbitron text-xs uppercase shadow-lg transition-all active:scale-95">
+      Reset Board
+    </button>
+    <button onclick="window.parent.closeGameTheater()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-xs hover:bg-white/20 active:scale-95 transition-all">
+      Exit to Games
+    </button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('carromCanvas');
+    const ctx = canvas.getContext('2d');
+    const SIZE = 500;
+    canvas.width = SIZE;
+    canvas.height = SIZE;
+
+    function resizeBoard() {
+      const wrap = document.getElementById('boardWrap');
+      const frame = document.getElementById('boardFrame');
+      if (!wrap || !frame) return;
+      const pad = 12;
+      const availW = Math.max(100, wrap.clientWidth - pad);
+      const availH = Math.max(100, wrap.clientHeight - pad);
+      const side = Math.floor(Math.min(availW, availH));
+      frame.style.width = side + 'px';
+      frame.style.height = side + 'px';
+    }
+    window.addEventListener('resize', resizeBoard);
+    window.addEventListener('orientationchange', resizeBoard);
+    document.addEventListener('DOMContentLoaded', resizeBoard);
+    setTimeout(resizeBoard, 20);
+    setTimeout(resizeBoard, 150);
+
+    const FRICTION = 0.985;
+    const POCKET_RADIUS = 28;
+    const pockets = [
+      { x: 35, y: 35 },
+      { x: SIZE - 35, y: 35 },
+      { x: 35, y: SIZE - 35 },
+      { x: SIZE - 35, y: SIZE - 35 }
+    ];
+
+    let pScore = 0, aScore = 0;
+    let isPlayerTurn = true;
+    let isAiming = false;
+    let aimStart = null;
+    let aimCurrent = null;
+    let moving = false;
+    let gameOver = false;
+    let aiTimer = null;
+
+    // Striker
+    let striker = {
+      x: SIZE / 2,
+      y: SIZE - 80,
+      radius: 18,
+      vx: 0,
+      vy: 0,
+      color: '#DC2626'
+    };
+
+    // Coins (White for player, Black for AI, Red Queen)
+    let coins = [];
+
+    function setupCoins() {
+      coins = [];
+      const cx = SIZE / 2, cy = SIZE / 2;
+      const r = 12;
+
+      // Queen
+      coins.push({ x: cx, y: cy, radius: r, vx: 0, vy: 0, type: 'queen', color: '#EF4444' });
+
+      // Ring of 6 coins (3 White, 3 Black)
+      for (let i = 0; i < 6; i++) {
+        const angle = (i * Math.PI) / 3;
+        const type = i % 2 === 0 ? 'white' : 'black';
+        coins.push({
+          x: cx + Math.cos(angle) * (r * 2.2),
+          y: cy + Math.sin(angle) * (r * 2.2),
+          radius: r,
+          vx: 0,
+          vy: 0,
+          type,
+          color: type === 'white' ? '#FFFFFF' : '#1E293B'
+        });
+      }
+    }
+
+    function resetStriker(isAI = false) {
+      striker.x = SIZE / 2 + (Math.random() * 80 - 40);
+      striker.y = isAI ? 80 : SIZE - 80;
+      striker.vx = 0;
+      striker.vy = 0;
+      striker.color = isAI ? '#1E293B' : '#DC2626';
+    }
+
+    // Touch & Mouse Aiming for Player
+    canvas.addEventListener('pointerdown', (e) => {
+      if (!isPlayerTurn || moving || gameOver) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) * (SIZE / rect.width);
+      const y = (e.clientY - rect.top) * (SIZE / rect.height);
+
+      if (Math.hypot(x - striker.x, y - striker.y) < striker.radius * 2.2) {
+        isAiming = true;
+        aimStart = { x: striker.x, y: striker.y };
+        aimCurrent = { x, y };
+      }
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!isAiming || gameOver) return;
+      const rect = canvas.getBoundingClientRect();
+      aimCurrent = {
+        x: (e.clientX - rect.left) * (SIZE / rect.width),
+        y: (e.clientY - rect.top) * (SIZE / rect.height)
+      };
+    });
+
+    canvas.addEventListener('pointerup', () => {
+      if (!isAiming || gameOver) return;
+      isAiming = false;
+      const dx = aimStart.x - aimCurrent.x;
+      const dy = aimStart.y - aimCurrent.y;
+      striker.vx = Math.max(-18, Math.min(18, dx * 0.18));
+      striker.vy = Math.max(-18, Math.min(18, dy * 0.18));
+      moving = true;
+    });
+
+    function checkGameOver() {
+      if (gameOver) return true;
+
+      const hasWhite = coins.some(c => c.type === 'white');
+      const hasBlack = coins.some(c => c.type === 'black');
+
+      // Game is finished if player cleared all white coins, or AI cleared all black, or no coins left
+      if (!hasWhite || !hasBlack || coins.length === 0) {
+        gameOver = true;
+        clearTimeout(aiTimer);
+        moving = false;
+
+        const modal = document.getElementById('gameOverModal');
+        const winnerText = document.getElementById('winnerText');
+        const winnerSubtext = document.getElementById('winnerSubtext');
+        const winnerIcon = document.getElementById('winnerIcon');
+        const finalPScore = document.getElementById('finalPScore');
+        const finalAScore = document.getElementById('finalAScore');
+
+        finalPScore.textContent = `${pScore} Pkts`;
+        finalAScore.textContent = `${aScore} Pkts`;
+
+        if (pScore > aScore || (!hasWhite && hasBlack)) {
+          winnerText.textContent = "YOU WON!";
+          winnerText.className = "text-xl font-black orbitron text-amber-400";
+          winnerSubtext.textContent = "Outstanding game! You cleared the board!";
+          winnerIcon.innerHTML = '<i class="fa-solid fa-trophy text-amber-400 text-3xl animate-bounce"></i>';
+          document.getElementById('statusBanner').textContent = "MATCH FINISHED — YOU WON!";
+        } else if (aScore > pScore || (!hasBlack && hasWhite)) {
+          winnerText.textContent = "AI BOT WON!";
+          winnerText.className = "text-xl font-black orbitron text-rose-400";
+          winnerSubtext.textContent = "AI Bot cleared all black coins first.";
+          winnerIcon.innerHTML = '<i class="fa-solid fa-robot text-rose-400 text-3xl"></i>';
+          document.getElementById('statusBanner').textContent = "MATCH FINISHED — AI WON!";
+        } else {
+          winnerText.textContent = "MATCH TIED!";
+          winnerText.className = "text-xl font-black orbitron text-cyan-400";
+          winnerSubtext.textContent = "Equal pocketed points!";
+          winnerIcon.innerHTML = '<i class="fa-solid fa-handshake text-cyan-400 text-3xl"></i>';
+          document.getElementById('statusBanner').textContent = "MATCH FINISHED — TIED!";
+        }
+
+        modal.classList.remove('hidden');
+        return true;
+      }
+      return false;
+    }
+
+    function update() {
+      if (gameOver) {
+        render();
+        return;
+      }
+
+      // Physics Update
+      const allObjects = [striker, ...coins];
+
+      // Update positions
+      allObjects.forEach(obj => {
+        obj.x += obj.vx;
+        obj.y += obj.vy;
+        obj.vx *= FRICTION;
+        obj.vy *= FRICTION;
+
+        if (Math.hypot(obj.vx, obj.vy) < 0.08) {
+          obj.vx = 0;
+          obj.vy = 0;
+        }
+
+        // Border bounce
+        if (obj.x - obj.radius < 25) { obj.x = 25 + obj.radius; obj.vx *= -0.85; }
+        if (obj.x + obj.radius > SIZE - 25) { obj.x = SIZE - 25 - obj.radius; obj.vx *= -0.85; }
+        if (obj.y - obj.radius < 25) { obj.y = 25 + obj.radius; obj.vy *= -0.85; }
+        if (obj.y + obj.radius > SIZE - 25) { obj.y = SIZE - 25 - obj.radius; obj.vy *= -0.85; }
+      });
+
+      // Collisions between balls
+      for (let i = 0; i < allObjects.length; i++) {
+        for (let j = i + 1; j < allObjects.length; j++) {
+          const a = allObjects[i];
+          const b = allObjects[j];
+          const dist = Math.hypot(b.x - a.x, b.y - a.y);
+          if (dist < a.radius + b.radius && dist > 0) {
+            const nx = (b.x - a.x) / dist;
+            const ny = (b.y - a.y) / dist;
+            const kx = a.vx - b.vx;
+            const ky = a.vy - b.vy;
+            const p = 2 * (nx * kx + ny * ky) / 2;
+            a.vx -= p * nx;
+            a.vy -= p * ny;
+            b.vx += p * nx;
+            b.vy += p * ny;
+          }
+        }
+      }
+
+      // Check Pockets
+      for (let i = coins.length - 1; i >= 0; i--) {
+        const c = coins[i];
+        if (pockets.some(p => Math.hypot(c.x - p.x, c.y - p.y) < POCKET_RADIUS)) {
+          if (c.type === 'white') pScore++;
+          else if (c.type === 'black') aScore++;
+          else { pScore += 3; }
+          coins.splice(i, 1);
+          document.getElementById('playerScoreText').textContent = `${pScore} Pkts`;
+          document.getElementById('aiScoreText').textContent = `${aScore} Pkts`;
+        }
+      }
+
+      // Check if motion has ceased
+      if (moving && allObjects.every(o => Math.hypot(o.vx, o.vy) === 0)) {
+        moving = false;
+
+        // Immediately check if someone won!
+        if (checkGameOver()) {
+          render();
+          return;
+        }
+
+        if (isPlayerTurn) {
+          isPlayerTurn = false;
+          resetStriker(true);
+          document.getElementById('statusBanner').textContent = "AI IS AIMING...";
+          clearTimeout(aiTimer);
+          aiTimer = setTimeout(aiTurn, 1000);
+        } else {
+          isPlayerTurn = true;
+          resetStriker(false);
+          document.getElementById('statusBanner').textContent = "YOUR TURN — DRAG TO SHOOT";
+        }
+      }
+
+      render();
+      requestAnimationFrame(update);
+    }
+
+    function aiTurn() {
+      if (gameOver) return;
+
+      if (checkGameOver()) return;
+
+      // Find nearest black coin, or any coin remaining
+      const target = coins.find(c => c.type === 'black') || coins[0];
+      if (!target) {
+        checkGameOver();
+        return;
+      }
+
+      const angle = Math.atan2(target.y - striker.y, target.x - striker.x);
+      const power = 14 + Math.random() * 3;
+      striker.vx = Math.cos(angle) * power;
+      striker.vy = Math.sin(angle) * power;
+      moving = true;
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, SIZE, SIZE);
+
+      // Wooden Surface
+      ctx.fillStyle = '#FED7AA';
+      ctx.fillRect(20, 20, SIZE - 40, SIZE - 40);
+
+      // Baselines
+      ctx.strokeStyle = '#9A3412';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(60, 60, SIZE - 120, SIZE - 120);
+
+      // Center Circle
+      ctx.beginPath();
+      ctx.arc(SIZE / 2, SIZE / 2, 45, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Pockets
+      pockets.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, POCKET_RADIUS, 0, Math.PI * 2);
+        ctx.fillStyle = '#0F172A';
+        ctx.fill();
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      });
+
+      // Draw Coins
+      coins.forEach(c => {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
+        ctx.fillStyle = c.color;
+        ctx.fill();
+        ctx.strokeStyle = c.type === 'white' ? '#CBD5E1' : '#F59E0B';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+
+      // Draw Striker
+      ctx.beginPath();
+      ctx.arc(striker.x, striker.y, striker.radius, 0, Math.PI * 2);
+      ctx.fillStyle = striker.color;
+      ctx.fill();
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Draw Aim Line
+      if (isAiming && aimStart && aimCurrent) {
+        ctx.beginPath();
+        ctx.moveTo(striker.x, striker.y);
+        ctx.lineTo(striker.x + (aimStart.x - aimCurrent.x) * 1.5, striker.y + (aimStart.y - aimCurrent.y) * 1.5);
+        ctx.strokeStyle = '#00F0FF';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      }
+    }
+
+    function resetCarrom() {
+      clearTimeout(aiTimer);
+      pScore = 0;
+      aScore = 0;
+      isPlayerTurn = true;
+      moving = false;
+      gameOver = false;
+      document.getElementById('gameOverModal').classList.add('hidden');
+      document.getElementById('playerScoreText').textContent = '0 Pkts';
+      document.getElementById('aiScoreText').textContent = '0 Pkts';
+      document.getElementById('statusBanner').textContent = 'DRAG TO AIM & RELEASE';
+      setupCoins();
+      resetStriker(false);
+      requestAnimationFrame(update);
+    }
+
+    setupCoins();
+    resetStriker(false);
+    update();
+  </script>
+</body>
+</html>

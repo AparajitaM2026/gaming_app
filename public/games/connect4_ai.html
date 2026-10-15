@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Connect 4 Arena — You vs Smart AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #0B0E1B;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      user-select: none;
+    }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+    
+    .grid-slot {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: #0B0E1B;
+      box-shadow: inset 0 4px 6px rgba(0,0,0,0.6);
+      transition: background-color 0.25s, transform 0.2s;
+    }
+    .col-btn:hover .col-arrow {
+      opacity: 1;
+      transform: translateY(2px);
+    }
+  </style>
+</head>
+<body class="h-full w-full flex flex-col items-center justify-between p-2 sm:p-3 max-w-md mx-auto box-border overflow-hidden">
+
+  <!-- Header -->
+  <div class="w-full shrink-0 flex items-center justify-between bg-slate-900 border border-slate-700/60 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl">
+    <div class="flex items-center gap-2">
+      <div class="w-3.5 h-3.5 rounded-full bg-red-500 border border-white"></div>
+      <span class="text-xs font-bold text-red-400">YOU (RED)</span>
+    </div>
+    <span class="orbitron font-extrabold text-xs text-amber-300" id="statusBanner">YOUR TURN</span>
+    <div class="flex items-center gap-2">
+      <span class="text-xs font-bold text-yellow-400">AI (YELLOW)</span>
+      <div class="w-3.5 h-3.5 rounded-full bg-yellow-400 border border-white"></div>
+    </div>
+  </div>
+
+  <!-- Middle Board Container -->
+  <div class="flex-1 min-h-0 w-full flex flex-col items-center justify-center my-1 overflow-hidden">
+    <!-- Column Drop Click Indicators -->
+    <div class="w-full shrink-0 grid grid-cols-7 gap-1 sm:gap-1.5 px-3 pb-1" id="colButtons">
+      <!-- 7 column drop arrows -->
+    </div>
+
+    <!-- Connect 4 Vertical Blue Board (7 cols x 6 rows) -->
+    <div class="h-full aspect-[7/6] max-w-full p-2 sm:p-3 rounded-2xl bg-blue-700 border-2 sm:border-4 border-blue-900 shadow-2xl flex items-center justify-center">
+      <div class="grid grid-cols-7 gap-1 sm:gap-1.5 w-full h-full" id="boardGrid">
+        <!-- 42 slots -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Deck -->
+  <div class="w-full shrink-0 flex gap-2 sm:gap-3 pt-1">
+    <button onclick="resetConnect4()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-blue-500 text-white font-extrabold orbitron text-xs uppercase hover:opacity-90 active:scale-95 transition-all">
+      New Game
+    </button>
+    <button onclick="window.parent.closeGameTheater()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-xs hover:bg-white/20 active:scale-95 transition-all">
+      Exit to Games
+    </button>
+  </div>
+
+  <!-- VICTORY MODAL -->
+  <div id="c4Modal" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md rounded-2xl">
+    <div class="w-full max-w-xs bg-slate-900 border border-blue-500/50 rounded-2xl p-5 text-center shadow-2xl space-y-4">
+      <div id="c4Icon" class="w-16 h-16 mx-auto rounded-full bg-blue-500/20 border-2 border-blue-400 flex items-center justify-center text-blue-400 text-3xl shadow-lg shadow-blue-500/30">
+        <i class="fa-solid fa-trophy"></i>
+      </div>
+      <div>
+        <h3 id="c4Title" class="text-xl font-black orbitron text-white">YOU WON!</h3>
+        <p id="c4Desc" class="text-xs text-gray-300 mt-1">4 connected discs in a row!</p>
+      </div>
+      <div class="space-y-2 pt-1">
+        <button onclick="resetConnect4()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-extrabold orbitron text-xs uppercase shadow-lg shadow-blue-500/30 hover:opacity-90 active:scale-95 transition-all">
+          <i class="fa-solid fa-rotate-right mr-1"></i> Play Again
+        </button>
+        <button onclick="window.parent.closeGameTheater()" class="w-full py-2.5 rounded-xl bg-slate-800 border border-white/10 text-white font-bold text-xs hover:bg-slate-700 active:scale-95 transition-all">
+          <i class="fa-solid fa-arrow-left mr-1"></i> Exit to Games
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ROWS = 6;
+    const COLS = 7;
+    let grid = Array(ROWS).fill(null).map(() => Array(COLS).fill(0)); // 0: empty, 1: Player (Red), 2: AI (Yellow)
+    let isHumanTurn = true;
+    let isGameOver = false;
+
+    // Build Drop Indicators & Slots
+    const colBtns = document.getElementById('colButtons');
+    colBtns.innerHTML = Array(COLS).fill(0).map((_, c) => `
+      <button onclick="dropDisc(${c})" class="col-btn flex flex-col items-center py-1 group">
+        <i class="fa-solid fa-arrow-down text-red-400 text-xs col-arrow opacity-40 group-hover:opacity-100 transition-all"></i>
+      </button>
+    `).join('');
+
+    const boardGrid = document.getElementById('boardGrid');
+    boardGrid.innerHTML = Array(ROWS * COLS).fill(0).map((_, i) => `
+      <div class="grid-slot" id="slot-${i}"></div>
+    `).join('');
+
+    function dropDisc(col) {
+      if (!isHumanTurn || isGameOver) return;
+
+      // Find lowest available row in column
+      let targetRow = -1;
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (grid[r][col] === 0) {
+          targetRow = r;
+          break;
+        }
+      }
+
+      if (targetRow === -1) return; // Column full
+
+      grid[targetRow][col] = 1;
+      animateSlot(targetRow, col, 'bg-red-500');
+
+      if (checkConnect4Win(1)) {
+        finishRound("🏆 YOU CONNECTED 4! VICTORY!", "text-red-400");
+        return;
+      }
+
+      if (grid.every(row => row.every(c => c !== 0))) {
+        finishRound("IT'S A DRAW!", "text-gray-400");
+        return;
+      }
+
+      isHumanTurn = false;
+      document.getElementById('statusBanner').textContent = "AI IS THINKING...";
+      setTimeout(runAiTurn, 700);
+    }
+
+    function runAiTurn() {
+      if (isGameOver) return;
+
+      // Smart AI: Priority 1 - Win if possible; Priority 2 - Block player win
+      let bestCol = findWinningMove(2) ?? findWinningMove(1);
+
+      if (bestCol === null) {
+        // Pick center column first if available
+        const validCols = [];
+        for (let c = 0; c < COLS; c++) {
+          if (grid[0][c] === 0) validCols.push(c);
+        }
+        bestCol = validCols.includes(3) ? 3 : validCols[Math.floor(Math.random() * validCols.length)];
+      }
+
+      let targetRow = -1;
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (grid[r][bestCol] === 0) {
+          targetRow = r;
+          break;
+        }
+      }
+
+      grid[targetRow][bestCol] = 2;
+      animateSlot(targetRow, bestCol, 'bg-yellow-400');
+
+      if (checkConnect4Win(2)) {
+        finishRound("AI CONNECTED 4! DEFEAT!", "text-yellow-400");
+        return;
+      }
+
+      isHumanTurn = true;
+      document.getElementById('statusBanner').textContent = "YOUR TURN (RED)";
+    }
+
+    function findWinningMove(player) {
+      for (let c = 0; c < COLS; c++) {
+        let r = -1;
+        for (let row = ROWS - 1; row >= 0; row--) {
+          if (grid[row][c] === 0) { r = row; break; }
+        }
+        if (r !== -1) {
+          grid[r][c] = player;
+          const wins = checkConnect4Win(player);
+          grid[r][c] = 0;
+          if (wins) return c;
+        }
+      }
+      return null;
+    }
+
+    function checkConnect4Win(p) {
+      // Horizontal, Vertical, Diagonal checks
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (grid[r][c] !== p) continue;
+          if (c + 3 < COLS && grid[r][c+1] === p && grid[r][c+2] === p && grid[r][c+3] === p) return true;
+          if (r + 3 < ROWS && grid[r+1][c] === p && grid[r+2][c] === p && grid[r+3][c] === p) return true;
+          if (r + 3 < ROWS && c + 3 < COLS && grid[r+1][c+1] === p && grid[r+2][c+2] === p && grid[r+3][c+3] === p) return true;
+          if (r - 3 >= 0 && c + 3 < COLS && grid[r-1][c+1] === p && grid[r-2][c+2] === p && grid[r-3][c+3] === p) return true;
+        }
+      }
+      return false;
+    }
+
+    function animateSlot(r, c, bgClass) {
+      const idx = r * COLS + c;
+      const el = document.getElementById(`slot-${idx}`);
+      el.className = `grid-slot ${bgClass} shadow-lg scale-95`;
+    }
+
+    function finishRound(outcome) {
+      isGameOver = true;
+      const s = document.getElementById('statusBanner');
+      const modal = document.getElementById('c4Modal');
+      const title = document.getElementById('c4Title');
+      const desc = document.getElementById('c4Desc');
+      const icon = document.getElementById('c4Icon');
+
+      if (outcome === 'player' || (typeof outcome === 'string' && (outcome.includes('VICTORY') || outcome.includes('YOU')))) {
+        s.textContent = "🏆 YOU CONNECTED 4! VICTORY!";
+        s.className = "orbitron font-extrabold text-xs text-red-400";
+        title.textContent = "YOU WON!";
+        title.className = "text-xl font-black orbitron text-blue-400";
+        desc.textContent = "Awesome moves! You connected 4 in a row!";
+        icon.innerHTML = '<i class="fa-solid fa-trophy text-blue-400 text-3xl animate-bounce"></i>';
+      } else if (outcome === 'ai' || (typeof outcome === 'string' && (outcome.includes('AI') || outcome.includes('DEFEAT')))) {
+        s.textContent = "AI CONNECTED 4! DEFEAT!";
+        s.className = "orbitron font-extrabold text-xs text-yellow-400";
+        title.textContent = "AI BOT WON!";
+        title.className = "text-xl font-black orbitron text-yellow-400";
+        desc.textContent = "AI Bot completed 4 discs in a line first.";
+        icon.innerHTML = '<i class="fa-solid fa-robot text-yellow-400 text-3xl"></i>';
+      } else {
+        s.textContent = "IT'S A DRAW!";
+        s.className = "orbitron font-extrabold text-xs text-gray-400";
+        title.textContent = "BOARD FULL!";
+        title.className = "text-xl font-black orbitron text-gray-300";
+        desc.textContent = "Match ended in a tie.";
+        icon.innerHTML = '<i class="fa-solid fa-handshake text-gray-300 text-3xl"></i>';
+      }
+
+      setTimeout(() => {
+        modal.classList.remove('hidden');
+      }, 400);
+    }
+
+    function resetConnect4() {
+      grid = Array(ROWS).fill(null).map(() => Array(COLS).fill(0));
+      isGameOver = false;
+      isHumanTurn = true;
+      document.getElementById('c4Modal').classList.add('hidden');
+      document.getElementById('statusBanner').textContent = "YOUR TURN (RED)";
+      document.getElementById('statusBanner').className = "orbitron font-extrabold text-xs text-amber-300";
+      for (let i = 0; i < ROWS * COLS; i++) {
+        document.getElementById(`slot-${i}`).className = 'grid-slot';
+      }
+    }
+  </script>
+</body>
+</html>

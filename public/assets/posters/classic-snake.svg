@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#041c14" />
+      <stop offset="50%" stop-color="#080c18" />
+      <stop offset="100%" stop-color="#064e3b" stop-opacity="0.8" />
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="brightGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="blur1" />
+      <feGaussianBlur stdDeviation="3" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur1" />
+        <feMergeNode in="blur2" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <radialGradient id="cyanSphere" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="40%" stop-color="#00f0ff" />
+      <stop offset="100%" stop-color="#0369a1" />
+    </radialGradient>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#eab308" />
+      <stop offset="100%" stop-color="#a16207" />
+    </linearGradient>
+    <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 20 M 0 0 L 20 20" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.04" />
+    </pattern>
+  </defs>
+
+  <rect width="300" height="300" fill="url(#bgGrad)" />
+  <rect width="300" height="300" fill="url(#gridPattern)" />
+  <circle cx="150" cy="150" r="120" fill="#10b981" opacity="0.18" filter="url(#brightGlow)" />
+
+  <g transform="translate(0, 5)">
+    
+      <g filter="url(#glow)">
+        <path d="M30 60 H270 M30 110 H270 M30 160 H270 M30 210 H270 M30 260 H270" stroke="#10b981" stroke-opacity="0.15" stroke-dasharray="4 4" />
+        <path d="M60 30 V290 M110 30 V290 M160 30 V290 M210 30 V290 M260 30 V290" stroke="#10b981" stroke-opacity="0.15" stroke-dasharray="4 4" />
+        <path d="M60 240 H180 V150 H100 V90 H220" fill="none" stroke="#059669" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M60 240 H180 V150 H100 V90 H220" fill="none" stroke="#10b981" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M60 240 H180 V150 H100 V90 H220" fill="none" stroke="#6ee7b7" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+        <circle cx="225" cy="90" r="16" fill="#34d399" />
+        <circle cx="225" cy="84" r="4" fill="#064e3b" /><circle cx="225" cy="96" r="4" fill="#064e3b" />
+        <path d="M241 90 H254 L260 85 M254 90 L260 95" stroke="#ef4444" stroke-width="3.5" stroke-linecap="round" />
+        <circle cx="140" cy="240" r="12" fill="#ef4444" filter="url(#brightGlow)" />
+        <circle cx="137" cy="237" r="4" fill="#fca5a5" />
+      </g>
+  </g>
+</svg>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cyber Runner 2099</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #07080e;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      overflow: hidden;
+      user-select: none;
+    }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+    canvas {
+      display: block;
+      background: linear-gradient(180deg, #090a14 0%, #15102a 100%);
+    }
+  </style>
+</head>
+<body class="w-screen h-screen flex flex-col items-center justify-center relative">
+
+  <!-- HUD -->
+  <div class="absolute top-4 left-4 right-4 flex items-center justify-between z-10 pointer-events-none">
+    <div class="bg-black/60 border border-cyan-500/40 px-3 py-1.5 rounded-xl backdrop-blur-md">
+      <span class="text-[10px] text-gray-400 block leading-tight">SCORE</span>
+      <span class="orbitron font-extrabold text-base text-cyan-400" id="scoreDisplay">0</span>
+    </div>
+    <div class="bg-black/60 border border-amber-500/40 px-3 py-1.5 rounded-xl backdrop-blur-md flex items-center gap-1.5">
+      <span>🪙</span>
+      <span class="orbitron font-extrabold text-base text-amber-400" id="coinsCollectedDisplay">0</span>
+    </div>
+  </div>
+
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- Game Over Screen -->
+  <div id="gameOverScreen" class="hidden absolute inset-0 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center space-y-4 z-20">
+    <h2 class="orbitron font-black text-3xl text-red-500">GAME OVER</h2>
+    <div class="space-y-1">
+      <span class="text-xs text-gray-400">FINAL DISTANCE</span>
+      <div class="orbitron font-extrabold text-3xl text-white" id="finalScoreDisplay">0 m</div>
+    </div>
+    <div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center gap-2">
+      <span class="text-xl">🪙</span>
+      <span class="text-xs text-amber-300 font-bold" id="earnedCoinsText">+5 Coins Earned!</span>
+    </div>
+    <div class="flex gap-3 w-full max-w-xs">
+      <button onclick="restartGame()" class="flex-1 py-3 rounded-xl bg-cyan-400 text-black font-extrabold orbitron text-xs uppercase hover:opacity-90">
+        Play Again
+      </button>
+      <button onclick="window.parent.closeGameTheater()" class="flex-1 py-3 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-xs hover:bg-white/20">
+        Exit
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Game Variables
+    let isRunning = true;
+    let score = 0;
+    let coinsCollected = 0;
+    let gameSpeed = 6;
+    const gravity = 0.65;
+
+    const player = {
+      x: 60,
+      y: canvas.height - 120,
+      width: 32,
+      height: 48,
+      vy: 0,
+      isGrounded: false,
+      color: '#00F0FF'
+    };
+
+    let obstacles = [];
+    let coins = [];
+    let groundY = canvas.height - 70;
+
+    function jump() {
+      if (player.isGrounded && isRunning) {
+        player.vy = -14;
+        player.isGrounded = false;
+      }
+    }
+    window.addEventListener('keydown', (e) => { if (e.code === 'Space' || e.code === 'ArrowUp') jump(); });
+    window.addEventListener('touchstart', jump);
+    window.addEventListener('mousedown', jump);
+
+    function spawnObstacle() {
+      if (!isRunning) return;
+      const height = Math.random() > 0.5 ? 40 : 60;
+      obstacles.push({
+        x: canvas.width + 50,
+        y: groundY - height,
+        width: 25,
+        height: height,
+        color: '#EC4899'
+      });
+
+      // Chance to spawn coin
+      if (Math.random() > 0.4) {
+        coins.push({
+          x: canvas.width + 120,
+          y: groundY - 60 - Math.random() * 50,
+          radius: 10
+        });
+      }
+
+      setTimeout(spawnObstacle, Math.random() * 1500 + 1200);
+    }
+    setTimeout(spawnObstacle, 1000);
+
+    function update() {
+      if (!isRunning) return;
+
+      groundY = canvas.height - 70;
+      score += 1;
+      document.getElementById('scoreDisplay').textContent = `${Math.floor(score / 5)} m`;
+
+      // Player physics
+      player.vy += gravity;
+      player.y += player.vy;
+
+      if (player.y + player.height >= groundY) {
+        player.y = groundY - player.height;
+        player.vy = 0;
+        player.isGrounded = true;
+      }
+
+      // Move obstacles & collision
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obs = obstacles[i];
+        obs.x -= gameSpeed;
+
+        // Collision check
+        if (
+          player.x < obs.x + obs.width &&
+          player.x + player.width > obs.x &&
+          player.y < obs.y + obs.height &&
+          player.y + player.height > obs.y
+        ) {
+          endGame();
+          return;
+        }
+
+        if (obs.x + obs.width < 0) obstacles.splice(i, 1);
+      }
+
+      // Move coins
+      for (let i = coins.length - 1; i >= 0; i--) {
+        const c = coins[i];
+        c.x -= gameSpeed;
+
+        // Coin collect check
+        const dist = Math.hypot((player.x + player.width / 2) - c.x, (player.y + player.height / 2) - c.y);
+        if (dist < player.width / 2 + c.radius) {
+          coinsCollected += 1;
+          document.getElementById('coinsCollectedDisplay').textContent = coinsCollected;
+          coins.splice(i, 1);
+          continue;
+        }
+
+        if (c.x + c.radius < 0) coins.splice(i, 1);
+      }
+
+      // Increase speed slightly
+      gameSpeed = 6 + Math.min(6, score / 1200);
+
+      draw();
+      requestAnimationFrame(update);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw Grid Floor (Cyberpunk style)
+      ctx.fillStyle = '#0F111D';
+      ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+      ctx.strokeStyle = '#00F0FF';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, groundY);
+      ctx.lineTo(canvas.width, groundY);
+      ctx.stroke();
+
+      // Draw Player
+      ctx.shadowColor = '#00F0FF';
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+
+      // Draw Obstacles
+      ctx.shadowColor = '#EC4899';
+      ctx.shadowBlur = 15;
+      obstacles.forEach(obs => {
+        ctx.fillStyle = obs.color;
+        ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+      });
+
+      // Draw Coins
+      ctx.shadowColor = '#F59E0B';
+      ctx.shadowBlur = 10;
+      coins.forEach(c => {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#F59E0B';
+        ctx.fill();
+        ctx.strokeStyle = '#FFF';
+        ctx.stroke();
+      });
+
+      ctx.shadowBlur = 0;
+    }
+
+    function endGame() {
+      isRunning = false;
+      document.getElementById('finalScoreDisplay').textContent = `${Math.floor(score / 5)} m`;
+      document.getElementById('earnedCoinsText').textContent = `+${coinsCollected + 2} Bonus Coins!`;
+      document.getElementById('gameOverScreen').classList.remove('hidden');
+    }
+
+    function restartGame() {
+      document.getElementById('gameOverScreen').classList.add('hidden');
+      score = 0;
+      coinsCollected = 0;
+      obstacles = [];
+      coins = [];
+      gameSpeed = 6;
+      player.y = groundY - player.height;
+      player.vy = 0;
+      isRunning = true;
+      document.getElementById('coinsCollectedDisplay').textContent = '0';
+      spawnObstacle();
+      update();
+    }
+
+    update();
+  </script>
+</body>
+</html>
