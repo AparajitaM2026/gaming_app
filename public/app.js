@@ -1341,7 +1341,14 @@ function openGameTheater(title, url, game = null) {
   playArcadeSound('click');
 
   titleEl.textContent = title;
-  frame.src = url;
+  if (frame) {
+    if (url.includes('/games/') || url.includes('games/')) {
+      frame.removeAttribute('sandbox');
+    } else {
+      frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-modals allow-orientation-lock allow-downloads');
+    }
+    frame.src = url;
+  }
   overlay.classList.remove('hidden');
 
   // Update How to Play dock and modal

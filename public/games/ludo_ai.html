@@ -325,14 +325,14 @@
       // Left arm bottom row going left
       { r: 8, c: 5 }, { r: 8, c: 4 }, { r: 8, c: 3 }, { r: 8, c: 2 }, { r: 8, c: 1 }, { r: 8, c: 0 },
       // Left edge
-      { r: 7, c: 0 }
-    ]; // 52 common tiles
+      { r: 7, c: 0 }, { r: 6, c: 0 }
+    ]; // Exactly 52 common tiles (0 to 51)
 
-    // Home paths leading to center (r 7, c 7)
-    const RED_HOME_PATH = [ { r: 7, c: 1 }, { r: 7, c: 2 }, { r: 7, c: 3 }, { r: 7, c: 4 }, { r: 7, c: 5 }, { r: 7, c: 6 } ];
-    const GREEN_HOME_PATH = [ { r: 1, c: 7 }, { r: 2, c: 7 }, { r: 3, c: 7 }, { r: 4, c: 7 }, { r: 5, c: 7 }, { r: 6, c: 7 } ];
-    const YELLOW_HOME_PATH = [ { r: 7, c: 13 }, { r: 7, c: 12 }, { r: 7, c: 11 }, { r: 7, c: 10 }, { r: 7, c: 9 }, { r: 7, c: 8 } ];
-    const BLUE_HOME_PATH = [ { r: 13, c: 7 }, { r: 12, c: 7 }, { r: 11, c: 7 }, { r: 10, c: 7 }, { r: 9, c: 7 }, { r: 8, c: 7 } ];
+    // Home paths leading to center: 5 squares per color (steps 51 to 55; step 56 is Home)
+    const RED_HOME_PATH = [ { r: 7, c: 1 }, { r: 7, c: 2 }, { r: 7, c: 3 }, { r: 7, c: 4 }, { r: 7, c: 5 } ];
+    const GREEN_HOME_PATH = [ { r: 1, c: 7 }, { r: 2, c: 7 }, { r: 3, c: 7 }, { r: 4, c: 7 }, { r: 5, c: 7 } ];
+    const YELLOW_HOME_PATH = [ { r: 7, c: 13 }, { r: 7, c: 12 }, { r: 7, c: 11 }, { r: 7, c: 10 }, { r: 7, c: 9 } ];
+    const BLUE_HOME_PATH = [ { r: 13, c: 7 }, { r: 12, c: 7 }, { r: 11, c: 7 }, { r: 10, c: 7 }, { r: 9, c: 7 } ];
 
     const TRACK_OFFSETS = { RED: 0, GREEN: 13, YELLOW: 26, BLUE: 39 };
     const HOME_PATHS = { RED: RED_HOME_PATH, GREEN: GREEN_HOME_PATH, YELLOW: YELLOW_HOME_PATH, BLUE: BLUE_HOME_PATH };
@@ -375,18 +375,38 @@
     let isGameOver = false;
 
     function getTokenPos(playerColor, tokenIndex) {
-      const token = tokens[playerColor][tokenIndex];
-      if (token.isHome) return { r: 7, c: 7 };
-      if (token.step === -1) return BASE_SLOTS[playerColor][tokenIndex];
+      const token = tokens[playerColor] ? tokens[playerColor][tokenIndex] : null;
+      if (!token) return { r: 7, c: 7 };
 
-      const offset = TRACK_OFFSETS[playerColor];
+      if (token.isHome) {
+        // Distinct neat placement inside each colored home triangle
+        const homeOffsets = [
+          { r: 0, c: 0 },
+          { r: -0.25, c: 0.25 },
+          { r: 0.25, c: -0.25 },
+          { r: 0.25, c: 0.25 }
+        ];
+        const ho = homeOffsets[tokenIndex % 4];
+        if (playerColor === 'RED') return { r: 7 + ho.r * 0.6, c: 6.6 + ho.c * 0.6 };
+        if (playerColor === 'GREEN') return { r: 6.6 + ho.r * 0.6, c: 7 + ho.c * 0.6 };
+        if (playerColor === 'YELLOW') return { r: 7 + ho.r * 0.6, c: 7.4 + ho.c * 0.6 };
+        if (playerColor === 'BLUE') return { r: 7.4 + ho.r * 0.6, c: 7 + ho.c * 0.6 };
+        return { r: 7, c: 7 };
+      }
+
+      if (token.step === -1) {
+        const slots = BASE_SLOTS[playerColor] || BASE_SLOTS.RED;
+        return slots[tokenIndex % slots.length];
+      }
+
+      const offset = TRACK_OFFSETS[playerColor] || 0;
       if (token.step < 51) {
-        const trackIdx = (offset + token.step) % 52;
-        return TRACK_COORDS[trackIdx];
+        const trackIdx = (offset + token.step) % TRACK_COORDS.length;
+        return TRACK_COORDS[trackIdx] || { r: 7, c: 7 };
       } else {
         const homeIdx = token.step - 51;
-        const hp = HOME_PATHS[playerColor];
-        return hp[Math.min(homeIdx, hp.length - 1)];
+        const hp = HOME_PATHS[playerColor] || HOME_PATHS.RED;
+        return hp[Math.min(homeIdx, hp.length - 1)] || { r: 7, c: 7 };
       }
     }
 
@@ -614,18 +634,49 @@
       });
     }
 
+    let isPulsing = false;
+    let animFrameId = null;
+
+    function startPawnPulseAnimation() {
+      if (isPulsing) return;
+      isPulsing = true;
+      function loop() {
+        if (!isPulsing) return;
+        renderBoard();
+        animFrameId = requestAnimationFrame(loop);
+      }
+      animFrameId = requestAnimationFrame(loop);
+    }
+
+    function stopPawnPulseAnimation() {
+      isPulsing = false;
+      if (animFrameId) {
+        cancelAnimationFrame(animFrameId);
+        animFrameId = null;
+      }
+    }
+
     function drawClassicPawn(r, c, baseColor, darkColor, isMovable) {
+      if (typeof r !== 'number' || typeof c !== 'number' || isNaN(r) || isNaN(c)) return;
       const cx = (c + 0.5) * CELL;
       const cy = (r + 0.5) * CELL;
 
       ctx.save();
       if (isMovable) {
+        // High-visibility animated pulse ring for touch targets
+        const pulse = (Math.sin(Date.now() / 140) + 1) * 0.06;
         ctx.beginPath();
-        ctx.arc(cx, cy, CELL * 0.46, 0, Math.PI * 2);
+        ctx.arc(cx, cy, CELL * (0.5 + pulse), 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(255, 215, 0, 0.45)';
         ctx.fill();
         ctx.strokeStyle = '#F59E0B';
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, CELL * (0.38 + pulse), 0, Math.PI * 2);
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 1.5;
         ctx.stroke();
       }
 
@@ -662,8 +713,86 @@
     }
 
     // -------------------------------------------------------------
-    // TURN CONTROLS & DICE ROLLING
+    // TURN CONTROLS, AUTO-MOVE & SAFETY TIMERS
     // -------------------------------------------------------------
+    let autoMoveTimer = null;
+    let autoMoveSeconds = 0;
+    let turnSafetyTimer = null;
+    let lastDiceClickTime = 0;
+
+    function clearAutoMoveTimer() {
+      if (autoMoveTimer) {
+        clearInterval(autoMoveTimer);
+        autoMoveTimer = null;
+      }
+      stopPawnPulseAnimation();
+    }
+
+    function startAutoMoveCountdown(color, movable) {
+      clearAutoMoveTimer();
+      autoMoveSeconds = 8;
+      startPawnPulseAnimation();
+
+      const updateHint = () => {
+        const actionHint = document.getElementById('actionHint');
+        if (actionHint && hasRolled && !isRolling) {
+          actionHint.textContent = `Tap token or dice to move! (${autoMoveSeconds}s)`;
+        }
+      };
+      updateHint();
+
+      autoMoveTimer = setInterval(() => {
+        autoMoveSeconds--;
+        if (autoMoveSeconds <= 0) {
+          clearAutoMoveTimer();
+          if (hasRolled && !isRolling && movable && movable.length > 0) {
+            // Auto pick best pawn: priority open from base, then furthest along path
+            const openMove = movable.find(m => m.t.step === -1);
+            const chosen = openMove || movable.reduce((furthest, curr) => curr.t.step > furthest.t.step ? curr : furthest, movable[0]);
+            const actionHint = document.getElementById('actionHint');
+            if (actionHint) actionHint.textContent = `Auto-moving Token ${chosen.t.id}...`;
+            executeMoveToken(color, chosen.idx, diceValue, true);
+          }
+        } else {
+          updateHint();
+        }
+      }, 1000);
+    }
+
+    function clearTurnSafetyTimer() {
+      if (turnSafetyTimer) {
+        clearTimeout(turnSafetyTimer);
+        turnSafetyTimer = null;
+      }
+    }
+
+    function startTurnSafetyTimer() {
+      clearTurnSafetyTimer();
+      const activePlayer = activePlayers[currentTurnIndex];
+      if (!activePlayer || isGameOver) return;
+
+      // Local player turn: if not rolled within 15 seconds, auto-roll!
+      if (activePlayer.isMe) {
+        turnSafetyTimer = setTimeout(() => {
+          if (!hasRolled && !isRolling && !isGameOver) {
+            const hint = document.getElementById('actionHint');
+            if (hint) hint.textContent = "Auto-rolling dice...";
+            onDiceClick();
+          }
+        }, 15000);
+      } else if (isPartyMode && isHost) {
+        // Remote player turn: if host detects peer unresponsive for 25s, pass turn
+        turnSafetyTimer = setTimeout(() => {
+          if (!isGameOver) {
+            const p = activePlayers[currentTurnIndex];
+            if (p && !p.isMe) {
+              advanceTurn(true);
+            }
+          }
+        }, 25000);
+      }
+    }
+
     function updateTurnDisplay(isExtraTurn = false) {
       window.currentTurnIndex = currentTurnIndex;
       updateStatusBar();
@@ -675,24 +804,27 @@
       const diceLabel = document.getElementById('diceLabel');
 
       if (activePlayer.isMe) {
-        diceCube.classList.add('active-turn');
-        actionHint.textContent = isExtraTurn ? "🎉 Extra turn! Roll again!" : "🎲 YOUR TURN — ROLL DICE!";
-        diceLabel.textContent = "Your Turn";
+        if (diceCube) diceCube.classList.add('active-turn');
+        if (actionHint) actionHint.textContent = isExtraTurn ? "🎉 Extra turn! Roll again!" : "🎲 YOUR TURN — ROLL DICE!";
+        if (diceLabel) diceLabel.textContent = "Your Turn";
       } else {
-        diceCube.classList.remove('active-turn');
-        actionHint.textContent = `Waiting for ${activePlayer.username} to roll...`;
-        diceLabel.textContent = `${activePlayer.username}'s Turn`;
+        if (diceCube) diceCube.classList.remove('active-turn');
+        if (actionHint) actionHint.textContent = `Waiting for ${activePlayer.username} to roll...`;
+        if (diceLabel) diceLabel.textContent = `${activePlayer.username}'s Turn`;
       }
     }
 
     function onDiceClick() {
       if (isGameOver) return;
+      const now = Date.now();
+      if (now - lastDiceClickTime < 220) return;
+      lastDiceClickTime = now;
+
       const activePlayer = activePlayers[currentTurnIndex];
       if (!activePlayer) return;
 
       // In party mode: check if active player is me
       if (isPartyMode && !activePlayer.isMe) {
-        // Clear visual hint so user understands why it didn't roll
         const hint = document.getElementById('actionHint');
         if (hint) {
           hint.textContent = `⏳ Waiting for ${activePlayer.username}'s turn!`;
@@ -705,15 +837,16 @@
 
       // If user rolled and taps dice again to auto-pick movable token or fast-pass:
       if (hasRolled && !isRolling) {
+        clearAutoMoveTimer();
         const color = activePlayer.color;
         const movable = tokens[color]
           .map((t, idx) => ({ t, idx }))
           .filter(item => canPawnMove(item.t, diceValue));
         if (movable.length > 0) {
-          const chosen = movable.find(m => m.t.step === -1) || movable[0];
+          const openMove = movable.find(m => m.t.step === -1);
+          const chosen = openMove || movable.reduce((furthest, curr) => curr.t.step > furthest.t.step ? curr : furthest, movable[0]);
           executeMoveToken(color, chosen.idx, diceValue, true);
         } else {
-          // Instant pass on tap if no moves possible!
           if (turnTimer) clearTimeout(turnTimer);
           advanceTurn(true);
         }
@@ -722,6 +855,7 @@
 
       if (hasRolled || isRolling) return;
 
+      clearTurnSafetyTimer();
       isRolling = true;
       const cube = document.getElementById('diceCube');
       if (cube) cube.classList.add('rolling');
@@ -744,7 +878,7 @@
         const hasNoMoves = (movable.length === 0);
         const nextTurn = hasNoMoves ? ((currentTurnIndex + 1) % activePlayers.length) : currentTurnIndex;
 
-        // Broadcast roll to peers over WebSocket with turnkey noMoves & nextTurn
+        // Broadcast roll to peers over WebSocket
         if (isPartyMode) {
           sendPartyAction({
             action: 'LUDO_ROLL',
@@ -767,15 +901,15 @@
           if (actionHint) actionHint.textContent = `Moving Token ${movable[0].t.id}...`;
           setTimeout(() => executeMoveToken(color, movable[0].idx, diceValue, true), 350);
         } else {
-          const actionHint = document.getElementById('actionHint');
-          if (actionHint) actionHint.textContent = "Tap token on board or tap dice to move!";
+          // Multiple pawns can move: start 8-second auto-move countdown
+          startAutoMoveCountdown(color, movable);
         }
 
         renderBoard();
       }, 400);
     }
 
-    // Board click interaction
+    // Board touch & click interaction with generous hit radius
     function handleBoardInteraction(clientX, clientY) {
       if (isGameOver || !hasRolled || isRolling) return;
       const activePlayer = activePlayers[currentTurnIndex];
@@ -788,6 +922,9 @@
       const clickX = (clientX - rect.left) * scaleX;
       const clickY = (clientY - rect.top) * scaleY;
 
+      let bestIdx = -1;
+      let minDist = CELL * 1.6; // Generous hit radius for mobile fingertips
+
       for (let i = 0; i < tokens[color].length; i++) {
         const t = tokens[color][i];
         if (!canPawnMove(t, diceValue)) continue;
@@ -795,14 +932,23 @@
         const pos = getTokenPos(color, i);
         const cx = (pos.c + 0.5) * CELL;
         const cy = (pos.r + 0.5) * CELL;
+        const dist = Math.hypot(clickX - cx, clickY - cy);
 
-        if (Math.hypot(clickX - cx, clickY - cy) < CELL * 0.85) {
-          executeMoveToken(color, i, diceValue, true);
-          break;
+        if (dist < minDist) {
+          minDist = dist;
+          bestIdx = i;
         }
+      }
+
+      if (bestIdx !== -1) {
+        clearAutoMoveTimer();
+        executeMoveToken(color, bestIdx, diceValue, true);
       }
     }
 
+    canvas.addEventListener('pointerdown', (e) => {
+      handleBoardInteraction(e.clientX, e.clientY);
+    });
     canvas.addEventListener('click', (e) => {
       handleBoardInteraction(e.clientX, e.clientY);
     });
@@ -813,19 +959,37 @@
       }
     }, { passive: false });
 
-    function executeMoveToken(color, tokenIndex, roll, isLocal, explicitNextTurn = null, isExtraTurn = false) {
-      const token = tokens[color][tokenIndex];
+    // Also support pointerdown on dice button for instant mobile reaction
+    const diceWrapperEl = document.getElementById('diceTouchWrapper');
+    if (diceWrapperEl) {
+      diceWrapperEl.addEventListener('pointerdown', () => {
+        onDiceClick();
+      });
+    }
+
+    function executeMoveToken(color, tokenIndex, roll, isLocal, explicitNextTurn = null, isExtraTurn = false, exactStep = null, exactIsHome = null) {
+      clearAutoMoveTimer();
+      clearTurnSafetyTimer();
+
+      const token = tokens[color] ? tokens[color][tokenIndex] : null;
       if (!token) return;
 
-      if (token.step === -1) {
-        token.step = 0;
-        playSfx('home');
+      if (exactStep !== null && exactStep !== undefined) {
+        token.step = exactStep;
       } else {
-        token.step += roll;
-        playSfx('move');
+        if (token.step === -1) {
+          token.step = 0;
+          playSfx('home');
+        } else {
+          token.step += roll;
+          playSfx('move');
+        }
       }
 
-      if (token.step === 56) {
+      if (exactIsHome !== null && exactIsHome !== undefined) {
+        token.isHome = Boolean(exactIsHome);
+      } else if (token.step >= 56) {
+        token.step = 56;
         token.isHome = true;
         playSfx('home');
       }
@@ -844,6 +1008,8 @@
             playerColor: color,
             tokenIndex: tokenIndex,
             roll: roll,
+            tokenStep: token.step,
+            tokenIsHome: token.isHome,
             captured: captured,
             isGameOver: true
           });
@@ -854,13 +1020,15 @@
       const getsExtraTurn = (roll === 6 || captured);
 
       if (isLocal) {
+        const nextTurn = getsExtraTurn ? currentTurnIndex : ((currentTurnIndex + 1) % activePlayers.length);
         if (isPartyMode) {
-          const nextTurn = getsExtraTurn ? currentTurnIndex : ((currentTurnIndex + 1) % activePlayers.length);
           sendPartyAction({
             action: 'LUDO_MOVE',
             playerColor: color,
             tokenIndex: tokenIndex,
             roll: roll,
+            tokenStep: token.step,
+            tokenIsHome: token.isHome,
             captured: captured,
             nextTurnIndex: nextTurn,
             extraTurn: getsExtraTurn
@@ -872,20 +1040,25 @@
           diceValue = null;
           isRolling = false;
           updateTurnDisplay(true);
+          startTurnSafetyTimer();
           maybeRunBotTurn();
         } else {
-          advanceTurn(true);
+          advanceTurn(false);
         }
       } else {
         // Remote move applied
         if (explicitNextTurn !== null && explicitNextTurn !== undefined) {
           currentTurnIndex = explicitNextTurn;
+        } else if (!isExtraTurn) {
+          currentTurnIndex = (currentTurnIndex + 1) % activePlayers.length;
         }
         hasRolled = false;
         diceValue = null;
         isRolling = false;
         updateTurnDisplay(isExtraTurn);
         renderBoard();
+        startTurnSafetyTimer();
+        maybeRunBotTurn();
       }
     }
 
@@ -893,6 +1066,7 @@
       if (attackerToken.step === -1 || attackerToken.isHome) return false;
       const attackerIdx = tokens[attackerPlayer].indexOf(attackerToken);
       const attPos = getTokenPos(attackerPlayer, attackerIdx);
+      if (!attPos) return false;
 
       if (isSafeSquare(attPos.r, attPos.c)) return false;
 
@@ -903,12 +1077,15 @@
           if (defToken.step === -1 || defToken.isHome) return;
           const defIdx = tokens[p.color].indexOf(defToken);
           const defPos = getTokenPos(p.color, defIdx);
+          if (!defPos) return;
 
           if (attPos.r === defPos.r && attPos.c === defPos.c) {
             defToken.step = -1;
+            defToken.isHome = false;
             didCapture = true;
             playSfx('capture');
-            document.getElementById('actionHint').textContent = `💥 Captured ${p.color} Token!`;
+            const hint = document.getElementById('actionHint');
+            if (hint) hint.textContent = `💥 Captured ${p.color} Token!`;
           }
         });
       });
@@ -917,43 +1094,51 @@
     }
 
     function advanceTurn(syncToParty = false) {
+      clearAutoMoveTimer();
+      clearTurnSafetyTimer();
       if (turnTimer) clearTimeout(turnTimer);
       if (remoteRollTimer) clearTimeout(remoteRollTimer);
+
       currentTurnIndex = (currentTurnIndex + 1) % activePlayers.length;
       hasRolled = false;
       diceValue = null;
       isRolling = false;
       updateTurnDisplay(false);
       renderBoard();
+
       if (syncToParty && isPartyMode) {
         sendPartyAction({
           action: 'LUDO_TURN_ADVANCE',
           nextTurnIndex: currentTurnIndex
         });
       }
+
+      startTurnSafetyTimer();
       maybeRunBotTurn();
     }
 
     function maybeRunBotTurn() {
       const activePlayer = activePlayers[currentTurnIndex];
       if (!activePlayer || !activePlayer.isBot || isGameOver) return;
-      if (isPartyMode && !isHost) return; // In party mode, host executes bot turns
+      if (isPartyMode && !isHost) return;
 
-      document.getElementById('actionHint').textContent = `${activePlayer.username} is rolling...`;
+      const actionHint = document.getElementById('actionHint');
+      if (actionHint) actionHint.textContent = `${activePlayer.username} is rolling...`;
 
       setTimeout(() => {
         if (isGameOver) return;
         const cube = document.getElementById('diceCube');
-        cube.classList.add('rolling');
+        if (cube) cube.classList.add('rolling');
         playSfx('roll');
 
         setTimeout(() => {
           const botRoll = Math.floor(Math.random() * 6) + 1;
-          cube.classList.remove('rolling');
+          if (cube) cube.classList.remove('rolling');
           renderDiceFace(botRoll);
           diceValue = botRoll;
           hasRolled = true;
-          document.getElementById('diceLabel').textContent = `Bot Rolled: ${botRoll}`;
+          const diceLabel = document.getElementById('diceLabel');
+          if (diceLabel) diceLabel.textContent = `Bot Rolled: ${botRoll}`;
 
           if (isPartyMode) {
             sendPartyAction({
@@ -970,15 +1155,13 @@
             .filter(item => canPawnMove(item.t, botRoll));
 
           if (movable.length === 0) {
-            document.getElementById('actionHint').textContent = `Bot rolled ${botRoll} (No moves)`;
+            if (actionHint) actionHint.textContent = `Bot rolled ${botRoll} (No moves)`;
             setTimeout(() => {
               advanceTurn(true);
             }, 1000);
           } else {
-            // Priority: open or advance
-            let chosen = movable[0];
             const openMove = movable.find(m => m.t.step === -1);
-            if (openMove) chosen = openMove;
+            const chosen = openMove || movable[0];
 
             setTimeout(() => {
               executeMoveToken(color, chosen.idx, botRoll, true);
@@ -1007,6 +1190,8 @@
       if (!data) return;
 
       if (data.action === 'LUDO_ROLL') {
+        clearAutoMoveTimer();
+        clearTurnSafetyTimer();
         if (turnTimer) clearTimeout(turnTimer);
         if (remoteRollTimer) clearTimeout(remoteRollTimer);
 
@@ -1037,7 +1222,6 @@
             const hint = document.getElementById('actionHint');
             if (hint) hint.textContent = `${name} has no moves for ${diceValue}.`;
 
-            // Auto-advance remote player's view after 900ms
             const nextIdx = (data.nextTurnIndex !== undefined) ? data.nextTurnIndex : ((currentTurnIndex + 1) % activePlayers.length);
             turnTimer = setTimeout(() => {
               currentTurnIndex = nextIdx;
@@ -1046,16 +1230,21 @@
               isRolling = false;
               updateTurnDisplay(false);
               renderBoard();
+              startTurnSafetyTimer();
               maybeRunBotTurn();
             }, 900);
           }
           renderBoard();
         }, 350);
       } else if (data.action === 'LUDO_MOVE') {
+        clearAutoMoveTimer();
+        clearTurnSafetyTimer();
         if (turnTimer) clearTimeout(turnTimer);
         if (remoteRollTimer) clearTimeout(remoteRollTimer);
-        executeMoveToken(data.playerColor, data.tokenIndex, data.roll, false, data.nextTurnIndex, data.extraTurn);
+        executeMoveToken(data.playerColor, data.tokenIndex, data.roll, false, data.nextTurnIndex, data.extraTurn, data.tokenStep, data.tokenIsHome);
       } else if (data.action === 'LUDO_TURN_ADVANCE') {
+        clearAutoMoveTimer();
+        clearTurnSafetyTimer();
         if (turnTimer) clearTimeout(turnTimer);
         if (remoteRollTimer) clearTimeout(remoteRollTimer);
         if (data.nextTurnIndex !== undefined) {
