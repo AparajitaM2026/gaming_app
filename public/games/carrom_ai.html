@@ -135,11 +135,6 @@
     const isHostParam = (urlParams.get('isHost') === 'true');
     const roomCode = urlParams.get('room') || '';
 
-    // Mode badge
-    const modeBadge = document.getElementById('modeBadge');
-    if (modeBadge) {
-      modeBadge.textContent = isPartyMode ? 'Party Live (2P)' : (isPassPlay ? 'Pass & Play (2P)' : 'Vs Smart AI');
-    }
 
     // Resolve Active Players
     let activePlayers = [];
