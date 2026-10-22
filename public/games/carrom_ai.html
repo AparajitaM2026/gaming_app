@@ -65,7 +65,7 @@
   <!-- Carrom Board Canvas Container (Responsive Square Fit) -->
   <div id="boardWrap" class="flex-1 min-h-0 w-full flex items-center justify-center p-1 sm:p-2 overflow-hidden">
     <div id="boardFrame" class="p-1.5 bg-amber-950 rounded-2xl shadow-2xl border-2 sm:border-4 border-amber-900 flex items-center justify-center overflow-hidden relative" style="aspect-ratio: 1 / 1; width: 440px; height: 440px; max-width: 100%; max-height: 100%;">
-      <canvas id="carromCanvas" class="w-full h-full rounded-xl bg-amber-100" style="display: block; width: 100%; height: 100%;"></canvas>
+      <canvas id="carromCanvas" class="w-full h-full rounded-xl bg-amber-100" style="display: block; width: 100%; height: 100%; touch-action: none; user-select: none;"></canvas>
 
       <!-- GAME OVER / VICTORY MODAL OVERLAY -->
       <div id="gameOverModal" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md rounded-xl">
@@ -108,6 +108,9 @@
       <span class="text-[10px] text-gray-400">Drag striker to aim &bull; Release to shoot</span>
     </div>
     <div class="flex gap-2 sm:gap-3">
+      <button id="flipViewBtn" onclick="toggleFlipBoard()" class="px-3 py-2 sm:py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/20 text-white font-bold text-xs shadow transition-all active:scale-95 flex items-center justify-center gap-1.5" title="Flip Board Perspective">
+        <i class="fa-solid fa-arrows-rotate"></i> <span>Flip View</span>
+      </button>
       <button onclick="requestResetCarrom()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-extrabold orbitron text-xs uppercase shadow-lg transition-all active:scale-95">
         Reset Board
       </button>
@@ -199,6 +202,39 @@
     const p1 = activePlayers[0] || { username: 'Player 1', color: 'WHITE', isMe: true };
     const p2 = activePlayers[1] || { username: (isPartyMode ? 'Friend' : 'AI Bot'), color: 'BLACK', isMe: false };
     const isHost = Boolean(p1.isMe);
+
+    // Auto-flip perspective for Player 2 in Party Mode so they always play from the bottom!
+    let isFlipped = Boolean(isPartyMode && p2.isMe);
+
+    function toggleFlipBoard() {
+      isFlipped = !isFlipped;
+      const btn = document.getElementById('flipViewBtn');
+      if (btn) {
+        if (isFlipped) {
+          btn.classList.add('border-cyan-400', 'text-cyan-300', 'bg-cyan-950/40');
+        } else {
+          btn.classList.remove('border-cyan-400', 'text-cyan-300', 'bg-cyan-950/40');
+        }
+      }
+      render();
+    }
+
+    const flipBtn = document.getElementById('flipViewBtn');
+    if (flipBtn && isFlipped) {
+      flipBtn.classList.add('border-cyan-400', 'text-cyan-300', 'bg-cyan-950/40');
+    }
+
+    // Update Mode badge with player role
+    const modeBadge = document.getElementById('modeBadge');
+    if (modeBadge) {
+      if (isPartyMode) {
+        modeBadge.textContent = isHost ? 'Party Live • White (Host)' : 'Party Live • Black (Friend)';
+      } else if (isPassPlay) {
+        modeBadge.textContent = 'Pass & Play (2P)';
+      } else {
+        modeBadge.textContent = 'Vs Smart AI';
+      }
+    }
 
     // Update Header labels
     const p1Label = document.getElementById('p1NameLabel');
@@ -388,34 +424,72 @@
     // -------------------------------------------------------------
     canvas.addEventListener('pointerdown', (e) => {
       if (!isMyTurnNow()) return;
+      try { canvas.setPointerCapture(e.pointerId); } catch(err) {}
+
       const rect = canvas.getBoundingClientRect();
-      const x = (e.clientX - rect.left) * (SIZE / rect.width);
-      const y = (e.clientY - rect.top) * (SIZE / rect.height);
+      const screenX = (e.clientX - rect.left) * (SIZE / rect.width);
+      const screenY = (e.clientY - rect.top) * (SIZE / rect.height);
+
+      const x = isFlipped ? (SIZE - screenX) : screenX;
+      const y = isFlipped ? (SIZE - screenY) : screenY;
 
       const targetBaseY = isWhiteTurn ? BASE_Y_WHITE : BASE_Y_BLACK;
 
       // Tap near striker to aim
-      if (Math.hypot(x - striker.x, y - striker.y) < striker.radius * 2.4) {
+      if (Math.hypot(x - striker.x, y - striker.y) < striker.radius * 2.6) {
         isAiming = true;
+        isPlacing = false;
         aimStart = { x: striker.x, y: striker.y };
         aimCurrent = { x, y };
-      } else if (Math.abs(y - targetBaseY) < 30 && x >= 70 && x <= SIZE - 70) {
-        // Tap on baseline to reposition striker
+      } else if (Math.abs(y - targetBaseY) < 38 && x >= 60 && x <= SIZE - 60) {
+        // Tap or drag along baseline to reposition striker
+        isPlacing = true;
+        isAiming = false;
         striker.x = Math.max(90, Math.min(SIZE - 90, x));
         render();
+        if (isPartyMode) {
+          sendPartyAction({
+            action: 'CARROM_STRIKER_MOVE',
+            strikerX: striker.x,
+            strikerY: striker.y
+          });
+        }
       }
     });
 
     canvas.addEventListener('pointermove', (e) => {
-      if (!isAiming || gameOver) return;
+      if (gameOver) return;
+      if (!isAiming && !isPlacing) return;
+
       const rect = canvas.getBoundingClientRect();
-      aimCurrent = {
-        x: (e.clientX - rect.left) * (SIZE / rect.width),
-        y: (e.clientY - rect.top) * (SIZE / rect.height)
-      };
+      const screenX = (e.clientX - rect.left) * (SIZE / rect.width);
+      const screenY = (e.clientY - rect.top) * (SIZE / rect.height);
+
+      const x = isFlipped ? (SIZE - screenX) : screenX;
+      const y = isFlipped ? (SIZE - screenY) : screenY;
+
+      if (isAiming) {
+        aimCurrent = { x, y };
+      } else if (isPlacing) {
+        striker.x = Math.max(90, Math.min(SIZE - 90, x));
+        render();
+        if (isPartyMode) {
+          sendPartyAction({
+            action: 'CARROM_STRIKER_MOVE',
+            strikerX: striker.x,
+            strikerY: striker.y
+          });
+        }
+      }
     });
 
-    canvas.addEventListener('pointerup', () => {
+    canvas.addEventListener('pointerup', (e) => {
+      try { canvas.releasePointerCapture(e.pointerId); } catch(err) {}
+
+      if (isPlacing) {
+        isPlacing = false;
+        return;
+      }
       if (!isAiming || gameOver) return;
       isAiming = false;
       const dx = aimStart.x - aimCurrent.x;
@@ -445,6 +519,12 @@
       }
     });
 
+    canvas.addEventListener('pointercancel', (e) => {
+      try { canvas.releasePointerCapture(e.pointerId); } catch(err) {}
+      isAiming = false;
+      isPlacing = false;
+    });
+
     // -------------------------------------------------------------
     // REALTIME PARTY SYNC & MESSAGING
     // -------------------------------------------------------------
@@ -470,6 +550,12 @@
         isWhiteTurn = data.isWhiteTurn;
         moving = true;
         updateStatusBanner();
+      } else if (data.action === 'CARROM_STRIKER_MOVE') {
+        if (!moving) {
+          striker.x = data.strikerX;
+          striker.y = data.strikerY;
+          render();
+        }
       } else if (data.action === 'CARROM_SYNC_STATE') {
         if (Array.isArray(data.coins)) {
           coins = data.coins.map(c => ({
@@ -727,6 +813,12 @@
     function render() {
       ctx.clearRect(0, 0, SIZE, SIZE);
 
+      ctx.save();
+      if (isFlipped) {
+        ctx.translate(SIZE, SIZE);
+        ctx.rotate(Math.PI);
+      }
+
       // Wooden Surface
       ctx.fillStyle = '#FED7AA';
       ctx.fillRect(20, 20, SIZE - 40, SIZE - 40);
@@ -805,6 +897,13 @@
       ctx.strokeStyle = '#FFFFFF';
       ctx.lineWidth = 3;
       ctx.stroke();
+
+      // Decorative inner ring on striker
+      ctx.beginPath();
+      ctx.arc(striker.x, striker.y, striker.radius * 0.45, 0, Math.PI * 2);
+      ctx.strokeStyle = isWhiteTurn ? '#FEE2E2' : '#F59E0B';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
       ctx.restore();
 
       // Draw Aiming Guide Line
@@ -833,6 +932,8 @@
         ctx.stroke();
         ctx.restore();
       }
+
+      ctx.restore();
     }
 
     // Initialize
