@@ -894,11 +894,6 @@ app.get('/api/game-frame', async (req, res) => {
   let targetUrl = req.query.url;
   if (!targetUrl) return res.status(400).send('Missing url');
 
-  // OTT VIP games on games.ottsol.cloud need direct same-origin relative asset loading
-  if (targetUrl.includes('games.ottsol.cloud')) {
-    return res.redirect(targetUrl);
-  }
-
   // Fast redirect alias for color-sort to magic-sort
   if (targetUrl.includes('color-sort')) {
     targetUrl = targetUrl.replace('color-sort', 'magic-sort');
@@ -961,8 +956,67 @@ app.get('/api/game-frame', async (req, res) => {
             return { closed: true, focus: function(){}, close: function(){} }; 
           };
 
+          // Universal Ad Network URL Filter
+          const AD_FILTER = /(googleads|doubleclick|googlesyndication|adservice|monetag|adsterra|imasdk|ima3|gamedistribution|gamemonetize|cpmstar|adnxs|adnuntius|popads|propeller|applovin|unityads|crazygames|poki.*sdk|play\\.famobi\\.com.*(ad|banner|v1\\.js)|gameapi\\/v1|patch\\/js\\/g[dm]-sdk|ad-delivery|outbrain|taboola|analytics|gtag)/i;
+          function isAdUrl(u) {
+            if (!u || typeof u !== 'string') return false;
+            return AD_FILTER.test(u);
+          }
+
+          // Dynamic Script & Iframe Interception (prevents games from injecting ad tags)
+          const _origCreateElement = document.createElement.bind(document);
+          document.createElement = function(tag, options) {
+            const el = _origCreateElement(tag, options);
+            const lowerTag = (tag || '').toLowerCase();
+            if (lowerTag === 'script' || lowerTag === 'iframe') {
+              const _origSetAttr = el.setAttribute.bind(el);
+              el.setAttribute = function(name, val) {
+                if ((name || '').toLowerCase() === 'src' && isAdUrl(val)) {
+                  return;
+                }
+                return _origSetAttr(name, val);
+              };
+              let _src = '';
+              Object.defineProperty(el, 'src', {
+                get: function() { return _src; },
+                set: function(val) {
+                  if (isAdUrl(val)) {
+                    _src = 'about:blank';
+                    return;
+                  }
+                  _src = val;
+                  el.setAttribute('src', val);
+                },
+                configurable: true
+              });
+            }
+            return el;
+          };
+
+          // Network-level Ad Blocker (blocks fetch & XHR to ad networks)
+          const _origFetch = window.fetch;
+          if (typeof _origFetch === 'function') {
+            window.fetch = function(input, init) {
+              const u = typeof input === 'string' ? input : (input && input.url ? input.url : '');
+              if (isAdUrl(u)) {
+                return Promise.resolve(new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } }));
+              }
+              return _origFetch.apply(this, arguments);
+            };
+          }
+          const _origXhrOpen = XMLHttpRequest.prototype.open;
+          XMLHttpRequest.prototype.open = function(method, url) {
+            if (isAdUrl(url)) {
+              arguments[1] = 'data:application/json,{}';
+            }
+            return _origXhrOpen.apply(this, arguments);
+          };
+
           // Stub Google AdSense & Ad Networks
-          window.adsbygoogle = { push: function() {} };
+          const _adsArray = [];
+          _adsArray.push = function() { return 1; };
+          _adsArray.loaded = true;
+          window.adsbygoogle = _adsArray;
           window.monetag = { push: function() {} };
           window.adsterra = { push: function() {} };
 
@@ -983,15 +1037,15 @@ app.get('/api/game-frame', async (req, res) => {
                               stop: function() {},
                               destroy: function() {},
                               addEventListener: function(e, c) {
-                                if (e === 'allAdsCompleted' || e === 'complete' || e === 'loaded') {
-                                  setTimeout(c, 10);
+                                if (e === 'allAdsCompleted' || e === 'complete' || e === 'loaded' || e === 'contentResume') {
+                                  setTimeout(c, 5);
                                 }
                               }
                             };
                           }
                         });
                       } catch(e) {}
-                    }, 10);
+                    }, 5);
                   }
                 },
                 requestAds: function() {},
@@ -1006,12 +1060,95 @@ app.get('/api/game-frame', async (req, res) => {
           };
 
           // Stub GameDistribution & GameMonetize SDK
-          window.gdsdk = {
+          const mockGdSdk = {
             showAd: function() { return Promise.resolve(); },
             preloadAd: function() { return Promise.resolve(); },
+            play: function() { return Promise.resolve(); },
             init: function() { return Promise.resolve(); }
           };
-          window.sdk = window.gdsdk;
+          window.gdsdk = mockGdSdk;
+          window.sdk = mockGdSdk;
+          window.gamedistribution = mockGdSdk;
+          window.gamemonetize = {
+            showAd: function() { return Promise.resolve(); },
+            init: function() { return Promise.resolve(); }
+          };
+
+          // Auto-trigger GD_OPTIONS onEvent so games waiting for ad finish start immediately
+          let _gdOptions = { onEvent: function() {} };
+          Object.defineProperty(window, 'GD_OPTIONS', {
+            get: function() { return _gdOptions; },
+            set: function(val) {
+              _gdOptions = val;
+              if (val && typeof val.onEvent === 'function') {
+                setTimeout(function() {
+                  try { val.onEvent({ name: 'SDK_GAME_START' }); } catch(e) {}
+                }, 20);
+              }
+            },
+            configurable: true
+          });
+
+          // Stub Poki & CrazyGames SDK
+          window.PokiSDK = {
+            init: function() { return Promise.resolve(); },
+            gameLoadingFinished: function() {},
+            gameLoadingProgress: function() {},
+            gameplayStart: function() {},
+            gameplayStop: function() {},
+            commercialBreak: function() { return Promise.resolve(); },
+            rewardedBreak: function() { return Promise.resolve(true); },
+            displayAd: function(container) { if (container) container.style.display = 'none'; },
+            destroyAd: function() {}
+          };
+          window.CrazyGames = {
+            SDK: {
+              init: function() { return Promise.resolve(); },
+              ad: {
+                requestAd: function() { return Promise.resolve(); },
+                hasAdblock: function() { return Promise.resolve(false); }
+              },
+              game: {
+                gameplayStart: function() {},
+                gameplayStop: function() {},
+                loadingStart: function() {},
+                loadingStop: function() {}
+              }
+            }
+          };
+
+          // Real-time MutationObserver to eradicate ad banners from DOM
+          try {
+            const adObserver = new MutationObserver(function(mutations) {
+              for (let i = 0; i < mutations.length; i++) {
+                const added = mutations[i].addedNodes;
+                for (let j = 0; j < added.length; j++) {
+                  const node = added[j];
+                  if (node.nodeType === 1) {
+                    const id = (node.id || '').toLowerCase();
+                    const cls = (node.className || '').toString().toLowerCase();
+                    const aria = (node.getAttribute('aria-label') || '').toLowerCase();
+                    const src = (node.getAttribute('src') || '').toLowerCase();
+                    if (
+                      id.includes('gz-ad-') || id.includes('google_ads') || id.includes('aswift') ||
+                      cls.includes('gz-injected') || cls.includes('ad-container') || cls.includes('advertisement') ||
+                      aria.includes('advertisement') || aria.includes('sponsored') ||
+                      isAdUrl(src)
+                    ) {
+                      node.remove();
+                    }
+                  }
+                }
+              }
+            });
+            if (document.documentElement) {
+              adObserver.observe(document.documentElement, { childList: true, subtree: true });
+            } else {
+              document.addEventListener('DOMContentLoaded', function() {
+                adObserver.observe(document.documentElement, { childList: true, subtree: true });
+              });
+            }
+          } catch(e) {}
 
           // Safe onbeforeunload clear
           try {
@@ -1660,15 +1797,29 @@ app.get('/api/game-frame', async (req, res) => {
     `;
 
     // Strip ALL ad networks, video ads, popunder managers, analytics and ad trackers
-    html = html.replace(/<script[^>]*(monetag|adsterra|adsbygoogle|googlesyndication|game-footer|gz-analytics|gz-ux|ima3\.js|imasdk|gamemonetize|gamedistribution|google-analytics|googletagmanager)[^>]*>[\s\S]*?<\/script>/gi, '');
-    html = html.replace(/<script[^>]*src=["'][^"']*(game-footer|gz-ux|gz-analytics|adsterra|monetag|ima3\.js|imasdk|gamemonetize|adsbygoogle|googlesyndication|gtag|google-analytics)[^"']*["'][^>]*>[\s\S]*?<\/script>/gi, '');
+    html = html.replace(/<script[^>]*(monetag|adsterra|adsbygoogle|googlesyndication|game-footer|gz-analytics|gz-ux|ima3|imasdk|gamemonetize|gamedistribution|google-analytics|googletagmanager|cpmstar)[^>]*>[\s\S]*?<\/script>/gi, '');
+    html = html.replace(/<script[^>]*src=["'][^"']*(game-footer|gz-ux|gz-analytics|adsterra|monetag|ima3|imasdk|gamemonetize|gamedistribution|gd-sdk|gm-sdk|adsbygoogle|googlesyndication|gtag|google-analytics)[^"']*["'][^>]*>[\s\S]*?<\/script>/gi, '');
     html = html.replace(/<script[^>]*>\s*\(adsbygoogle[\s\S]*?<\/script>/gi, '');
     html = html.replace(/<ins[^>]*class=["'][^"']*adsbygoogle[^"']*["'][\s\S]*?<\/ins>/gi, '');
     html = html.replace(/<ins[\s\S]*?<\/ins>/gi, '');
+    html = html.replace(/<link[^>]*(pagead2|googlesyndication|doubleclick|monetag|adsterra)[^>]*>/gi, '');
     html = html.replace(/<meta[^>]*http-equiv=["']?refresh["']?[^>]*>/gi, '');
+
+    // Strip in-game banner placeholders and comments
+    html = html.replace(/<!--[\s\S]*?monetag-manager[\s\S]*?-->/gi, '');
+    html = html.replace(/\/\*[\s\S]*?monetag-manager[\s\S]*?\*\//gi, '');
+    html = html.replace(/<!--[\s\S]*?Static in-game banner placeholders[\s\S]*?-->/gi, '');
+    html = html.replace(/<div[^>]*id=["']gz-ad-[^"']*["'][^>]*><\/div>/gi, '');
+    html = html.replace(/<div[^>]*class=["'][^"']*gz-injected-banner[^"']*["'][^>]*><\/div>/gi, '');
+
+    // Strip GameMonetize & GameDistribution preloaders
+    html = html.replace(/<script[^>]*>[\s\S]*?gamemonetize-preload-api[\s\S]*?<\/script>/gi, '');
+    html = html.replace(/<script[^>]*>[\s\S]*?gamedistribution-jssdk[\s\S]*?<\/script>/gi, '');
+    html = html.replace(/<script[^>]*>[\s\S]*?patch\/js\/g[dm]-sdk[\s\S]*?<\/script>/gi, '');
 
     // Strip Famobi official anti-embed API caller & tracker so autonomous emulator runs
     html = html.replace(/<script[^>]*src=["'][^"']*gameapi\/v1\.js[^"']*["'][^>]*><\/script>/gi, '');
+    html = html.replace(/\(function\s*\(\s*document,\s*url,\s*fgJS,\s*firstJS\s*\)[\s\S]*?gameapi\/v1\.js[\s\S]*?\)\s*\(document,\s*['"][^'"]*gameapi\/v1\.js[^'"]*['"]\s*\);?/gi, '');
     html = html.replace(/\(function\s*\(document,\s*url,\s*fgJS,\s*firstJS\)[\s\S]*?gameapi\/v1\.js\?e=['"]\s*\);?/gi, '');
     html = html.replace(/\(document,\s*['"][^'"]*gameapi\/v1\.js[^'"]*['"]\);?/gi, '');
     html = html.replace(/<script[^>]*src=["'][^"']*famobi-game-interface\.js[^"']*["'][^>]*><\/script>/gi, '');
