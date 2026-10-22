@@ -487,8 +487,13 @@ function setupMultiplayer(wss) {
             const room = partyRooms.get(pCode);
             if (!room || room.status !== 'PLAYING') return;
 
-            // Realtime Ludo Hero & Board Games Action Synchronization
-            if (msg.gameSlug === 'ludo-hero-ai' || (msg.action && msg.action.startsWith('LUDO_')) || msg.action === 'BOARD_ACTION') {
+            // Realtime In-House Games Action Synchronization (Ludo, Carrom, Chess, Checkers, Connect4, TicTacToe)
+            const isCustomMultiplayer = 
+              ['ludo-hero-ai', 'carrom-clash-ai', 'carrom-pool', 'chess-master-ai', 'checkers-classic-ai', 'connect4-arena-ai', 'tictactoe-neon-ai'].includes(msg.gameSlug) ||
+              ['ludo-hero-ai', 'carrom-clash-ai', 'carrom-pool', 'chess-master-ai', 'checkers-classic-ai', 'connect4-arena-ai', 'tictactoe-neon-ai'].includes(room.gameSlug) ||
+              (msg.action && (msg.action.startsWith('LUDO_') || msg.action.startsWith('CARROM_') || msg.action.startsWith('CHESS_') || msg.action.startsWith('CHECKERS_') || msg.action.startsWith('CONNECT4_') || msg.action.startsWith('TICTACTOE_') || msg.action === 'BOARD_ACTION'));
+
+            if (isCustomMultiplayer) {
               broadcastToParty(room, {
                 type: 'PARTY_GAME_UPDATE',
                 roomCode: room.code,

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Carrom Clash — You vs AI Bot</title>
+  <title>Voltixz Carrom Clash — Multiplayer & AI Board</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -13,6 +13,7 @@
       font-family: 'Inter', sans-serif;
       color: #fff;
       user-select: none;
+      touch-action: manipulation;
     }
     html, body {
       height: 100%;
@@ -26,26 +27,38 @@
     canvas {
       touch-action: none;
     }
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 4px rgba(0, 240, 255, 0.4); }
+      100% { box-shadow: 0 0 16px rgba(0, 240, 255, 0.9); }
+    }
+    .active-turn-ring {
+      animation: pulseGlow 1.2s infinite alternate ease-in-out;
+    }
   </style>
 </head>
 <body class="h-full w-full flex flex-col items-center justify-between p-2 sm:p-3 relative box-border overflow-hidden">
 
-  <!-- Header -->
-  <div class="w-full max-w-lg shrink-0 flex items-center justify-between bg-slate-900 border border-slate-700/60 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-lg">
-    <div class="flex items-center gap-2">
-      <div class="w-3.5 h-3.5 rounded-full bg-white border border-slate-400 shadow"></div>
-      <div class="flex flex-col">
-        <span class="text-xs font-bold text-white leading-none">YOU (WHITE)</span>
-        <span class="text-[9.5px] text-gray-400" id="playerScoreText">0 Pkts</span>
+  <!-- Top Realtime Match Header -->
+  <div class="w-full max-w-lg shrink-0 flex items-center justify-between bg-slate-900 border border-slate-700/60 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-lg gap-2">
+    <!-- Player 1 (White) -->
+    <div id="p1Card" class="flex items-center gap-2 min-w-0 transition-all rounded-lg p-1">
+      <div class="w-3.5 h-3.5 rounded-full bg-white border border-slate-400 shadow shrink-0"></div>
+      <div class="flex flex-col min-w-0">
+        <span class="text-xs font-bold text-white leading-none truncate" id="p1NameLabel">Player 1 (White)</span>
+        <span class="text-[9.5px] text-gray-400 font-semibold" id="playerScoreText">0 Pkts</span>
       </div>
     </div>
-    <span class="orbitron font-extrabold text-[11px] sm:text-xs text-amber-300 tracking-wide" id="statusBanner">DRAG TO AIM & RELEASE</span>
-    <div class="flex items-center gap-2 text-right">
-      <div class="flex flex-col">
-        <span class="text-xs font-bold text-amber-500 leading-none">AI (BLACK)</span>
-        <span class="text-[9.5px] text-gray-400" id="aiScoreText">0 Pkts</span>
+
+    <!-- Center Turn / Status Banner -->
+    <span class="orbitron font-extrabold text-[10px] sm:text-xs text-amber-300 tracking-wide text-center truncate px-1" id="statusBanner">YOUR TURN — AIM & SHOOT</span>
+
+    <!-- Player 2 (Black) -->
+    <div id="p2Card" class="flex items-center gap-2 text-right min-w-0 transition-all rounded-lg p-1">
+      <div class="flex flex-col min-w-0">
+        <span class="text-xs font-bold text-amber-400 leading-none truncate" id="p2NameLabel">Player 2 (Black)</span>
+        <span class="text-[9.5px] text-gray-400 font-semibold" id="aiScoreText">0 Pkts</span>
       </div>
-      <div class="w-3.5 h-3.5 rounded-full bg-slate-950 border border-amber-500 shadow"></div>
+      <div class="w-3.5 h-3.5 rounded-full bg-slate-950 border border-amber-500 shadow shrink-0"></div>
     </div>
   </div>
 
@@ -54,51 +67,158 @@
     <div id="boardFrame" class="p-1.5 bg-amber-950 rounded-2xl shadow-2xl border-2 sm:border-4 border-amber-900 flex items-center justify-center overflow-hidden relative" style="aspect-ratio: 1 / 1; width: 440px; height: 440px; max-width: 100%; max-height: 100%;">
       <canvas id="carromCanvas" class="w-full h-full rounded-xl bg-amber-100" style="display: block; width: 100%; height: 100%;"></canvas>
 
-    <!-- GAME OVER / VICTORY MODAL OVERLAY -->
-    <div id="gameOverModal" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md rounded-xl">
-      <div class="w-full max-w-xs bg-slate-900 border border-amber-500/50 rounded-2xl p-5 text-center shadow-2xl space-y-4">
-        <div id="winnerIcon" class="w-16 h-16 mx-auto rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-amber-400 text-3xl shadow-lg shadow-amber-500/30">
-          <i class="fa-solid fa-trophy"></i>
-        </div>
-        <div>
-          <h3 id="winnerText" class="text-xl font-black orbitron text-white">YOU WON!</h3>
-          <p id="winnerSubtext" class="text-xs text-gray-300 mt-1">All your white coins were pocketed!</p>
-        </div>
-        <div class="p-3 bg-slate-950 rounded-xl border border-white/10 flex justify-around text-xs">
-          <div>
-            <span class="text-gray-400 block text-[10px]">YOU (WHITE)</span>
-            <span id="finalPScore" class="font-bold text-white text-base">0 Pkts</span>
+      <!-- GAME OVER / VICTORY MODAL OVERLAY -->
+      <div id="gameOverModal" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md rounded-xl">
+        <div class="w-full max-w-xs bg-slate-900 border border-amber-500/50 rounded-2xl p-5 text-center shadow-2xl space-y-4">
+          <div id="winnerIcon" class="w-16 h-16 mx-auto rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-amber-400 text-3xl shadow-lg shadow-amber-500/30">
+            <i class="fa-solid fa-trophy"></i>
           </div>
-          <div class="border-r border-white/10"></div>
           <div>
-            <span class="text-gray-400 block text-[10px]">AI (BLACK)</span>
-            <span id="finalAScore" class="font-bold text-amber-400 text-base">0 Pkts</span>
+            <h3 id="winnerText" class="text-xl font-black orbitron text-white">YOU WON!</h3>
+            <p id="winnerSubtext" class="text-xs text-gray-300 mt-1">All designated coins were pocketed!</p>
           </div>
-        </div>
-        <div class="space-y-2 pt-1">
-          <button onclick="resetCarrom()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-black font-extrabold orbitron text-xs uppercase shadow-lg shadow-amber-500/30 hover:opacity-90 active:scale-95 transition-all">
-            <i class="fa-solid fa-rotate-right mr-1"></i> Play Again
-          </button>
-          <button onclick="window.parent.closeGameTheater()" class="w-full py-2.5 rounded-xl bg-slate-800 border border-white/10 text-white font-bold text-xs hover:bg-slate-700 active:scale-95 transition-all">
-            <i class="fa-solid fa-arrow-left mr-1"></i> Exit to Games
-          </button>
+          <div class="p-3 bg-slate-950 rounded-xl border border-white/10 flex justify-around text-xs">
+            <div>
+              <span id="p1EndName" class="text-gray-400 block text-[10px] truncate max-w-[90px]">Player 1</span>
+              <span id="finalPScore" class="font-bold text-white text-base">0 Pkts</span>
+            </div>
+            <div class="border-r border-white/10"></div>
+            <div>
+              <span id="p2EndName" class="text-gray-400 block text-[10px] truncate max-w-[90px]">Player 2</span>
+              <span id="finalAScore" class="font-bold text-amber-400 text-base">0 Pkts</span>
+            </div>
+          </div>
+          <div class="space-y-2 pt-1">
+            <button onclick="requestResetCarrom()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-black font-extrabold orbitron text-xs uppercase shadow-lg shadow-amber-500/30 hover:opacity-90 active:scale-95 transition-all">
+              <i class="fa-solid fa-rotate-right mr-1"></i> Play Again
+            </button>
+            <button onclick="window.parent.closeGameTheater()" class="w-full py-2.5 rounded-xl bg-slate-800 border border-white/10 text-white font-bold text-xs hover:bg-slate-700 active:scale-95 transition-all">
+              <i class="fa-solid fa-arrow-left mr-1"></i> Exit to Games
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-  <!-- Bottom Deck -->
-  <div class="w-full max-w-lg shrink-0 flex gap-2 sm:gap-3 pt-1">
-    <button onclick="resetCarrom()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-extrabold orbitron text-xs uppercase shadow-lg transition-all active:scale-95">
-      Reset Board
-    </button>
-    <button onclick="window.parent.closeGameTheater()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-xs hover:bg-white/20 active:scale-95 transition-all">
-      Exit to Games
-    </button>
+  <!-- Bottom Deck: Striker Position Guide & Action Controls -->
+  <div class="w-full max-w-lg shrink-0 flex flex-col gap-1.5 pt-1">
+    <div class="flex items-center justify-between text-[11px] text-gray-400 px-1">
+      <span id="modeBadge" class="font-bold text-emerald-400">Live 2-Player</span>
+      <span class="text-[10px] text-gray-400">Drag striker to aim &bull; Release to shoot</span>
+    </div>
+    <div class="flex gap-2 sm:gap-3">
+      <button onclick="requestResetCarrom()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-extrabold orbitron text-xs uppercase shadow-lg transition-all active:scale-95">
+        Reset Board
+      </button>
+      <button onclick="window.parent.closeGameTheater()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-xs hover:bg-white/20 active:scale-95 transition-all">
+        Exit to Games
+      </button>
+    </div>
   </div>
 
   <script>
+    // -------------------------------------------------------------
+    // URL PARAMETERS & MULTIPLAYER SETUP
+    // -------------------------------------------------------------
+    const urlParams = new URLSearchParams(window.location.search);
+    const gameMode = urlParams.get('mode') || 'ai'; // 'party', 'passplay', or 'ai'
+    const isPartyMode = (gameMode === 'party');
+    const isPassPlay = (gameMode === 'passplay');
+    const myUserId = String(urlParams.get('myId') || '');
+    const myUsername = String(urlParams.get('myUsername') || '');
+    const myPlayerIndexParam = urlParams.get('myPlayerIndex');
+    const myPlayerIndex = (myPlayerIndexParam !== null && myPlayerIndexParam !== '') ? parseInt(myPlayerIndexParam, 10) : -1;
+    const isHostParam = (urlParams.get('isHost') === 'true');
+    const roomCode = urlParams.get('room') || '';
+
+    // Mode badge
+    const modeBadge = document.getElementById('modeBadge');
+    if (modeBadge) {
+      modeBadge.textContent = isPartyMode ? 'Party Live (2P)' : (isPassPlay ? 'Pass & Play (2P)' : 'Vs Smart AI');
+    }
+
+    // Resolve Active Players
+    let activePlayers = [];
+    if (isPartyMode) {
+      let passedPlayers = [];
+      try {
+        passedPlayers = JSON.parse(urlParams.get('players') || '[]');
+      } catch (e) {}
+      if (!passedPlayers || passedPlayers.length === 0) {
+        if (window.parent?.activePartySession?.players) {
+          passedPlayers = window.parent.activePartySession.players;
+        }
+      }
+
+      if (Array.isArray(passedPlayers) && passedPlayers.length > 0) {
+        activePlayers = passedPlayers.slice(0, 2).map((p, idx) => {
+          let isThisMe = false;
+          if (myPlayerIndex !== -1 && !isNaN(myPlayerIndex)) {
+            isThisMe = (idx === myPlayerIndex);
+          } else {
+            isThisMe = (
+              (myUserId && String(p.id) === String(myUserId)) ||
+              (myUsername && p.username && p.username.toLowerCase() === myUsername.toLowerCase()) ||
+              (isHostParam ? idx === 0 : idx === 1)
+            );
+          }
+          return {
+            id: p.id,
+            username: p.username || (idx === 0 ? 'Host' : 'Friend'),
+            color: idx === 0 ? 'WHITE' : 'BLACK',
+            isBot: p.isBot || false,
+            isMe: isThisMe
+          };
+        });
+
+        // Ensure at least one has isMe
+        if (!activePlayers.some(p => p.isMe)) {
+          const fallbackIdx = isHostParam ? 0 : 1;
+          if (activePlayers[fallbackIdx]) activePlayers[fallbackIdx].isMe = true;
+          else if (activePlayers[0]) activePlayers[0].isMe = true;
+        }
+      } else {
+        activePlayers = [
+          { id: 'p1', username: 'Host (You)', color: 'WHITE', isBot: false, isMe: isHostParam },
+          { id: 'p2', username: 'Friend', color: 'BLACK', isBot: false, isMe: !isHostParam }
+        ];
+      }
+    } else if (isPassPlay) {
+      activePlayers = [
+        { id: 'p1', username: 'Player 1', color: 'WHITE', isBot: false, isMe: true },
+        { id: 'p2', username: 'Player 2', color: 'BLACK', isBot: false, isMe: true }
+      ];
+    } else {
+      activePlayers = [
+        { id: 'p1', username: 'You', color: 'WHITE', isBot: false, isMe: true },
+        { id: 'bot', username: 'AI Bot', color: 'BLACK', isBot: true, isMe: false }
+      ];
+    }
+
+    const p1 = activePlayers[0] || { username: 'Player 1', color: 'WHITE', isMe: true };
+    const p2 = activePlayers[1] || { username: (isPartyMode ? 'Friend' : 'AI Bot'), color: 'BLACK', isMe: false };
+    const isHost = Boolean(p1.isMe);
+
+    // Update Header labels
+    const p1Label = document.getElementById('p1NameLabel');
+    const p2Label = document.getElementById('p2NameLabel');
+    if (p1Label) {
+      p1Label.innerHTML = `${p1.username} <span class="text-[9px] text-gray-300">(WHITE)</span>${(isPartyMode && p1.isMe) ? ' <span class="text-cyan-300 text-[9px] font-bold">(You)</span>' : ''}`;
+    }
+    if (p2Label) {
+      const isBotLabel = (!isPartyMode && !isPassPlay);
+      p2Label.innerHTML = `${p2.username} <span class="text-[9px] text-amber-400">(${isBotLabel ? 'BOT' : 'BLACK'})</span>${(isPartyMode && p2.isMe) ? ' <span class="text-cyan-300 text-[9px] font-bold">(You)</span>' : ''}`;
+    }
+
+    const p1End = document.getElementById('p1EndName');
+    const p2End = document.getElementById('p2EndName');
+    if (p1End) p1End.textContent = p1.username;
+    if (p2End) p2End.textContent = p2.username;
+
+    // -------------------------------------------------------------
+    // CANVAS & PHYSICS SETUP
+    // -------------------------------------------------------------
     const canvas = document.getElementById('carromCanvas');
     const ctx = canvas.getContext('2d');
     const SIZE = 500;
@@ -131,26 +251,32 @@
       { x: SIZE - 35, y: SIZE - 35 }
     ];
 
+    const BASE_Y_WHITE = SIZE - 80;
+    const BASE_Y_BLACK = 80;
+
     let pScore = 0, aScore = 0;
-    let isPlayerTurn = true;
+    let isWhiteTurn = true; // true = White / Player 1; false = Black / Player 2
     let isAiming = false;
+    let isPlacing = false;
     let aimStart = null;
     let aimCurrent = null;
     let moving = false;
     let gameOver = false;
     let aiTimer = null;
+    let pocketedWhiteThisTurn = 0;
+    let pocketedBlackThisTurn = 0;
 
-    // Striker
+    // Striker Object
     let striker = {
       x: SIZE / 2,
-      y: SIZE - 80,
+      y: BASE_Y_WHITE,
       radius: 18,
       vx: 0,
       vy: 0,
       color: '#DC2626'
     };
 
-    // Coins (White for player, Black for AI, Red Queen)
+    // Coins Array
     let coins = [];
 
     function setupCoins() {
@@ -158,13 +284,13 @@
       const cx = SIZE / 2, cy = SIZE / 2;
       const r = 12;
 
-      // Queen
+      // Queen in Center
       coins.push({ x: cx, y: cy, radius: r, vx: 0, vy: 0, type: 'queen', color: '#EF4444' });
 
-      // Ring of 6 coins (3 White, 3 Black)
+      // Ring of 6 Coins (3 White, 3 Black)
       for (let i = 0; i < 6; i++) {
         const angle = (i * Math.PI) / 3;
-        const type = i % 2 === 0 ? 'white' : 'black';
+        const type = (i % 2 === 0) ? 'white' : 'black';
         coins.push({
           x: cx + Math.cos(angle) * (r * 2.2),
           y: cy + Math.sin(angle) * (r * 2.2),
@@ -172,30 +298,111 @@
           vx: 0,
           vy: 0,
           type,
-          color: type === 'white' ? '#FFFFFF' : '#1E293B'
+          color: (type === 'white') ? '#FFFFFF' : '#1E293B'
         });
       }
     }
 
-    function resetStriker(isAI = false) {
-      striker.x = SIZE / 2 + (Math.random() * 80 - 40);
-      striker.y = isAI ? 80 : SIZE - 80;
+    function resetStrikerForTurn() {
+      striker.x = SIZE / 2;
+      striker.y = isWhiteTurn ? BASE_Y_WHITE : BASE_Y_BLACK;
       striker.vx = 0;
       striker.vy = 0;
-      striker.color = isAI ? '#1E293B' : '#DC2626';
+      striker.color = isWhiteTurn ? '#DC2626' : '#1E293B';
+      pocketedWhiteThisTurn = 0;
+      pocketedBlackThisTurn = 0;
     }
 
-    // Touch & Mouse Aiming for Player
+    function isMyTurnNow() {
+      if (gameOver || moving) return false;
+      if (!isPartyMode && !isPassPlay) {
+        return isWhiteTurn; // Local user is White in AI mode
+      }
+      if (isPassPlay) {
+        return true; // Local 2 players can both shoot on their turn
+      }
+      if (isPartyMode) {
+        return isWhiteTurn ? Boolean(p1.isMe) : Boolean(p2.isMe);
+      }
+      return false;
+    }
+
+    function updateStatusBanner() {
+      const banner = document.getElementById('statusBanner');
+      const p1Card = document.getElementById('p1Card');
+      const p2Card = document.getElementById('p2Card');
+
+      if (!banner) return;
+
+      if (gameOver) return;
+
+      if (isWhiteTurn) {
+        if (p1Card) p1Card.classList.add('bg-white/10', 'ring-1', 'ring-white/40');
+        if (p2Card) p2Card.classList.remove('bg-white/10', 'ring-1', 'ring-white/40');
+      } else {
+        if (p2Card) p2Card.classList.add('bg-white/10', 'ring-1', 'ring-amber-400/40');
+        if (p1Card) p1Card.classList.remove('bg-white/10', 'ring-1', 'ring-white/40');
+      }
+
+      if (moving) {
+        banner.textContent = "STRIKE IN MOTION...";
+        banner.className = "orbitron font-extrabold text-[10px] sm:text-xs text-amber-300 tracking-wide text-center truncate px-1";
+        return;
+      }
+
+      if (isPartyMode) {
+        if (isWhiteTurn) {
+          if (p1.isMe) {
+            banner.textContent = "YOUR TURN (WHITE) — AIM & SHOOT";
+            banner.className = "orbitron font-extrabold text-[10px] sm:text-xs text-cyan-300 tracking-wide text-center truncate px-1";
+          } else {
+            banner.textContent = `WAITING FOR ${p1.username.toUpperCase()} TO SHOOT...`;
+            banner.className = "orbitron font-extrabold text-[10px] sm:text-xs text-gray-400 tracking-wide text-center truncate px-1";
+          }
+        } else {
+          if (p2.isMe) {
+            banner.textContent = "YOUR TURN (BLACK) — AIM & SHOOT";
+            banner.className = "orbitron font-extrabold text-[10px] sm:text-xs text-amber-300 tracking-wide text-center truncate px-1";
+          } else {
+            banner.textContent = `WAITING FOR ${p2.username.toUpperCase()} TO SHOOT...`;
+            banner.className = "orbitron font-extrabold text-[10px] sm:text-xs text-gray-400 tracking-wide text-center truncate px-1";
+          }
+        }
+      } else if (isPassPlay) {
+        banner.textContent = isWhiteTurn ? `${p1.username.toUpperCase()} (WHITE) — SHOOT` : `${p2.username.toUpperCase()} (BLACK) — SHOOT`;
+        banner.className = "orbitron font-extrabold text-[10px] sm:text-xs text-amber-300 tracking-wide text-center truncate px-1";
+      } else {
+        // AI Mode
+        if (isWhiteTurn) {
+          banner.textContent = "YOUR TURN — AIM & SHOOT";
+          banner.className = "orbitron font-extrabold text-[10px] sm:text-xs text-cyan-300 tracking-wide text-center truncate px-1";
+        } else {
+          banner.textContent = "AI BOT IS AIMING...";
+          banner.className = "orbitron font-extrabold text-[10px] sm:text-xs text-amber-400 tracking-wide text-center truncate px-1";
+        }
+      }
+    }
+
+    // -------------------------------------------------------------
+    // CONTROLS: POINTER DOWN, MOVE, UP
+    // -------------------------------------------------------------
     canvas.addEventListener('pointerdown', (e) => {
-      if (!isPlayerTurn || moving || gameOver) return;
+      if (!isMyTurnNow()) return;
       const rect = canvas.getBoundingClientRect();
       const x = (e.clientX - rect.left) * (SIZE / rect.width);
       const y = (e.clientY - rect.top) * (SIZE / rect.height);
 
-      if (Math.hypot(x - striker.x, y - striker.y) < striker.radius * 2.2) {
+      const targetBaseY = isWhiteTurn ? BASE_Y_WHITE : BASE_Y_BLACK;
+
+      // Tap near striker to aim
+      if (Math.hypot(x - striker.x, y - striker.y) < striker.radius * 2.4) {
         isAiming = true;
         aimStart = { x: striker.x, y: striker.y };
         aimCurrent = { x, y };
+      } else if (Math.abs(y - targetBaseY) < 30 && x >= 70 && x <= SIZE - 70) {
+        // Tap on baseline to reposition striker
+        striker.x = Math.max(90, Math.min(SIZE - 90, x));
+        render();
       }
     });
 
@@ -213,18 +420,130 @@
       isAiming = false;
       const dx = aimStart.x - aimCurrent.x;
       const dy = aimStart.y - aimCurrent.y;
-      striker.vx = Math.max(-18, Math.min(18, dx * 0.18));
-      striker.vy = Math.max(-18, Math.min(18, dy * 0.18));
+      const dist = Math.hypot(dx, dy);
+
+      // Require a minimum drag distance to prevent accidental tap
+      if (dist < 10) return;
+
+      const power = Math.min(18, dist * 0.18);
+      const angle = Math.atan2(dy, dx);
+      striker.vx = Math.cos(angle) * power;
+      striker.vy = Math.sin(angle) * power;
       moving = true;
+      updateStatusBanner();
+
+      // Broadcast strike to party peer
+      if (isPartyMode) {
+        sendPartyAction({
+          action: 'CARROM_STRIKE',
+          strikerX: striker.x,
+          strikerY: striker.y,
+          vx: striker.vx,
+          vy: striker.vy,
+          isWhiteTurn: isWhiteTurn
+        });
+      }
     });
 
+    // -------------------------------------------------------------
+    // REALTIME PARTY SYNC & MESSAGING
+    // -------------------------------------------------------------
+    function sendPartyAction(actionPayload) {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: 'PARTY_ACTION',
+          gameSlug: 'carrom-clash-ai',
+          roomCode: roomCode || window.parent?.activePartySession?.roomCode,
+          ...actionPayload
+        }, '*');
+      }
+    }
+
+    function handleRemotePartyAction(data) {
+      if (!data) return;
+
+      if (data.action === 'CARROM_STRIKE') {
+        striker.x = data.strikerX;
+        striker.y = data.strikerY;
+        striker.vx = data.vx;
+        striker.vy = data.vy;
+        isWhiteTurn = data.isWhiteTurn;
+        moving = true;
+        updateStatusBanner();
+      } else if (data.action === 'CARROM_SYNC_STATE') {
+        if (Array.isArray(data.coins)) {
+          coins = data.coins.map(c => ({
+            x: c.x,
+            y: c.y,
+            radius: 12,
+            vx: 0,
+            vy: 0,
+            type: c.type,
+            color: c.color
+          }));
+        }
+        if (data.pScore !== undefined) {
+          pScore = data.pScore;
+          document.getElementById('playerScoreText').textContent = `${pScore} Pkts`;
+        }
+        if (data.aScore !== undefined) {
+          aScore = data.aScore;
+          document.getElementById('aiScoreText').textContent = `${aScore} Pkts`;
+        }
+        if (data.nextTurn !== undefined) {
+          isWhiteTurn = data.nextTurn;
+          resetStrikerForTurn();
+          updateStatusBanner();
+        }
+        render();
+      } else if (data.action === 'CARROM_RESET') {
+        resetCarromLocal();
+      }
+    }
+
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'PARTY_GAME_UPDATE') {
+        const payload = event.data.actionData || event.data;
+        const sId = event.data.senderId || payload.senderId;
+        if (sId && myUserId && String(sId) === String(myUserId)) {
+          return;
+        }
+        handleRemotePartyAction(payload);
+      }
+    });
+
+    function requestResetCarrom() {
+      resetCarromLocal();
+      if (isPartyMode) {
+        sendPartyAction({ action: 'CARROM_RESET' });
+      }
+    }
+
+    function resetCarromLocal() {
+      clearTimeout(aiTimer);
+      pScore = 0;
+      aScore = 0;
+      isWhiteTurn = true;
+      moving = false;
+      gameOver = false;
+      document.getElementById('gameOverModal').classList.add('hidden');
+      document.getElementById('playerScoreText').textContent = '0 Pkts';
+      document.getElementById('aiScoreText').textContent = '0 Pkts';
+      setupCoins();
+      resetStrikerForTurn();
+      updateStatusBanner();
+      render();
+    }
+
+    // -------------------------------------------------------------
+    // GAME OVER & VICTORY
+    // -------------------------------------------------------------
     function checkGameOver() {
       if (gameOver) return true;
 
       const hasWhite = coins.some(c => c.type === 'white');
       const hasBlack = coins.some(c => c.type === 'black');
 
-      // Game is finished if player cleared all white coins, or AI cleared all black, or no coins left
       if (!hasWhite || !hasBlack || coins.length === 0) {
         gameOver = true;
         clearTimeout(aiTimer);
@@ -237,42 +556,47 @@
         const finalPScore = document.getElementById('finalPScore');
         const finalAScore = document.getElementById('finalAScore');
 
-        finalPScore.textContent = `${pScore} Pkts`;
-        finalAScore.textContent = `${aScore} Pkts`;
+        if (finalPScore) finalPScore.textContent = `${pScore} Pkts`;
+        if (finalAScore) finalAScore.textContent = `${aScore} Pkts`;
 
+        let winnerPlayer = null;
         if (pScore > aScore || (!hasWhite && hasBlack)) {
-          winnerText.textContent = "YOU WON!";
+          winnerPlayer = p1;
+          winnerText.textContent = `${p1.username.toUpperCase()} WON!`;
           winnerText.className = "text-xl font-black orbitron text-amber-400";
-          winnerSubtext.textContent = "Outstanding game! You cleared the board!";
+          winnerSubtext.textContent = `${p1.username} pocketed all white coins!`;
           winnerIcon.innerHTML = '<i class="fa-solid fa-trophy text-amber-400 text-3xl animate-bounce"></i>';
-          document.getElementById('statusBanner').textContent = "MATCH FINISHED — YOU WON!";
+          document.getElementById('statusBanner').textContent = `MATCH OVER — ${p1.username.toUpperCase()} WON!`;
         } else if (aScore > pScore || (!hasBlack && hasWhite)) {
-          winnerText.textContent = "AI BOT WON!";
+          winnerPlayer = p2;
+          winnerText.textContent = `${p2.username.toUpperCase()} WON!`;
           winnerText.className = "text-xl font-black orbitron text-rose-400";
-          winnerSubtext.textContent = "AI Bot cleared all black coins first.";
-          winnerIcon.innerHTML = '<i class="fa-solid fa-robot text-rose-400 text-3xl"></i>';
-          document.getElementById('statusBanner').textContent = "MATCH FINISHED — AI WON!";
+          winnerSubtext.textContent = `${p2.username} cleared all black coins!`;
+          winnerIcon.innerHTML = '<i class="fa-solid fa-trophy text-rose-400 text-3xl animate-bounce"></i>';
+          document.getElementById('statusBanner').textContent = `MATCH OVER — ${p2.username.toUpperCase()} WON!`;
         } else {
           winnerText.textContent = "MATCH TIED!";
           winnerText.className = "text-xl font-black orbitron text-cyan-400";
-          winnerSubtext.textContent = "Equal pocketed points!";
+          winnerSubtext.textContent = "Equal points pocketed!";
           winnerIcon.innerHTML = '<i class="fa-solid fa-handshake text-cyan-400 text-3xl"></i>';
           document.getElementById('statusBanner').textContent = "MATCH FINISHED — TIED!";
         }
 
-        modal.classList.remove('hidden');
+        if (modal) modal.classList.remove('hidden');
         return true;
       }
       return false;
     }
 
+    // -------------------------------------------------------------
+    // MAIN LOOP & PHYSICS
+    // -------------------------------------------------------------
     function update() {
       if (gameOver) {
         render();
         return;
       }
 
-      // Physics Update
       const allObjects = [striker, ...coins];
 
       // Update positions
@@ -287,14 +611,14 @@
           obj.vy = 0;
         }
 
-        // Border bounce
+        // Wooden Border Bounces
         if (obj.x - obj.radius < 25) { obj.x = 25 + obj.radius; obj.vx *= -0.85; }
         if (obj.x + obj.radius > SIZE - 25) { obj.x = SIZE - 25 - obj.radius; obj.vx *= -0.85; }
         if (obj.y - obj.radius < 25) { obj.y = 25 + obj.radius; obj.vy *= -0.85; }
         if (obj.y + obj.radius > SIZE - 25) { obj.y = SIZE - 25 - obj.radius; obj.vy *= -0.85; }
       });
 
-      // Collisions between balls
+      // Coin & Striker Collisions
       for (let i = 0; i < allObjects.length; i++) {
         for (let j = i + 1; j < allObjects.length; j++) {
           const a = allObjects[i];
@@ -318,35 +642,58 @@
       for (let i = coins.length - 1; i >= 0; i--) {
         const c = coins[i];
         if (pockets.some(p => Math.hypot(c.x - p.x, c.y - p.y) < POCKET_RADIUS)) {
-          if (c.type === 'white') pScore++;
-          else if (c.type === 'black') aScore++;
-          else { pScore += 3; }
+          if (c.type === 'white') {
+            pScore++;
+            pocketedWhiteThisTurn++;
+          } else if (c.type === 'black') {
+            aScore++;
+            pocketedBlackThisTurn++;
+          } else {
+            // Queen
+            if (isWhiteTurn) { pScore += 3; pocketedWhiteThisTurn++; }
+            else { aScore += 3; pocketedBlackThisTurn++; }
+          }
           coins.splice(i, 1);
           document.getElementById('playerScoreText').textContent = `${pScore} Pkts`;
           document.getElementById('aiScoreText').textContent = `${aScore} Pkts`;
         }
       }
 
-      // Check if motion has ceased
+      // Check if all motion has ceased
       if (moving && allObjects.every(o => Math.hypot(o.vx, o.vy) === 0)) {
         moving = false;
 
-        // Immediately check if someone won!
         if (checkGameOver()) {
           render();
           return;
         }
 
-        if (isPlayerTurn) {
-          isPlayerTurn = false;
-          resetStriker(true);
-          document.getElementById('statusBanner').textContent = "AI IS AIMING...";
+        // Determine if player keeps turn (pocketed own coin)
+        const pocketedOwn = isWhiteTurn ? (pocketedWhiteThisTurn > 0) : (pocketedBlackThisTurn > 0);
+        let nextTurnIsWhite = isWhiteTurn;
+        if (!pocketedOwn) {
+          nextTurnIsWhite = !isWhiteTurn;
+        }
+        isWhiteTurn = nextTurnIsWhite;
+
+        resetStrikerForTurn();
+        updateStatusBanner();
+
+        // Host authoritatively syncs final coin positions & scores
+        if (isPartyMode && isHost) {
+          sendPartyAction({
+            action: 'CARROM_SYNC_STATE',
+            coins: coins.map(c => ({ x: c.x, y: c.y, type: c.type, color: c.color })),
+            pScore: pScore,
+            aScore: aScore,
+            nextTurn: isWhiteTurn
+          });
+        }
+
+        // Run AI turn ONLY in AI mode when it's Black's turn (AI will NEVER run in Party Mode!)
+        if (!isPartyMode && !isPassPlay && !isWhiteTurn) {
           clearTimeout(aiTimer);
           aiTimer = setTimeout(aiTurn, 1000);
-        } else {
-          isPlayerTurn = true;
-          resetStriker(false);
-          document.getElementById('statusBanner').textContent = "YOUR TURN — DRAG TO SHOOT";
         }
       }
 
@@ -354,12 +701,12 @@
       requestAnimationFrame(update);
     }
 
+    // -------------------------------------------------------------
+    // AI BOT TURN (ONLY CALLED IN SINGLE-PLAYER MODE)
+    // -------------------------------------------------------------
     function aiTurn() {
-      if (gameOver) return;
+      if (gameOver || isPartyMode || isPassPlay || isWhiteTurn) return;
 
-      if (checkGameOver()) return;
-
-      // Find nearest black coin, or any coin remaining
       const target = coins.find(c => c.type === 'black') || coins[0];
       if (!target) {
         checkGameOver();
@@ -367,12 +714,16 @@
       }
 
       const angle = Math.atan2(target.y - striker.y, target.x - striker.x);
-      const power = 14 + Math.random() * 3;
+      const power = 13 + Math.random() * 3.5;
       striker.vx = Math.cos(angle) * power;
       striker.vy = Math.sin(angle) * power;
       moving = true;
+      updateStatusBanner();
     }
 
+    // -------------------------------------------------------------
+    // BOARD RENDERING
+    // -------------------------------------------------------------
     function render() {
       ctx.clearRect(0, 0, SIZE, SIZE);
 
@@ -380,17 +731,41 @@
       ctx.fillStyle = '#FED7AA';
       ctx.fillRect(20, 20, SIZE - 40, SIZE - 40);
 
-      // Baselines
+      // Inner Baselines
       ctx.strokeStyle = '#9A3412';
       ctx.lineWidth = 2;
       ctx.strokeRect(60, 60, SIZE - 120, SIZE - 120);
 
-      // Center Circle
+      // White Bottom Baseline
+      ctx.strokeStyle = isWhiteTurn ? '#DC2626' : '#B45309';
+      ctx.lineWidth = isWhiteTurn ? 3 : 1.5;
+      ctx.beginPath();
+      ctx.moveTo(80, BASE_Y_WHITE);
+      ctx.lineTo(SIZE - 80, BASE_Y_WHITE);
+      ctx.stroke();
+
+      // Black Top Baseline
+      ctx.strokeStyle = !isWhiteTurn ? '#DC2626' : '#B45309';
+      ctx.lineWidth = !isWhiteTurn ? 3 : 1.5;
+      ctx.beginPath();
+      ctx.moveTo(80, BASE_Y_BLACK);
+      ctx.lineTo(SIZE - 80, BASE_Y_BLACK);
+      ctx.stroke();
+
+      // Center Circle & Concentric Patterns
+      ctx.strokeStyle = '#9A3412';
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.arc(SIZE / 2, SIZE / 2, 45, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Pockets
+      ctx.beginPath();
+      ctx.arc(SIZE / 2, SIZE / 2, 16, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(154, 52, 18, 0.2)';
+      ctx.fill();
+      ctx.stroke();
+
+      // Corner Pockets
       pockets.forEach(p => {
         ctx.beginPath();
         ctx.arc(p.x, p.y, POCKET_RADIUS, 0, Math.PI * 2);
@@ -407,12 +782,22 @@
         ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
         ctx.fillStyle = c.color;
         ctx.fill();
-        ctx.strokeStyle = c.type === 'white' ? '#CBD5E1' : '#F59E0B';
+        ctx.strokeStyle = (c.type === 'white') ? '#CBD5E1' : ((c.type === 'queen') ? '#FECDD3' : '#F59E0B');
         ctx.lineWidth = 2;
         ctx.stroke();
       });
 
-      // Draw Striker
+      // Draw Striker with Turn Glow
+      ctx.save();
+      if (!moving && isMyTurnNow()) {
+        const pulse = (Math.sin(Date.now() / 150) + 1) * 3;
+        ctx.beginPath();
+        ctx.arc(striker.x, striker.y, striker.radius + pulse, 0, Math.PI * 2);
+        ctx.strokeStyle = '#00F0FF';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+      }
+
       ctx.beginPath();
       ctx.arc(striker.x, striker.y, striker.radius, 0, Math.PI * 2);
       ctx.fillStyle = striker.color;
@@ -420,36 +805,40 @@
       ctx.strokeStyle = '#FFFFFF';
       ctx.lineWidth = 3;
       ctx.stroke();
+      ctx.restore();
 
-      // Draw Aim Line
+      // Draw Aiming Guide Line
       if (isAiming && aimStart && aimCurrent) {
+        const dx = aimStart.x - aimCurrent.x;
+        const dy = aimStart.y - aimCurrent.y;
+        const dist = Math.hypot(dx, dy);
+
+        // Forward trajectory line
+        ctx.save();
         ctx.beginPath();
+        ctx.setLineDash([6, 6]);
         ctx.moveTo(striker.x, striker.y);
-        ctx.lineTo(striker.x + (aimStart.x - aimCurrent.x) * 1.5, striker.y + (aimStart.y - aimCurrent.y) * 1.5);
+        ctx.lineTo(striker.x + dx * 2, striker.y + dy * 2);
         ctx.strokeStyle = '#00F0FF';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2.5;
         ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Pullback vector
+        ctx.beginPath();
+        ctx.moveTo(aimStart.x, aimStart.y);
+        ctx.lineTo(aimCurrent.x, aimCurrent.y);
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.7)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
       }
     }
 
-    function resetCarrom() {
-      clearTimeout(aiTimer);
-      pScore = 0;
-      aScore = 0;
-      isPlayerTurn = true;
-      moving = false;
-      gameOver = false;
-      document.getElementById('gameOverModal').classList.add('hidden');
-      document.getElementById('playerScoreText').textContent = '0 Pkts';
-      document.getElementById('aiScoreText').textContent = '0 Pkts';
-      document.getElementById('statusBanner').textContent = 'DRAG TO AIM & RELEASE';
-      setupCoins();
-      resetStriker(false);
-      requestAnimationFrame(update);
-    }
-
+    // Initialize
     setupCoins();
-    resetStriker(false);
+    resetStrikerForTurn();
+    updateStatusBanner();
     update();
   </script>
 </body>

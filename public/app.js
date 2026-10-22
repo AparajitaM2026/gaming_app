@@ -4098,13 +4098,24 @@ window.addEventListener('DOMContentLoaded', () => {
 // -------------------------------------------------------------
 window.addEventListener('message', (event) => {
   if (!event.data) return;
-  if (event.data.type === 'PARTY_ACTION' || (event.data.action && event.data.action.startsWith('LUDO_')) || event.data.action === 'BOARD_ACTION') {
+  const isBoardAction = event.data.type === 'PARTY_ACTION' ||
+    (event.data.action && (
+      event.data.action.startsWith('LUDO_') ||
+      event.data.action.startsWith('CARROM_') ||
+      event.data.action.startsWith('CHESS_') ||
+      event.data.action.startsWith('CHECKERS_') ||
+      event.data.action.startsWith('CONNECT4_') ||
+      event.data.action.startsWith('TICTACTOE_') ||
+      event.data.action === 'BOARD_ACTION'
+    ));
+
+  if (isBoardAction) {
     ensurePartyWebSocket(() => {
       if (partyWs && partyWs.readyState === WebSocket.OPEN) {
         partyWs.send(JSON.stringify({
           type: 'PARTY_ACTION',
           roomCode: event.data.roomCode || window.activePartySession?.roomCode || (window.currentPartyRoom && window.currentPartyRoom.code),
-          gameSlug: event.data.gameSlug || 'ludo-hero-ai',
+          gameSlug: event.data.gameSlug || window.activePartySession?.slug || 'carrom-clash-ai',
           ...event.data
         }));
       }
