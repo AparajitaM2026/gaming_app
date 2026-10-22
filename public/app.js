@@ -759,7 +759,14 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
 
   // In-House Polished AI & Board Games (with Pass & Play or Live Party support)
   let gameModeParam = '';
-  if (window.activePartySession && window.activePartySession.slug === slug) {
+  if (window.activePartySession && (
+    window.activePartySession.slug === slug ||
+    (slug.startsWith('ludo') && window.activePartySession.slug?.startsWith('ludo')) ||
+    (slug.startsWith('carrom') && window.activePartySession.slug?.startsWith('carrom')) ||
+    (slug.startsWith('chess') && window.activePartySession.slug?.startsWith('chess')) ||
+    (slug.startsWith('checkers') && window.activePartySession.slug?.startsWith('checkers')) ||
+    (slug.startsWith('connect4') && window.activePartySession.slug?.startsWith('connect4'))
+  )) {
     const sess = window.activePartySession;
     const players = sess.players || [];
     const myUser = sess.myUser || getPartyUser();
@@ -770,7 +777,8 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
       (p.username && myUser.username && p.username.toLowerCase() === myUser.username.toLowerCase())
     );
     if (myPlayerIndex === -1) {
-      if (partyCurrentRoom && (String(partyCurrentRoom.hostId) === String(myUser?.id) || partyCurrentRoom.players?.[0]?.id === myUser?.id)) {
+      const hostId = partyCurrentRoom?.hostId || sess.hostId || players[0]?.id;
+      if (hostId && myUser?.id && String(hostId) === String(myUser.id)) {
         myPlayerIndex = 0;
       } else {
         myPlayerIndex = 1;

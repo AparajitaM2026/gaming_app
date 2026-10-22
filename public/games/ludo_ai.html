@@ -153,6 +153,8 @@
     const myPlayerIndexParam = urlParams.get('myPlayerIndex');
     const myPlayerIndex = (myPlayerIndexParam !== null && myPlayerIndexParam !== '') ? parseInt(myPlayerIndexParam, 10) : -1;
     const isHostParam = (urlParams.get('isHost') === 'true');
+    let turnTimer = null;
+    let remoteRollTimer = null;
 
     // Color configs
     const PLAYER_CONFIG = {
@@ -701,7 +703,7 @@
         return;
       }
 
-      // If user rolled and taps dice again to auto-pick movable token:
+      // If user rolled and taps dice again to auto-pick movable token or fast-pass:
       if (hasRolled && !isRolling) {
         const color = activePlayer.color;
         const movable = tokens[color]
@@ -710,6 +712,10 @@
         if (movable.length > 0) {
           const chosen = movable.find(m => m.t.step === -1) || movable[0];
           executeMoveToken(color, chosen.idx, diceValue, true);
+        } else {
+          // Instant pass on tap if no moves possible!
+          if (turnTimer) clearTimeout(turnTimer);
+          advanceTurn(true);
         }
         return;
       }
@@ -731,26 +737,31 @@
         const diceLabel = document.getElementById('diceLabel');
         if (diceLabel) diceLabel.textContent = `Rolled: ${diceValue}`;
 
-        // Broadcast roll to peers over WebSocket
-        if (isPartyMode) {
-          sendPartyAction({
-            action: 'LUDO_ROLL',
-            roll: diceValue,
-            playerIndex: currentTurnIndex
-          });
-        }
-
         const color = activePlayer.color;
         const movable = tokens[color]
           .map((t, idx) => ({ t, idx }))
           .filter(item => canPawnMove(item.t, diceValue));
+        const hasNoMoves = (movable.length === 0);
+        const nextTurn = hasNoMoves ? ((currentTurnIndex + 1) % activePlayers.length) : currentTurnIndex;
 
-        if (movable.length === 0) {
+        // Broadcast roll to peers over WebSocket with turnkey noMoves & nextTurn
+        if (isPartyMode) {
+          sendPartyAction({
+            action: 'LUDO_ROLL',
+            roll: diceValue,
+            playerIndex: currentTurnIndex,
+            noMoves: hasNoMoves,
+            nextTurnIndex: nextTurn
+          });
+        }
+
+        if (hasNoMoves) {
           const actionHint = document.getElementById('actionHint');
           if (actionHint) actionHint.textContent = `No moves for ${diceValue}.`;
-          setTimeout(() => {
+          if (turnTimer) clearTimeout(turnTimer);
+          turnTimer = setTimeout(() => {
             advanceTurn(true);
-          }, 1000);
+          }, 900);
         } else if (movable.length === 1) {
           const actionHint = document.getElementById('actionHint');
           if (actionHint) actionHint.textContent = `Moving Token ${movable[0].t.id}...`;
@@ -906,6 +917,8 @@
     }
 
     function advanceTurn(syncToParty = false) {
+      if (turnTimer) clearTimeout(turnTimer);
+      if (remoteRollTimer) clearTimeout(remoteRollTimer);
       currentTurnIndex = (currentTurnIndex + 1) % activePlayers.length;
       hasRolled = false;
       diceValue = null;
@@ -994,44 +1007,57 @@
       if (!data) return;
 
       if (data.action === 'LUDO_ROLL') {
+        if (turnTimer) clearTimeout(turnTimer);
+        if (remoteRollTimer) clearTimeout(remoteRollTimer);
+
         if (data.playerIndex !== undefined) {
           currentTurnIndex = data.playerIndex;
         }
         const cube = document.getElementById('diceCube');
-        cube.classList.add('rolling');
+        if (cube) cube.classList.add('rolling');
         playSfx('roll');
         isRolling = true;
 
-        setTimeout(() => {
+        remoteRollTimer = setTimeout(() => {
           diceValue = data.roll;
-          cube.classList.remove('rolling');
+          if (cube) cube.classList.remove('rolling');
           renderDiceFace(diceValue);
           hasRolled = true;
           isRolling = false;
           const p = activePlayers[currentTurnIndex];
           const name = p ? p.username : 'Opponent';
-          document.getElementById('diceLabel').textContent = `${name} Rolled: ${diceValue}`;
+          const diceLabel = document.getElementById('diceLabel');
+          if (diceLabel) diceLabel.textContent = `${name} Rolled: ${diceValue}`;
 
           const color = p ? p.color : null;
-          if (color) {
-            const movable = tokens[color]
-              .map((t, idx) => ({ t, idx }))
-              .filter(item => canPawnMove(item.t, diceValue));
-            if (movable.length === 0) {
-              document.getElementById('actionHint').textContent = `${name} has no moves for ${diceValue}.`;
-              // Safety net: in case LUDO_TURN_ADVANCE packet is dropped or delayed, auto-advance after 1.2s
-              setTimeout(() => {
-                if (currentTurnIndex === data.playerIndex && hasRolled) {
-                  advanceTurn(false);
-                }
-              }, 1200);
-            }
+          const movable = color ? tokens[color].filter(item => canPawnMove(item, diceValue)) : [];
+          const noMoves = (data.noMoves !== undefined) ? data.noMoves : (movable.length === 0);
+
+          if (noMoves) {
+            const hint = document.getElementById('actionHint');
+            if (hint) hint.textContent = `${name} has no moves for ${diceValue}.`;
+
+            // Auto-advance remote player's view after 900ms
+            const nextIdx = (data.nextTurnIndex !== undefined) ? data.nextTurnIndex : ((currentTurnIndex + 1) % activePlayers.length);
+            turnTimer = setTimeout(() => {
+              currentTurnIndex = nextIdx;
+              hasRolled = false;
+              diceValue = null;
+              isRolling = false;
+              updateTurnDisplay(false);
+              renderBoard();
+              maybeRunBotTurn();
+            }, 900);
           }
           renderBoard();
-        }, 400);
+        }, 350);
       } else if (data.action === 'LUDO_MOVE') {
+        if (turnTimer) clearTimeout(turnTimer);
+        if (remoteRollTimer) clearTimeout(remoteRollTimer);
         executeMoveToken(data.playerColor, data.tokenIndex, data.roll, false, data.nextTurnIndex, data.extraTurn);
       } else if (data.action === 'LUDO_TURN_ADVANCE') {
+        if (turnTimer) clearTimeout(turnTimer);
+        if (remoteRollTimer) clearTimeout(remoteRollTimer);
         if (data.nextTurnIndex !== undefined) {
           currentTurnIndex = data.nextTurnIndex;
         } else {
