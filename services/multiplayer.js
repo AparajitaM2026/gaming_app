@@ -411,8 +411,10 @@ function setupMultiplayer(wss) {
           }
 
           case 'PARTY_START': {
-            if (!currentPartyCode) return;
-            const room = partyRooms.get(currentPartyCode);
+            const pCode = currentPartyCode || msg.roomCode || msg.room;
+            if (!pCode) return;
+            currentPartyCode = pCode;
+            const room = partyRooms.get(pCode);
             if (!room) return;
 
             if (room.hostId !== currentUser.id) {
@@ -426,6 +428,7 @@ function setupMultiplayer(wss) {
             room.status = 'PLAYING';
             room.currentTurnIndex = 0;
             room.startedAt = Date.now();
+            console.log(`[PARTY_START] Room ${room.code} is PLAYING with ${room.players.length} players.`);
 
             // Initialize game specific state
             if (room.gameSlug === 'tictactoe-neon') {
@@ -478,8 +481,10 @@ function setupMultiplayer(wss) {
           }
 
           case 'PARTY_ACTION': {
-            if (!currentPartyCode) return;
-            const room = partyRooms.get(currentPartyCode);
+            const pCode = currentPartyCode || msg.roomCode || msg.room;
+            if (!pCode) return;
+            currentPartyCode = pCode;
+            const room = partyRooms.get(pCode);
             if (!room || room.status !== 'PLAYING') return;
 
             // Realtime Ludo Hero & Board Games Action Synchronization
@@ -490,7 +495,7 @@ function setupMultiplayer(wss) {
                 gameSlug: room.gameSlug,
                 senderId: currentUser.id,
                 actionData: msg
-              });
+              }, ws);
               break;
             }
 

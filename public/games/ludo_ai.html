@@ -105,15 +105,15 @@
       <span class="text-[9px] sm:text-[10px] text-gray-400" id="actionSubHint">Roll 6 to open token</span>
     </div>
 
-    <!-- The 3D Dice -->
-    <div class="flex flex-col items-center">
-      <div id="diceCube" onclick="onDiceClick()" class="dice-cube select-none active-turn">
+    <!-- The 3D Dice with big clickable hit area -->
+    <div id="diceTouchWrapper" onclick="onDiceClick()" class="flex flex-col items-center cursor-pointer p-1 active:scale-95 transition-transform select-none">
+      <div id="diceCube" class="dice-cube select-none active-turn">
         <!-- Pips rendered dynamically -->
-        <div id="diceGrid" class="grid grid-cols-3 gap-1 p-1 w-full h-full items-center justify-items-center">
+        <div id="diceGrid" class="grid grid-cols-3 gap-1 p-1 w-full h-full items-center justify-items-center pointer-events-none">
           <div class="col-start-2 dice-pip red-pip"></div>
         </div>
       </div>
-      <span class="text-[9.5px] font-bold text-gray-300 mt-0.5 uppercase" id="diceLabel">Roll Dice</span>
+      <span class="text-[10px] sm:text-[11px] font-black text-cyan-300 mt-1 uppercase tracking-wider bg-cyan-950/90 px-2.5 py-0.5 rounded-full border border-cyan-400/50 shadow-md shadow-cyan-500/20" id="diceLabel">TAP TO ROLL</span>
     </div>
 
     <div class="flex flex-col text-right max-w-[130px]">
@@ -150,6 +150,9 @@
     const isPassPlay = (gameMode === 'passplay');
     const myUserId = String(urlParams.get('myId') || '');
     const myUsername = String(urlParams.get('myUsername') || '');
+    const myPlayerIndexParam = urlParams.get('myPlayerIndex');
+    const myPlayerIndex = (myPlayerIndexParam !== null && myPlayerIndexParam !== '') ? parseInt(myPlayerIndexParam, 10) : -1;
+    const isHostParam = (urlParams.get('isHost') === 'true');
 
     // Color configs
     const PLAYER_CONFIG = {
@@ -177,11 +180,16 @@
       if (Array.isArray(passedPlayers) && passedPlayers.length > 0) {
         activePlayers = passedPlayers.map((p, idx) => {
           const colorKey = COLOR_KEYS[idx % 4];
-          const isThisPlayerMe = (
-            (myUserId && String(p.id) === String(myUserId)) ||
-            (myUsername && p.username && p.username.toLowerCase() === myUsername.toLowerCase()) ||
-            (!myUserId && !myUsername && idx === 0)
-          );
+          let isThisPlayerMe = false;
+          if (myPlayerIndex !== -1 && !isNaN(myPlayerIndex)) {
+            isThisPlayerMe = (idx === myPlayerIndex);
+          } else {
+            isThisPlayerMe = (
+              (myUserId && String(p.id) === String(myUserId)) ||
+              (myUsername && p.username && p.username.toLowerCase() === myUsername.toLowerCase()) ||
+              (isHostParam ? (idx === 0) : (idx === 1))
+            );
+          }
           return {
             id: p.id,
             username: p.username || `Player_${idx + 1}`,
@@ -191,11 +199,21 @@
             isMe: isThisPlayerMe
           };
         });
+
+        // Guaranteed fallback: ensure at least one player has isMe true
+        if (!activePlayers.some(p => p.isMe)) {
+          const fallbackIdx = isHostParam ? 0 : 1;
+          if (activePlayers[fallbackIdx]) {
+            activePlayers[fallbackIdx].isMe = true;
+          } else if (activePlayers[0]) {
+            activePlayers[0].isMe = true;
+          }
+        }
       } else {
         // Fallback: 2-player default
         activePlayers = [
-          { id: 'p1', username: 'Host (You)', color: 'RED', isBot: false, isMe: true },
-          { id: 'p2', username: 'Friend', color: 'GREEN', isBot: false, isMe: false }
+          { id: 'p1', username: 'Host (You)', color: 'RED', isBot: false, isMe: isHostParam },
+          { id: 'p2', username: 'Friend', color: 'GREEN', isBot: false, isMe: !isHostParam }
         ];
       }
     } else if (isPassPlay) {
@@ -210,6 +228,8 @@
         { id: 'bot', username: 'AI Bot', color: 'GREEN', isBot: true, isMe: false }
       ];
     }
+
+    window.activePlayers = activePlayers;
 
     // Determine if local player is the host (player 0)
     const isHost = activePlayers[0] && activePlayers[0].isMe;
@@ -643,6 +663,7 @@
     // TURN CONTROLS & DICE ROLLING
     // -------------------------------------------------------------
     function updateTurnDisplay(isExtraTurn = false) {
+      window.currentTurnIndex = currentTurnIndex;
       updateStatusBar();
       const activePlayer = activePlayers[currentTurnIndex];
       if (!activePlayer) return;
@@ -663,26 +684,52 @@
     }
 
     function onDiceClick() {
-      if (isGameOver || hasRolled || isRolling) return;
+      if (isGameOver) return;
       const activePlayer = activePlayers[currentTurnIndex];
       if (!activePlayer) return;
 
-      // In party mode, only active player can roll!
-      if (isPartyMode && !activePlayer.isMe) return;
+      // In party mode: check if active player is me
+      if (isPartyMode && !activePlayer.isMe) {
+        // Clear visual hint so user understands why it didn't roll
+        const hint = document.getElementById('actionHint');
+        if (hint) {
+          hint.textContent = `⏳ Waiting for ${activePlayer.username}'s turn!`;
+          hint.classList.add('text-amber-400');
+          setTimeout(() => hint?.classList.remove('text-amber-400'), 1500);
+        }
+        playSfx('roll');
+        return;
+      }
+
+      // If user rolled and taps dice again to auto-pick movable token:
+      if (hasRolled && !isRolling) {
+        const color = activePlayer.color;
+        const movable = tokens[color]
+          .map((t, idx) => ({ t, idx }))
+          .filter(item => canPawnMove(item.t, diceValue));
+        if (movable.length > 0) {
+          const chosen = movable.find(m => m.t.step === -1) || movable[0];
+          executeMoveToken(color, chosen.idx, diceValue, true);
+        }
+        return;
+      }
+
+      if (hasRolled || isRolling) return;
 
       isRolling = true;
       const cube = document.getElementById('diceCube');
-      cube.classList.add('rolling');
+      if (cube) cube.classList.add('rolling');
       playSfx('roll');
 
       setTimeout(() => {
         diceValue = Math.floor(Math.random() * 6) + 1;
-        cube.classList.remove('rolling');
+        if (cube) cube.classList.remove('rolling');
         renderDiceFace(diceValue);
         hasRolled = true;
         isRolling = false;
 
-        document.getElementById('diceLabel').textContent = `Rolled: ${diceValue}`;
+        const diceLabel = document.getElementById('diceLabel');
+        if (diceLabel) diceLabel.textContent = `Rolled: ${diceValue}`;
 
         // Broadcast roll to peers over WebSocket
         if (isPartyMode) {
@@ -699,15 +746,18 @@
           .filter(item => canPawnMove(item.t, diceValue));
 
         if (movable.length === 0) {
-          document.getElementById('actionHint').textContent = `No moves for ${diceValue}.`;
+          const actionHint = document.getElementById('actionHint');
+          if (actionHint) actionHint.textContent = `No moves for ${diceValue}.`;
           setTimeout(() => {
             advanceTurn(true);
           }, 1000);
         } else if (movable.length === 1) {
-          document.getElementById('actionHint').textContent = `Moving Token ${movable[0].t.id}...`;
+          const actionHint = document.getElementById('actionHint');
+          if (actionHint) actionHint.textContent = `Moving Token ${movable[0].t.id}...`;
           setTimeout(() => executeMoveToken(color, movable[0].idx, diceValue, true), 350);
         } else {
-          document.getElementById('actionHint').textContent = "Select glowing token to move!";
+          const actionHint = document.getElementById('actionHint');
+          if (actionHint) actionHint.textContent = "Tap token on board or tap dice to move!";
         }
 
         renderBoard();
@@ -934,6 +984,7 @@
         window.parent.postMessage({
           type: 'PARTY_ACTION',
           gameSlug: 'ludo-hero-ai',
+          roomCode: urlParams.get('room') || window.parent?.activePartySession?.roomCode,
           ...actionPayload
         }, '*');
       }

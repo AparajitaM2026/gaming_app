@@ -761,7 +761,24 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
   let gameModeParam = '';
   if (window.activePartySession && window.activePartySession.slug === slug) {
     const sess = window.activePartySession;
-    gameModeParam = `?mode=party&room=${encodeURIComponent(sess.roomCode)}&myId=${encodeURIComponent(sess.myUser?.id || '')}&myUsername=${encodeURIComponent(sess.myUser?.username || '')}&players=${encodeURIComponent(JSON.stringify(sess.players || []))}`;
+    const players = sess.players || [];
+    const myUser = sess.myUser || getPartyUser();
+
+    // Reliably determine player index in the match
+    let myPlayerIndex = players.findIndex(p => 
+      (p.id && myUser.id && String(p.id) === String(myUser.id)) ||
+      (p.username && myUser.username && p.username.toLowerCase() === myUser.username.toLowerCase())
+    );
+    if (myPlayerIndex === -1) {
+      if (partyCurrentRoom && (String(partyCurrentRoom.hostId) === String(myUser?.id) || partyCurrentRoom.players?.[0]?.id === myUser?.id)) {
+        myPlayerIndex = 0;
+      } else {
+        myPlayerIndex = 1;
+      }
+    }
+    const isHost = (myPlayerIndex === 0);
+
+    gameModeParam = `?mode=party&room=${encodeURIComponent(sess.roomCode)}&myId=${encodeURIComponent(myUser.id || '')}&myUsername=${encodeURIComponent(myUser.username || '')}&myPlayerIndex=${myPlayerIndex}&isHost=${isHost}&players=${encodeURIComponent(JSON.stringify(players))}`;
   } else if (isPassAndPlay) {
     gameModeParam = '?mode=passplay';
   }
@@ -1351,6 +1368,15 @@ function closeGameTheater() {
   window.currentTheaterGameSlug = null;
   overlay.classList.add('hidden');
   closeHowToPlayModal();
+  if (window.activePartySession) {
+    if (partyWs && partyWs.readyState === WebSocket.OPEN) {
+      partyWs.send(JSON.stringify({ type: 'PARTY_LEAVE' }));
+    }
+    window.activePartySession = null;
+    partyCurrentRoom = null;
+    const partyBar = document.getElementById('theaterPartyLiveBar');
+    if (partyBar) partyBar.classList.add('hidden');
+  }
 }
 
 function reloadCurrentGame() {
@@ -3238,10 +3264,14 @@ function openPartyWithTab(tab) {
   switchPartyTab(tab);
 }
 
-function closePartyModal() {
+function closePartyModal(isGameStarting = false) {
   const modal = document.getElementById('partyModal');
   if (modal) modal.classList.add('hidden');
   cancelQuickMatch();
+  // CRITICAL: NEVER leave room if game is starting or match is playing!
+  if (isGameStarting || window.activePartySession || (partyCurrentRoom && partyCurrentRoom.status === 'PLAYING')) {
+    return;
+  }
   if (partyCurrentRoom && partyWs && partyWs.readyState === WebSocket.OPEN) {
     partyWs.send(JSON.stringify({ type: 'PARTY_LEAVE' }));
     partyCurrentRoom = null;
@@ -3475,16 +3505,19 @@ function sharePartyOnWhatsApp() {
 
 // Launch full game in theater with live party HUD
 function launchPartyTheaterGame(slug, roomCode, players) {
-  closePartyModal();
-  closeGameModeModal();
-
-  // Save active party session details so game iframe receives multiplayer mode
+  // Save active party session details BEFORE closing modal
   window.activePartySession = {
     slug,
     roomCode,
     players,
     myUser: partyMyUser || getPartyUser()
   };
+  if (partyCurrentRoom) {
+    partyCurrentRoom.status = 'PLAYING';
+  }
+
+  closePartyModal(true);
+  closeGameModeModal();
 
   // Launch game in theater directly
   launchGameBySlug(slug, true);
@@ -4035,6 +4068,7 @@ window.addEventListener('message', (event) => {
       if (partyWs && partyWs.readyState === WebSocket.OPEN) {
         partyWs.send(JSON.stringify({
           type: 'PARTY_ACTION',
+          roomCode: event.data.roomCode || window.activePartySession?.roomCode || (window.currentPartyRoom && window.currentPartyRoom.code),
           gameSlug: event.data.gameSlug || 'ludo-hero-ai',
           ...event.data
         }));
