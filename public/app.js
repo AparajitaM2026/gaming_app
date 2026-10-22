@@ -3168,7 +3168,7 @@ function handlePartySocketMessage(msg) {
       break;
 
     case 'PARTY_GAME_UPDATE':
-      const gameIframe = document.getElementById('gameIframe');
+      const gameIframe = document.getElementById('gameTheaterFrame') || document.getElementById('gameIframe');
       if (gameIframe && gameIframe.contentWindow) {
         try {
           gameIframe.contentWindow.postMessage({
@@ -4030,13 +4030,15 @@ window.addEventListener('DOMContentLoaded', () => {
 // -------------------------------------------------------------
 window.addEventListener('message', (event) => {
   if (!event.data) return;
-  if (event.data.type === 'PARTY_ACTION' || event.data.action === 'LUDO_ACTION' || event.data.action === 'LUDO_ROLL' || event.data.action === 'LUDO_MOVE') {
-    if (partyWs && partyWs.readyState === WebSocket.OPEN) {
-      partyWs.send(JSON.stringify({
-        type: 'PARTY_ACTION',
-        gameSlug: 'ludo-hero-ai',
-        ...event.data
-      }));
-    }
+  if (event.data.type === 'PARTY_ACTION' || (event.data.action && event.data.action.startsWith('LUDO_')) || event.data.action === 'BOARD_ACTION') {
+    ensurePartyWebSocket(() => {
+      if (partyWs && partyWs.readyState === WebSocket.OPEN) {
+        partyWs.send(JSON.stringify({
+          type: 'PARTY_ACTION',
+          gameSlug: event.data.gameSlug || 'ludo-hero-ai',
+          ...event.data
+        }));
+      }
+    });
   }
 });

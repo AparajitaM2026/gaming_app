@@ -998,7 +998,8 @@
     window.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'PARTY_GAME_UPDATE') {
         const payload = event.data.actionData || event.data;
-        if (event.data.senderId && myUserId && String(event.data.senderId) === String(myUserId)) {
+        const sId = event.data.senderId || payload.senderId;
+        if (sId && myUserId && String(sId) === String(myUserId)) {
           return;
         }
         handleRemotePartyAction(payload);
