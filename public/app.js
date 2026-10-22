@@ -7,8 +7,8 @@ let currentUser = null;
 let currentToken = localStorage.getItem('ott_jwt') || null;
 let allFreeGames = [];
 let activeCategory = 'all';
-let userCoinBalance = parseInt(localStorage.getItem('ott_coins')) || 100;
-let userBonusCoins = parseInt(localStorage.getItem('ott_bonus_coins')) || 50;
+let userCoinBalance = (currentToken && !localStorage.getItem('ott_is_guest')) ? (parseInt(localStorage.getItem('ott_coins')) || 0) : 0;
+let userBonusCoins = (currentToken && !localStorage.getItem('ott_is_guest')) ? (parseInt(localStorage.getItem('ott_bonus_coins')) || 0) : 0;
 let lastRewardTime = 0;
 
 // Global fast lookup map for all games
@@ -1524,11 +1524,23 @@ async function checkAuthSession() {
     const data = await res.json();
     if (data.success) {
       currentUser = data.user;
-      if (currentUser.coin_balance !== undefined && currentUser.coin_balance !== null) {
-        userCoinBalance = Number(currentUser.coin_balance);
-      }
-      if (currentUser.bonus_coins !== undefined && currentUser.bonus_coins !== null) {
-        userBonusCoins = Number(currentUser.bonus_coins);
+      const isGuest = Boolean(currentUser.is_guest || (currentUser.username && currentUser.username.startsWith('Gamer_')) || (currentUser.phone_or_email && currentUser.phone_or_email.startsWith('+9199999')));
+      if (isGuest) {
+        currentUser.isGuest = true;
+        currentUser.is_guest = true;
+        userCoinBalance = 0;
+        userBonusCoins = 0;
+        localStorage.setItem('ott_is_guest', 'true');
+        localStorage.removeItem('ott_coins');
+        localStorage.removeItem('ott_bonus_coins');
+      } else {
+        localStorage.removeItem('ott_is_guest');
+        if (currentUser.coin_balance !== undefined && currentUser.coin_balance !== null) {
+          userCoinBalance = Number(currentUser.coin_balance);
+        }
+        if (currentUser.bonus_coins !== undefined && currentUser.bonus_coins !== null) {
+          userBonusCoins = Number(currentUser.bonus_coins);
+        }
       }
       updateAuthUI(currentUser);
       updateCoinUI();
@@ -1730,14 +1742,17 @@ async function handleGuestLogin() {
     const data = await res.json();
     if (data.success) {
       localStorage.setItem('ott_jwt', data.token);
+      localStorage.setItem('ott_is_guest', 'true');
+      localStorage.removeItem('ott_coins');
+      localStorage.removeItem('ott_bonus_coins');
       currentToken = data.token;
-      currentUser = data.user;
-      if (currentUser.coin_balance !== undefined) userCoinBalance = Number(currentUser.coin_balance);
-      if (currentUser.bonus_coins !== undefined) userBonusCoins = Number(currentUser.bonus_coins);
+      currentUser = { ...data.user, isGuest: true, is_guest: true };
+      userCoinBalance = 0;
+      userBonusCoins = 0;
       updateAuthUI(currentUser);
       updateCoinUI();
       closeAuthModal();
-      showToast('⚡ Welcome Gamer! 100 Starter Coins credited.');
+      showToast('🎮 Welcome Guest Gamer! Create an account to earn and save coins.');
     }
   } catch (err) {
     alert('Guest sign-in failed.');
@@ -1820,9 +1835,13 @@ function closeProfileModal() {
 function handleLogout() {
   localStorage.removeItem('ott_jwt');
   localStorage.removeItem('ott_vip_subscribed');
+  localStorage.removeItem('ott_is_guest');
+  localStorage.removeItem('ott_coins');
+  localStorage.removeItem('ott_bonus_coins');
   currentToken = null;
   currentUser = null;
-  userCoinBalance = parseInt(localStorage.getItem('ott_coins')) || 100;
+  userCoinBalance = 0;
+  userBonusCoins = 0;
   updateAuthUI(null);
   updateCoinUI();
   if (typeof allFreeGames !== 'undefined') {
@@ -2190,15 +2209,21 @@ async function handleCouponRedeem() {
 }
 
 async function awardGamePlayCoins(slug, title) {
+  // Guests and unauthenticated players get NO coins!
+  if (!currentToken || !currentUser || currentUser.isGuest || currentUser.is_guest) return;
+
+  const game = window.gameMap ? window.gameMap[slug] : null;
+  const isPremium = Boolean(game?.is_premium || game?.access_level === 'VIP' || game?.access_level === 'premium');
+  // Free games award NO coins! Only premium games award 1 coin.
+  if (!isPremium) return;
+
   const now = Date.now();
   if (now - lastRewardTime < 12000) return; // 12 second throttle between play awards
   lastRewardTime = now;
 
   // Track daily quests
   recordQuestProgress('play_3_games');
-  if (window.gameMap[slug]?.is_premium) {
-    recordQuestProgress('play_vip');
-  }
+  recordQuestProgress('play_vip');
 
   try {
     const headers = { 'Content-Type': 'application/json' };
@@ -2207,26 +2232,21 @@ async function awardGamePlayCoins(slug, title) {
     const res = await fetch('/api/wallet/reward', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ reason: 'GAME_PLAY', amount: 10, gameSlug: slug, gameTitle: title })
+      body: JSON.stringify({ reason: 'GAME_PLAY', amount: 1, isPremium: true, gameSlug: slug, gameTitle: title })
     });
     const data = await res.json();
     if (data.success) {
       if (data.newBalance !== undefined) {
         userCoinBalance = Number(data.newBalance);
       } else {
-        userCoinBalance += 10;
+        userCoinBalance += 1;
         localStorage.setItem('ott_coins', userCoinBalance);
       }
       playArcadeSound('coin');
       updateCoinUI();
-      showToast(`🪙 +10 Coins Earned for playing ${title}!`);
+      showToast(`🪙 +1 Coin Earned for playing premium game ${title}!`);
     }
-  } catch(e) {
-    userCoinBalance += 10;
-    localStorage.setItem('ott_coins', userCoinBalance);
-    playArcadeSound('coin');
-    updateCoinUI();
-  }
+  } catch(e) {}
 }
 
 // Universal AI Game Win Listener Bridge
@@ -2236,6 +2256,9 @@ window.addEventListener('message', async (e) => {
     recordQuestProgress('beat_ai');
     playArcadeSound('win');
 
+    // Guests get NO coins!
+    if (!currentToken || !currentUser || currentUser.isGuest || currentUser.is_guest) return;
+
     try {
       const headers = { 'Content-Type': 'application/json' };
       if (currentToken) headers['Authorization'] = `Bearer ${currentToken}`;
@@ -2243,18 +2266,18 @@ window.addEventListener('message', async (e) => {
       const res = await fetch('/api/wallet/reward', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ reason: 'AI_WIN', amount: 50, gameTitle: gameName })
+        body: JSON.stringify({ reason: 'AI_WIN', amount: 2, gameTitle: gameName })
       });
       const data = await res.json();
       if (data.success) {
         if (data.newBalance !== undefined) {
           userCoinBalance = Number(data.newBalance);
         } else {
-          userCoinBalance += 50;
+          userCoinBalance += 2;
           localStorage.setItem('ott_coins', userCoinBalance);
         }
         updateCoinUI();
-        showToast(`🏆 VICTORY in ${gameName}! +50 Coins Awarded!`);
+        showToast(`🏆 VICTORY in ${gameName}! +2 Coins Awarded!`);
       }
     } catch(err) {}
   }
@@ -2347,14 +2370,14 @@ function copyStoreVoucherCode() {
 // -------------------------------------------------------------
 
 const SPIN_SLICES = [
-  { label: '50 Coins', shortText: '50 🪙', color: '#F59E0B', textColor: '#000000', type: 'COINS', amount: 50 },
-  { label: '10 Coins', shortText: '10 🪙', color: '#06B6D4', textColor: '#000000', type: 'COINS', amount: 10 },
-  { label: '1-Day VIP', shortText: '👑 1D VIP', color: '#8B5CF6', textColor: '#FFFFFF', type: 'VIP', amount: 1 },
-  { label: '20 Coins', shortText: '20 🪙', color: '#10B981', textColor: '#000000', type: 'COINS', amount: 20 },
-  { label: '100 Coins', shortText: '100 🪙', color: '#EAB308', textColor: '#000000', type: 'COINS', amount: 100 },
+  { label: '2 Coins', shortText: '2 🪙', color: '#06B6D4', textColor: '#000000', type: 'COINS', amount: 2 },
+  { label: '3 Coins', shortText: '3 🪙', color: '#10B981', textColor: '#000000', type: 'COINS', amount: 3 },
+  { label: '4 Coins', shortText: '4 🪙', color: '#8B5CF6', textColor: '#FFFFFF', type: 'COINS', amount: 4 },
+  { label: '5 Coins', shortText: '5 🪙', color: '#F59E0B', textColor: '#000000', type: 'COINS', amount: 5 },
+  { label: '2 Coins', shortText: '2 🪙', color: '#3B82F6', textColor: '#FFFFFF', type: 'COINS', amount: 2 },
+  { label: '8 Coins', shortText: '🌟 8 🪙', color: '#EC4899', textColor: '#FFFFFF', type: 'COINS', amount: 8 },
   { label: 'Better Luck', shortText: 'Try Again', color: '#334155', textColor: '#94A3B8', type: 'NONE', amount: 0 },
-  { label: '200 Coins', shortText: '200 🪙', color: '#6366F1', textColor: '#FFFFFF', type: 'COINS', amount: 200 },
-  { label: '500 Coins', shortText: '🌟 500 🪙', color: '#EC4899', textColor: '#FFFFFF', type: 'COINS', amount: 500 }
+  { label: '3 Coins', shortText: '3 🪙', color: '#EAB308', textColor: '#000000', type: 'COINS', amount: 3 }
 ];
 
 let spinWheelCurrentAngle = 0;
@@ -2403,7 +2426,7 @@ function updateSpinButtonState(serverData) {
     return;
   }
 
-  if (!currentToken) {
+  if (!currentToken || !currentUser || currentUser.isGuest || currentUser.is_guest) {
     btn.disabled = false;
     btn.className = 'w-full py-3 rounded-2xl bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500 hover:opacity-95 active:scale-98 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-purple-500/30 flex items-center justify-center gap-2 cursor-pointer transition-all';
     btnText.innerHTML = '<i class="fa-solid fa-user-lock"></i> <span>SIGN IN TO SPIN LUCKY WHEEL</span>';
@@ -2474,11 +2497,11 @@ function drawSpinWheel(currentAngle) {
 }
 
 async function spinLuckyWheel() {
-  if (!currentToken) {
+  if (!currentToken || !currentUser || currentUser.isGuest || currentUser.is_guest) {
     closeWalletModal();
     openAuthModal();
     switchAuthTab('login');
-    showToast('🔒 Please sign in or create an account to spin the Lucky Wheel!');
+    showToast('🔒 Please sign in or register to spin the Lucky Wheel! Guests cannot spin.');
     return;
   }
 
@@ -2500,9 +2523,9 @@ async function spinLuckyWheel() {
   const banner = document.getElementById('spinResultBanner');
   if (banner) banner.classList.add('hidden');
 
-  // Choose prize (weighted towards fun wins)
-  // Indices: 0: 50, 1: 10, 2: 1-Day VIP, 3: 20, 4: 100, 5: Better Luck, 6: 200, 7: 500
-  const weights = [25, 25, 10, 20, 10, 4, 4, 2];
+  // Choose prize (small coin values: 2, 3, 4, 5, 2, 8 (max 8), Better Luck, 3)
+  // Indices: 0: 2, 1: 3, 2: 4, 3: 5, 4: 2, 5: 8, 6: Better Luck, 7: 3
+  const weights = [30, 25, 15, 12, 20, 8, 15, 25];
   const totalWeight = weights.reduce((a, b) => a + b, 0);
   let rand = Math.random() * totalWeight;
   let targetIndex = 0;
@@ -3985,10 +4008,12 @@ function showPartyGameOver(winnerName, prizeCoins, players) {
     `).join('');
   }
 
-  // Update user coin balance in UI
-  userCoinBalance += prizeCoins;
-  localStorage.setItem('ott_coins', userCoinBalance);
-  updateCoinUI();
+  // Update user coin balance in UI (only registered non-guest users)
+  if (currentToken && currentUser && !currentUser.isGuest && !currentUser.is_guest && prizeCoins > 0) {
+    userCoinBalance += Math.min(Number(prizeCoins) || 0, 5);
+    localStorage.setItem('ott_coins', userCoinBalance);
+    updateCoinUI();
+  }
 }
 
 function backToPartyLobby() {

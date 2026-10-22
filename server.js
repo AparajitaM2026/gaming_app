@@ -28,6 +28,14 @@ function getUserFromReq(req) {
   return verifyToken(token);
 }
 
+function isGuestUser(user) {
+  if (!user) return true;
+  if (user.is_guest) return true;
+  if (user.phone_or_email && user.phone_or_email.startsWith('+9199999')) return true;
+  if (user.username && user.username.startsWith('Gamer_')) return true;
+  return false;
+}
+
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
@@ -66,19 +74,13 @@ app.post('/api/auth/guest', async (req, res) => {
        RETURNING id, username, phone_or_email, avatar_url, country_code, win_count, win_streak`,
       [username, dummyPhone, dummyPass, avatar]
     );
-    const user = userRes.rows[0];
+    const user = { ...userRes.rows[0], is_guest: true };
 
-    // Initialize Wallet with 100 Free Coins + 50 Bonus Coins
+    // Initialize Wallet with 0 Coins for Guests (Guests get NO coins)
     await db.query(
       `INSERT INTO wallets (user_id, coin_balance, bonus_coins)
-       VALUES ($1, 100, 50)
-       ON CONFLICT (user_id) DO NOTHING`,
-      [user.id]
-    );
-
-    await db.query(
-      `INSERT INTO transactions (user_id, amount, type, description)
-       VALUES ($1, 150, 'SIGNUP_BONUS', 'Welcome Starter Pack (100 Coins + 50 Bonus)')`,
+       VALUES ($1, 0, 0)
+       ON CONFLICT (user_id) DO UPDATE SET coin_balance = 0, bonus_coins = 0`,
       [user.id]
     );
 
@@ -88,8 +90,9 @@ app.post('/api/auth/guest', async (req, res) => {
       token,
       user: {
         ...user,
-        coin_balance: 100,
-        bonus_coins: 50
+        coin_balance: 0,
+        bonus_coins: 0,
+        is_guest: true
       }
     });
   } catch (err) {
@@ -228,14 +231,17 @@ const PROMO_COUPONS = {
 app.get('/api/wallet/info', async (req, res) => {
   try {
     const user = getUserFromReq(req);
-    if (!user) {
+    if (!user || isGuestUser(user)) {
       return res.json({
         success: true,
-        authenticated: false,
-        coin_balance: 100,
-        bonus_coins: 50,
-        canClaimDaily: true,
+        authenticated: !!user && !isGuestUser(user),
+        isGuest: !!user && isGuestUser(user),
+        coin_balance: 0,
+        bonus_coins: 0,
+        canClaimDaily: false,
         nextClaimHours: 0,
+        canSpinWheel: false,
+        nextSpinHours: 0,
         transactions: []
       });
     }
@@ -250,14 +256,16 @@ app.get('/api/wallet/info', async (req, res) => {
 
     if (walletRes.rows.length === 0) {
       // Auto-create wallet if missing
-      await db.query(`INSERT INTO wallets (user_id, coin_balance, bonus_coins) VALUES ($1, 100, 50) ON CONFLICT DO NOTHING`, [user.id]);
+      await db.query(`INSERT INTO wallets (user_id, coin_balance, bonus_coins) VALUES ($1, 0, 0) ON CONFLICT DO NOTHING`, [user.id]);
       return res.json({
         success: true,
         authenticated: true,
-        coin_balance: 100,
-        bonus_coins: 50,
+        coin_balance: 0,
+        bonus_coins: 0,
         canClaimDaily: true,
         nextClaimHours: 0,
+        canSpinWheel: true,
+        nextSpinHours: 0,
         transactions: []
       });
     }
@@ -321,11 +329,11 @@ app.post('/api/wallet/claim-daily', async (req, res) => {
     const user = getUserFromReq(req);
     const DAILY_BONUS = 50;
 
-    if (!user) {
+    if (!user || isGuestUser(user)) {
       return res.status(401).json({
         success: false,
         requireLogin: true,
-        message: '🔒 Please sign in or create an account to claim daily bonus coins!'
+        message: '🔒 Guests cannot claim daily coins. Please sign in or create an account!'
       });
     }
 
@@ -380,21 +388,44 @@ app.post('/api/wallet/claim-daily', async (req, res) => {
 app.post('/api/wallet/reward', async (req, res) => {
   try {
     const user = getUserFromReq(req);
-    const { reason, amount = 10, gameSlug = '', gameTitle = '' } = req.body;
-    const safeAmount = Math.min(Math.max(Number(amount) || 10, 5), 100);
-
-    const desc = reason === 'AI_WIN' 
-      ? `🏆 Victory against AI in ${gameTitle || gameSlug || 'Game'} (+${safeAmount} Coins)`
-      : `🎮 Played ${gameTitle || gameSlug || 'Game'} (+${safeAmount} Coins)`;
-
-    if (!user) {
+    if (!user || isGuestUser(user)) {
       return res.json({
-        success: true,
-        reward: safeAmount,
-        message: `+${safeAmount} Coins earned!`,
+        success: false,
+        reward: 0,
+        message: 'Guest profile cannot earn coins. Sign up or log in to earn coins!',
         isGuest: true
       });
     }
+
+    const { reason, isPremium, gameSlug = '', gameTitle = '' } = req.body;
+
+    // Game play reward rule: ONLY 1 coin, and strictly for PREMIUM games only
+    if (reason === 'GAME_PLAY') {
+      let isGamePremium = Boolean(isPremium);
+      if (!isGamePremium && gameSlug) {
+        const gameRes = await db.query(
+          `SELECT is_premium FROM games WHERE slug = $1`,
+          [gameSlug]
+        );
+        if (gameRes.rows.length > 0) {
+          isGamePremium = Boolean(gameRes.rows[0].is_premium);
+        }
+      }
+      if (!isGamePremium) {
+        return res.json({
+          success: false,
+          reward: 0,
+          message: 'Free games do not award coins. Play premium games to earn coins!'
+        });
+      }
+    }
+
+    // Strictly 1 coin for game play, 2 coins for AI win
+    const safeAmount = (reason === 'AI_WIN') ? 2 : 1;
+
+    const desc = reason === 'AI_WIN' 
+      ? `🏆 Victory against AI in ${gameTitle || gameSlug || 'Game'} (+${safeAmount} Coins)`
+      : `🎮 Played Premium Game ${gameTitle || gameSlug || 'Game'} (+${safeAmount} Coin)`;
 
     const updated = await db.query(
       `UPDATE wallets 
@@ -413,7 +444,7 @@ app.post('/api/wallet/reward', async (req, res) => {
     res.json({
       success: true,
       reward: safeAmount,
-      message: `+${safeAmount} Coins earned!`,
+      message: `+${safeAmount} Coin earned!`,
       newBalance: Number(updated.rows[0].coin_balance)
     });
   } catch (err) {
@@ -583,13 +614,14 @@ app.post('/api/wallet/spin-wheel', async (req, res) => {
   try {
     const user = getUserFromReq(req);
     const { prizeType, prizeAmount, prizeLabel } = req.body;
-    const amount = Number(prizeAmount) || 0;
+    // Cap spin wheel coins at maximum 8 coins: 2, 3, 4, 5, 6, 8 (or 0)
+    const amount = Math.min(Math.max(Number(prizeAmount) || 0, 0), 8);
 
-    if (!user) {
+    if (!user || isGuestUser(user)) {
       return res.status(401).json({
         success: false,
         requireLogin: true,
-        message: '🔒 Please sign in or create an account to spin the Lucky Wheel!'
+        message: '🔒 Guests cannot spin the wheel. Please sign in or create an account to spin the Lucky Wheel!'
       });
     }
 

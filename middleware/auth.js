@@ -3,12 +3,14 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'ott_super_secret_gaming_jwt_key_2026_@#!';
 
 function generateToken(user) {
+  const isGuest = Boolean(user.is_guest || (user.phone_or_email && user.phone_or_email.startsWith('+9199999')) || (user.username && user.username.startsWith('Gamer_')));
   return jwt.sign(
     { 
       id: user.id, 
       username: user.username,
       phone_or_email: user.phone_or_email,
-      country_code: user.country_code
+      country_code: user.country_code,
+      is_guest: isGuest
     }, 
     JWT_SECRET, 
     { expiresIn: '7d' }
