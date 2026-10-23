@@ -502,7 +502,7 @@ function handleSearch(query) {
 const PORTRAIT_GAMES = new Set([
   'cut-the-rope',
   'magic-sort', 'memory-master', 
-  'arrow-escape', 'sand-balls', 'fruit-slash', 'watermelon-merge', 
+  'arrow-escape', 'sand-balls', 'fruit-slash', 'katana-fruits', 'slice-master', 'watermelon-merge', 
   'block-stacker', 'cyberpunk-flappy', 'bubble-shooter',
   'cloud-amp-sheep', 'paint-splash',
   'cut-the-rope-experiments', 'cut-the-rope-magic',

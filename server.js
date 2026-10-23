@@ -1378,6 +1378,21 @@ app.get('/api/game-frame', async (req, res) => {
             log: function() {},
             getFeatureProperties: function() { return {}; },
             _: function(k) { return k || ''; },
+            __: function(k) {
+              const dict = {
+                'TEXT_PLAY': 'PLAY',
+                'TEXT_LOSE': 'YOU LOSE',
+                'TEXT_WIN': 'YOU WIN',
+                'TEXT_SCORE': 'SCORE',
+                'TEXT_RESTART': 'RESTART',
+                'TEXT_EXIT': 'EXIT',
+                'TEXT_GAMEOVER': 'GAME OVER',
+                'TEXT_COMBO': 'COMBO',
+                'TEXT_HELP': 'SLICE THE FRUIT! AVOID BOMBS!',
+                'TEXT_HELP_MOBILE': 'SWIPE TO SLICE FRUITS! AVOID BOMBS!'
+              };
+              return dict[k] || (typeof k === 'string' ? k.replace(/^TEXT_/i, '') : '') || '';
+            },
             __t: function(k) { return k || ''; },
             getCurrentLanguage: function() { return 'en'; },
             getLanguage: function() { return 'en'; },

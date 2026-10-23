@@ -138,10 +138,10 @@
   {
     "id": 23,
     "slug": "fruit-slash",
-    "title": "Fruit Slash",
+    "title": "Fruit Slash Ninja",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/fruit-slash.png",
-    "game_url": "https://gamezipper.com/slice-master/?utm_source=embed",
+    "game_url": "https://play.famobi.com/katana-fruits",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -1273,5 +1273,22 @@
     "plays_count": 16500,
     "is_featured": false,
     "is_premium": true
+  },
+  {
+    "id": 58,
+    "slug": "slice-master",
+    "title": "Slice Master 3D",
+    "category": "arcade",
+    "thumbnail": "https://gamezipper.com/og-images/fruit-slash.png",
+    "game_url": "https://gamezipper.com/slice-master/?utm_source=embed",
+    "is_multiplayer": false,
+    "min_players": 1,
+    "max_players": 1,
+    "entry_fee_coins": 0,
+    "orientation": "portrait",
+    "rating": "4.8",
+    "plays_count": 18450,
+    "is_featured": false,
+    "is_premium": false
   }
 ]
