@@ -1191,10 +1191,17 @@ app.get('/api/game-frame', async (req, res) => {
             }
           }, true);
 
+          // Pre-set howto flag so overlay tutorials don't block start screens
+          try {
+            localStorage.setItem('wm_howto', '1');
+          } catch(e) {}
+
           // Continuously scrub injected toolbars, fixed banners, and footer elements so canvas receives all clicks
           const scrubInterval = setInterval(function() {
             var el = document.getElementById('game-footer');
             if (el) el.remove();
+            var tap = document.getElementById('gz-tap-start');
+            if (tap) tap.remove();
             var rel = document.querySelector('.gz-related-games');
             if (rel) rel.remove();
             var spl = document.getElementById('splash-screen');
@@ -1579,6 +1586,9 @@ app.get('/api/game-frame', async (req, res) => {
         })();
       </script>
       <style>
+        #gz-tap-start,
+        div#gz-tap-start,
+        [id*="gz-tap-start"],
         #splash-screen,
         .splash-screen,
         [id*="splash-screen"],
