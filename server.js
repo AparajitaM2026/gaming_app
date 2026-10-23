@@ -974,10 +974,14 @@ app.get('/api/game-frame', async (req, res) => {
             return { closed: true, focus: function(){}, close: function(){} }; 
           };
 
-          // Universal Ad Network URL Filter
-          const AD_FILTER = /(googleads|doubleclick|googlesyndication|adservice|monetag|adsterra|imasdk|ima3|gamedistribution|gamemonetize|cpmstar|adnxs|adnuntius|popads|propeller|applovin|unityads|crazygames|poki.*sdk|play\\.famobi\\.com.*(ad|banner|v1\\.js)|gameapi\\/v1|patch\\/js\\/g[dm]-sdk|ad-delivery|outbrain|taboola|analytics|gtag)/i;
+          // Universal Ad Network URL Filter (strictly targets ad scripts/trackers without blocking game assets)
+          const AD_FILTER = /(googleads|doubleclick|googlesyndication|adservice|monetag|adsterra|imasdk|ima3|api\\.gamedistribution\\.com|gamedistribution-jssdk|api\\.gamemonetize\\.com|gamemonetize-preload|cpmstar|adnxs|adnuntius|popads|propeller|applovin|unityads|api\\.crazygames\\.com|crazygames-sdk|poki.*sdk|play\\.famobi\\.com.*(ad|banner|v1\\.js)|gameapi\\/v1|patch\\/js\\/g[dm]-sdk|ad-delivery|outbrain|taboola|analytics|gtag)/i;
           function isAdUrl(u) {
             if (!u || typeof u !== 'string') return false;
+            // Never block game assets, audio, json level data, wasm or textures
+            if (/\\.(png|jpe?g|webp|gif|svg|mp3|ogg|wav|m4a|json|wasm|data|bin)(\\?.*)?$/i.test(u)) return false;
+            // Never block the game's actual CDN host
+            if (u.includes('html5.gamedistribution.com') || u.includes('gamezipper.com') || u.includes('games.cdn.famobi.com') || u.includes('games.ottsol.cloud')) return false;
             return AD_FILTER.test(u);
           }
 
@@ -1105,9 +1109,11 @@ app.get('/api/game-frame', async (req, res) => {
             set: function(val) {
               _gdOptions = val;
               if (val && typeof val.onEvent === 'function') {
-                setTimeout(function() {
-                  try { val.onEvent({ name: 'SDK_GAME_START' }); } catch(e) {}
-                }, 20);
+                [20, 200, 800, 2000].forEach(delay => {
+                  setTimeout(function() {
+                    try { val.onEvent({ name: 'SDK_GAME_START' }); } catch(e) {}
+                  }, delay);
+                });
               }
             },
             configurable: true
@@ -1210,10 +1216,16 @@ app.get('/api/game-frame', async (req, res) => {
             if (fixtop) fixtop.remove();
             var nav = document.querySelector('.nav') || document.querySelector('#gz-topnav');
             if (nav) nav.remove();
-            var faqs = document.querySelectorAll('.faq-section, section.faq-section, .gz-seo-section, section.gz-seo-section, section, [class*="faq"], #share-btn-overlay, [id*="share-btn"], [itemtype*="FAQPage"]');
+            var faqs = document.querySelectorAll('.faq-section, section.faq-section, .gz-seo-section, section.gz-seo-section, .gz-seo-content, div[style*="max-width:700px"], div[style*="max-width:800px"], section, [class*="faq"], #share-btn-overlay, [id*="share-btn"], [itemtype*="FAQPage"]');
             faqs.forEach(function(f) {
               try { f.remove(); } catch(e) {}
             });
+            // Ensure games waiting for SDK_GAME_START get kicked into active state
+            var contentDiv = document.getElementById('content');
+            if (contentDiv && !contentDiv.__sdk_kick) {
+              contentDiv.__sdk_kick = true;
+              try { contentDiv.dispatchEvent(new Event('SDK_GAME_START')); } catch(e) {}
+            }
           }, 100);
           setTimeout(function() { clearInterval(scrubInterval); }, 15000);
 
@@ -1669,7 +1681,17 @@ app.get('/api/game-frame', async (req, res) => {
         h1.gz-sr-only,
         h3,
         div[style*="max-width:800px"],
-        div[style*="max-width: 800px"] {
+        div[style*="max-width: 800px"],
+        div[style*="max-width:700px"],
+        div[style*="max-width: 700px"],
+        div[style*="max-width:600px"],
+        div[style*="max-width: 600px"],
+        div:has(> h2),
+        div:has(> h3),
+        [itemtype*="FAQPage"],
+        [itemtype*="Question"],
+        [itemprop*="acceptedAnswer"],
+        .gz-seo-content {
           display: none !important;
           opacity: 0 !important;
           visibility: hidden !important;
@@ -1946,6 +1968,12 @@ app.get('/api/game-frame', async (req, res) => {
     html = html.replace(/<section[^>]*class=["'][^"']*gz-related-games[^"']*["'][\s\S]*?<\/section>/gi, '');
     html = html.replace(/<div[^>]*class=["']gz-related-games["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<div[^>]*class=["']gz-seo-section["'][\s\S]*?<\/div>/gi, '');
+    html = html.replace(/<div[^>]*class=["']gz-seo-content["'][\s\S]*?<\/div>/gi, '');
+    html = html.replace(/<!--\s*Extra SEO Content[\s\S]*?(?=<\/body>|$)/gi, '');
+    html = html.replace(/<!--\s*SEO Content Section[\s\S]*?(?=<\/body>|$)/gi, '');
+    html = html.replace(/<div[^>]*itemtype=["'][^"']*FAQPage["'][\s\S]*?(?=<\/body>|$)/gi, '');
+    html = html.replace(/<div[^>]*style=["'][^"']*margin:\s*0\s*auto;padding:\s*16px\s*20px\s*32px[\s\S]*?(?=<\/body>|$)/gi, '');
+    html = html.replace(/<div[^>]*style=["'][^"']*max-width:\s*[5678]00px[^"']*["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<section\b[\s\S]*?<\/section>/gi, '');
     html = html.replace(/<div[^>]*id=["']share-btn-overlay["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<a[^>]*class=["']fix-top["'][\s\S]*?<\/a>/gi, '');
