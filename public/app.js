@@ -3697,6 +3697,11 @@ function renderLobbyView() {
   }
 
   if (playersGrid) {
+    if (partyCurrentRoom.maxPlayers === 2) {
+      playersGrid.className = 'grid grid-cols-2 gap-3 max-w-sm mx-auto my-2';
+    } else {
+      playersGrid.className = 'grid grid-cols-2 sm:grid-cols-4 gap-2.5 my-2';
+    }
     const slots = [];
     for (let i = 0; i < partyCurrentRoom.maxPlayers; i++) {
       const p = partyCurrentRoom.players[i];

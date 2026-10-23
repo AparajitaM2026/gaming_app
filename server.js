@@ -389,10 +389,12 @@ app.post('/api/wallet/reward', async (req, res) => {
   try {
     const user = getUserFromReq(req);
     if (!user || isGuestUser(user)) {
-      return res.json({
+      return res.status(401).json({
         success: false,
+        requireLogin: true,
+        error_code: 'AUTH_REQUIRED',
         reward: 0,
-        message: 'Guest profile cannot earn coins. Sign up or log in to earn coins!',
+        message: 'Guest profile cannot earn coins. Please sign up or log in to earn coins!',
         isGuest: true
       });
     }
@@ -729,6 +731,17 @@ app.get('/api/leaderboard', async (req, res) => {
   } catch (err) {
     console.error('Leaderboard error:', err);
     res.status(500).json({ success: false, message: 'Failed to fetch leaderboard' });
+  }
+});
+
+// Dynamic Game Configurations Engine (2-Player, 4-Player configurations)
+app.get('/api/game-configs', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM game_configs WHERE is_active = TRUE ORDER BY min_players, title');
+    res.json({ success: true, configs: result.rows });
+  } catch (err) {
+    console.error('Game configs error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch game configs' });
   }
 });
 
@@ -1605,6 +1618,10 @@ app.get('/api/game-frame', async (req, res) => {
         section[aria-label="Related games"],
         .gz-related-grid,
         .gz-blog-links,
+        a[href*="/blog"],
+        a[href*="blog.html"],
+        p:has(> a[href*="blog"]),
+        div:has(> a[href*="blog"]),
         #game-info,
         section#game-info,
         [id*="game-info"],
@@ -1807,53 +1824,50 @@ app.get('/api/game-frame', async (req, res) => {
       </style>
     `;
 
-    // Strip ALL ad networks, video ads, popunder managers, analytics and ad trackers
-    html = html.replace(/<script[^>]*(monetag|adsterra|adsbygoogle|googlesyndication|game-footer|gz-analytics|gz-ux|ima3|imasdk|gamemonetize|gamedistribution|google-analytics|googletagmanager|cpmstar)[^>]*>[\s\S]*?<\/script>/gi, '');
-    html = html.replace(/<script[^>]*src=["'][^"']*(game-footer|gz-ux|gz-analytics|adsterra|monetag|ima3|imasdk|gamemonetize|gamedistribution|gd-sdk|gm-sdk|adsbygoogle|googlesyndication|gtag|google-analytics)[^"']*["'][^>]*>[\s\S]*?<\/script>/gi, '');
-    html = html.replace(/<script[^>]*>\s*\(adsbygoogle[\s\S]*?<\/script>/gi, '');
+    // Strip external ad script tags safely
+    html = html.replace(/<script[^>]*src=["'][^"']*(game-footer|gz-ux|gz-analytics|adsterra|monetag|ima3|imasdk|gamemonetize|gamedistribution|gd-sdk|gm-sdk|adsbygoogle|googlesyndication|gtag|google-analytics)[^"']*["'][^>]*>\s*<\/script>/gi, '');
+
+    // Strip inline scripts that contain ad trackers without crossing script boundaries (preserves game engines)
+    html = html.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gi, (match, body) => {
+      if (body.length > 2500) return match; // Never delete game code!
+      if (/(monetag|adsterra|adsbygoogle|googlesyndication|gz-analytics|gz-ux|ima3|imasdk|gamemonetize-preload|gamedistribution-jssdk|google-analytics|googletagmanager)/i.test(body)) {
+        return '';
+      }
+      return match;
+    });
+
+    // Strip ad comments safely (single comment only)
+    html = html.replace(/<!--([\s\S]*?)-->/gi, (match, commentBody) => {
+      if (/(monetag|adsterra|banner|advertisement|QA Round 1|Extra SEO|More Games)/i.test(commentBody)) {
+        return '';
+      }
+      return match;
+    });
+
+    // Strip ad placeholders and markup
     html = html.replace(/<ins[^>]*class=["'][^"']*adsbygoogle[^"']*["'][\s\S]*?<\/ins>/gi, '');
     html = html.replace(/<ins[\s\S]*?<\/ins>/gi, '');
     html = html.replace(/<link[^>]*(pagead2|googlesyndication|doubleclick|monetag|adsterra)[^>]*>/gi, '');
     html = html.replace(/<meta[^>]*http-equiv=["']?refresh["']?[^>]*>/gi, '');
-
-    // Strip in-game banner placeholders and comments
-    html = html.replace(/<!--[\s\S]*?monetag-manager[\s\S]*?-->/gi, '');
-    html = html.replace(/\/\*[\s\S]*?monetag-manager[\s\S]*?\*\//gi, '');
-    html = html.replace(/<!--[\s\S]*?Static in-game banner placeholders[\s\S]*?-->/gi, '');
     html = html.replace(/<div[^>]*id=["']gz-ad-[^"']*["'][^>]*><\/div>/gi, '');
-    html = html.replace(/<div[^>]*class=["'][^"']*gz-injected-banner[^"']*["'][^>]*><\/div>/gi, '');
-
-    // Strip GameMonetize & GameDistribution preloaders
-    html = html.replace(/<script[^>]*>[\s\S]*?gamemonetize-preload-api[\s\S]*?<\/script>/gi, '');
-    html = html.replace(/<script[^>]*>[\s\S]*?gamedistribution-jssdk[\s\S]*?<\/script>/gi, '');
-    html = html.replace(/<script[^>]*>[\s\S]*?patch\/js\/g[dm]-sdk[\s\S]*?<\/script>/gi, '');
+    html = html.replace(/<div[^>]*class=["']gz-injected-banner[^"']*["'][^>]*><\/div>/gi, '');
 
     // Strip Famobi official anti-embed API caller & tracker so autonomous emulator runs
     html = html.replace(/<script[^>]*src=["'][^"']*gameapi\/v1\.js[^"']*["'][^>]*><\/script>/gi, '');
-    html = html.replace(/\(function\s*\(\s*document,\s*url,\s*fgJS,\s*firstJS\s*\)[\s\S]*?gameapi\/v1\.js[\s\S]*?\)\s*\(document,\s*['"][^'"]*gameapi\/v1\.js[^'"]*['"]\s*\);?/gi, '');
-    html = html.replace(/\(function\s*\(document,\s*url,\s*fgJS,\s*firstJS\)[\s\S]*?gameapi\/v1\.js\?e=['"]\s*\);?/gi, '');
-    html = html.replace(/\(document,\s*['"][^'"]*gameapi\/v1\.js[^'"]*['"]\);?/gi, '');
     html = html.replace(/<script[^>]*src=["'][^"']*famobi-game-interface\.js[^"']*["'][^>]*><\/script>/gi, '');
 
-    // Completely remove GameZipper topnav, SEO sections, related games sections and toolbars from DOM
+    // Completely remove GameZipper topnav, SEO sections, related games sections and toolbars from DOM safely
     html = html.replace(/#gz-tap-start[^{]*\{[^}]*\}/gi, '');
-    html = html.replace(/<!--\s*QA Round 1: Tap to start hint[\s\S]*?<\/script>/gi, '');
-    html = html.replace(/<div[^>]*id=["']gz-tap-start["'][\s\S]*?<\/script>/gi, '');
-    html = html.replace(/<section[^>]*class=["']gz-seo-section["'][\s\S]*?(?=<script|<\/body>)/gi, '');
     html = html.replace(/<nav[^>]*id=["']gz-topnav["'][\s\S]*?<\/nav>/gi, '');
-    html = html.replace(/<div[^>]*class=["']gz-related-games["'][\s\S]*?<\/div>/gi, '');
-    html = html.replace(/<section[^>]*class=["'][^"']*gz-related-games[^"']*["'][\s\S]*?<\/section>/gi, '');
-    html = html.replace(/<div[^>]*class=["']gz-seo-section["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<div[^>]*id=["']game-footer["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<section[^>]*id=["']game-info["'][\s\S]*?<\/section>/gi, '');
     html = html.replace(/<div[^>]*class=["']gz-blog-links["'][\s\S]*?<\/div>/gi, '');
+    html = html.replace(/<section[^>]*class=["'][^"']*gz-related-games[^"']*["'][\s\S]*?<\/section>/gi, '');
+    html = html.replace(/<div[^>]*class=["']gz-related-games["'][\s\S]*?<\/div>/gi, '');
+    html = html.replace(/<div[^>]*class=["']gz-seo-section["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<a[^>]*class=["']fix-top["'][\s\S]*?<\/a>/gi, '');
-    html = html.replace(/<a[^>]*class=["'][^"']*gz-related-card[^"']*["'][\s\S]*?<\/a>/gi, '');
-    html = html.replace(/<a[^>]*href=["'][^"']*(gamezipper|famobi|play\.famobi|\/blog\/|google-snake)[^"']*["'][\s\S]*?<\/a>/gi, '');
-    html = html.replace(/<!--\s*Extra SEO Content\s*-->[\s\S]*?(?=<script|<\/body>)/gi, '');
-    html = html.replace(/<!--\s*More Games\s*-->[\s\S]*?(?=<script|<\/body>)/gi, '');
-    html = html.replace(/<div[^>]*style=["'][^"']*max-width:\s*800px[^"']*["'][\s\S]*?<\/div>\s*<\/div>/gi, '');
-    html = html.replace(/<h3[^>]*>[\s\S]*?Tips[\s\S]*?<\/h3>/gi, '');
+    html = html.replace(/<p[^>]*>\s*<a[^>]*href=["'][^"']*blog[^"']*["'][\s\S]*?<\/a>\s*<\/p>/gi, '');
+    html = html.replace(/<a[^>]*href=["'][^"']*\/blog\.html["'][\s\S]*?<\/a>/gi, '');
 
     // Fix Magic Sort / Color Sort win modal overlapping bug (card too narrow & button positions displaced)
     html = html.replace(/const cardW = Math\.min\(300, W \* 0\.85\);/g, 'const cardW = Math.min(420, W * 0.95);');

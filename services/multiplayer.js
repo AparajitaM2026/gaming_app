@@ -514,7 +514,12 @@ function setupMultiplayer(wss) {
 
             const activePlayer = room.players[room.currentTurnIndex];
             if (!activePlayer || activePlayer.user.id !== currentUser.id) {
-              return ws.send(JSON.stringify({ type: 'ACTION_REJECTED', reason: 'Not your turn!' }));
+              return ws.send(JSON.stringify({ 
+                type: 'ACTION_REJECTED', 
+                status: 403, 
+                error_code: 'OUT_OF_TURN', 
+                reason: 'Not your turn! Action rejected by anti-cheat verification.' 
+              }));
             }
 
             const { action, data } = msg;

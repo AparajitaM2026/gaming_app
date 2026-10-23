@@ -42,9 +42,24 @@ function authMiddleware(req, res, next) {
   next();
 }
 
+function requireRegisteredUser(req, res, next) {
+  authMiddleware(req, res, () => {
+    if (req.user && req.user.is_guest) {
+      return res.status(401).json({
+        success: false,
+        requireLogin: true,
+        error_code: 'GUEST_UNAUTHORIZED',
+        message: 'Please sign in or create an account to earn coins, claim rewards, and play ranked multiplayer.'
+      });
+    }
+    next();
+  });
+}
+
 module.exports = {
   generateToken,
   verifyToken,
   authMiddleware,
+  requireRegisteredUser,
   JWT_SECRET
 };
