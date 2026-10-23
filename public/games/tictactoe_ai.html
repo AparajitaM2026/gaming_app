@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Neon Tic-Tac-Toe — You vs Unbeatable AI</title>
+  <title>Neon Tic-Tac-Toe — Live 2-Player & Smart AI</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -18,11 +18,12 @@
       font-family: 'Inter', sans-serif;
       color: #fff;
       user-select: none;
+      touch-action: manipulation;
     }
     .orbitron { font-family: 'Orbitron', sans-serif; }
     
-    .cell-glow:hover {
-      box-shadow: 0 0 20px rgba(0, 240, 255, 0.35);
+    .cell-glow:hover:not(:disabled) {
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
       border-color: #00F0FF;
     }
   </style>
@@ -30,57 +31,72 @@
 <body class="h-full w-full flex flex-col items-center justify-between p-2 sm:p-3 max-w-md mx-auto box-border overflow-hidden">
 
   <!-- Header -->
-  <div class="w-full shrink-0 flex items-center justify-between bg-slate-900/90 border border-slate-700/60 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl">
-    <div class="flex items-center gap-2">
-      <span class="text-neonCyan font-black text-lg">✕</span>
-      <span class="text-xs font-bold text-cyan-300">YOU (X)</span>
+  <div class="w-full shrink-0 flex items-center justify-between bg-slate-900/90 border border-slate-700/60 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-lg gap-2">
+    <!-- Player 1 (X) -->
+    <div id="p1Card" class="flex items-center gap-1.5 min-w-0 transition-all rounded-lg p-1">
+      <span class="text-cyan-400 font-black text-lg">✕</span>
+      <div class="flex flex-col min-w-0">
+        <span class="text-xs font-bold text-cyan-300 leading-none truncate" id="p1Label">Host (X)</span>
+      </div>
     </div>
-    <span class="orbitron font-extrabold text-xs text-amber-300" id="statusText">YOUR TURN</span>
-    <div class="flex items-center gap-2">
-      <span class="text-xs font-bold text-purple-300">AI BOT (O)</span>
-      <span class="text-purple-400 font-black text-lg">◯</span>
+
+    <!-- Center Turn Banner -->
+    <span class="orbitron font-extrabold text-[10.5px] sm:text-xs text-amber-300 tracking-wide text-center truncate px-1" id="statusText">YOUR TURN (X)</span>
+
+    <!-- Player 2 (O) -->
+    <div id="p2Card" class="flex items-center gap-1.5 text-right min-w-0 transition-all rounded-lg p-1">
+      <div class="flex flex-col min-w-0">
+        <span class="text-xs font-bold text-pink-400 leading-none truncate" id="p2Label">Friend (O)</span>
+      </div>
+      <span class="text-pink-400 font-black text-lg">◯</span>
     </div>
   </div>
 
   <!-- Score Board -->
   <div class="w-full shrink-0 grid grid-cols-3 gap-2 my-1 text-center">
     <div class="p-1.5 sm:p-2 rounded-xl bg-cyan-950/40 border border-cyan-500/30">
-      <span class="text-[9.5px] text-gray-400 block">YOU WON</span>
+      <span class="text-[9.5px] text-gray-400 block truncate" id="p1ScoreLabel">P1 WINS</span>
       <span class="orbitron font-extrabold text-base sm:text-lg text-cyan-300" id="playerWins">0</span>
     </div>
     <div class="p-1.5 sm:p-2 rounded-xl bg-slate-900/40 border border-slate-700/40">
       <span class="text-[9.5px] text-gray-400 block">DRAWS</span>
       <span class="orbitron font-extrabold text-base sm:text-lg text-gray-300" id="draws">0</span>
     </div>
-    <div class="p-1.5 sm:p-2 rounded-xl bg-purple-950/40 border border-purple-500/30">
-      <span class="text-[9.5px] text-gray-400 block">AI WON</span>
-      <span class="orbitron font-extrabold text-base sm:text-lg text-purple-300" id="aiWins">0</span>
+    <div class="p-1.5 sm:p-2 rounded-xl bg-pink-950/40 border border-pink-500/30">
+      <span class="text-[9.5px] text-gray-400 block truncate" id="p2ScoreLabel">P2 WINS</span>
+      <span class="orbitron font-extrabold text-base sm:text-lg text-pink-400" id="aiWins">0</span>
     </div>
   </div>
 
   <!-- 3x3 Grid (Responsive Fit) -->
   <div class="flex-1 min-h-0 w-full flex items-center justify-center py-1 overflow-hidden">
     <div class="h-full aspect-square max-w-[340px] grid grid-cols-3 gap-2 p-2 sm:p-2.5 rounded-2xl bg-slate-900/90 border-2 border-slate-700/80 shadow-2xl">
-      <button onclick="makeMove(0)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-0"></button>
-      <button onclick="makeMove(1)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-1"></button>
-      <button onclick="makeMove(2)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-2"></button>
-      <button onclick="makeMove(3)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-3"></button>
-      <button onclick="makeMove(4)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-4"></button>
-      <button onclick="makeMove(5)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-5"></button>
-      <button onclick="makeMove(6)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-6"></button>
-      <button onclick="makeMove(7)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-7"></button>
-      <button onclick="makeMove(8)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-8"></button>
+      <button onclick="handleCellClick(0)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-0"></button>
+      <button onclick="handleCellClick(1)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-1"></button>
+      <button onclick="handleCellClick(2)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-2"></button>
+      <button onclick="handleCellClick(3)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-3"></button>
+      <button onclick="handleCellClick(4)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-4"></button>
+      <button onclick="handleCellClick(5)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-5"></button>
+      <button onclick="handleCellClick(6)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-6"></button>
+      <button onclick="handleCellClick(7)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-7"></button>
+      <button onclick="handleCellClick(8)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-8"></button>
     </div>
   </div>
 
-  <!-- Controls -->
-  <div class="w-full shrink-0 flex gap-2 sm:gap-3 pt-1">
-    <button onclick="resetBoard()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-cyan-500 text-black font-extrabold orbitron text-xs uppercase hover:opacity-90 active:scale-95 transition-all">
-      Reset Round
-    </button>
-    <button onclick="window.parent.closeGameTheater()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-xs hover:bg-white/20 active:scale-95 transition-all">
-      Exit to Games
-    </button>
+  <!-- Bottom Deck -->
+  <div class="w-full shrink-0 flex flex-col gap-1.5 pt-1">
+    <div class="flex items-center justify-between text-[11px] text-gray-400 px-1">
+      <span id="modeBadge" class="font-bold text-emerald-400">Live 2-Player</span>
+      <span class="text-[10px] text-gray-400">Tap cell to place ✕ or ◯</span>
+    </div>
+    <div class="flex gap-2 sm:gap-3">
+      <button onclick="requestResetRound()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-extrabold orbitron text-xs uppercase shadow-lg transition-all active:scale-95">
+        Reset Round
+      </button>
+      <button onclick="window.parent.closeGameTheater()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-xs hover:bg-white/20 active:scale-95 transition-all">
+        Exit to Games
+      </button>
+    </div>
   </div>
 
   <!-- VICTORY MODAL -->
@@ -94,7 +110,7 @@
         <p id="ttDesc" class="text-xs text-gray-300 mt-1">Great moves! 3 in a row!</p>
       </div>
       <div class="space-y-2 pt-1">
-        <button onclick="resetBoard()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-black font-extrabold orbitron text-xs uppercase shadow-lg shadow-cyan-500/30 hover:opacity-90 active:scale-95 transition-all">
+        <button onclick="requestResetRound()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-black font-extrabold orbitron text-xs uppercase shadow-lg shadow-cyan-500/30 hover:opacity-90 active:scale-95 transition-all">
           <i class="fa-solid fa-rotate-right mr-1"></i> Play Next Round
         </button>
         <button onclick="window.parent.closeGameTheater()" class="w-full py-2.5 rounded-xl bg-slate-800 border border-white/10 text-white font-bold text-xs hover:bg-slate-700 active:scale-95 transition-all">
@@ -105,10 +121,112 @@
   </div>
 
   <script>
+    // -------------------------------------------------------------
+    // URL PARAMETERS & MULTIPLAYER SETUP
+    // -------------------------------------------------------------
+    const urlParams = new URLSearchParams(window.location.search);
+    const gameMode = urlParams.get('mode') || 'ai'; // 'party', 'passplay', or 'ai'
+    const isPartyMode = (gameMode === 'party');
+    const isPassPlay = (gameMode === 'passplay');
+    const myUserId = String(urlParams.get('myId') || '');
+    const myUsername = String(urlParams.get('myUsername') || '');
+    const myPlayerIndexParam = urlParams.get('myPlayerIndex');
+    const myPlayerIndex = (myPlayerIndexParam !== null && myPlayerIndexParam !== '') ? parseInt(myPlayerIndexParam, 10) : -1;
+    const isHostParam = (urlParams.get('isHost') === 'true');
+    const roomCode = urlParams.get('room') || '';
+
+    // Active Players
+    let activePlayers = [];
+    if (isPartyMode) {
+      let passedPlayers = [];
+      try {
+        passedPlayers = JSON.parse(urlParams.get('players') || '[]');
+      } catch (e) {}
+      if (!passedPlayers || passedPlayers.length === 0) {
+        if (window.parent?.activePartySession?.players) {
+          passedPlayers = window.parent.activePartySession.players;
+        }
+      }
+
+      if (Array.isArray(passedPlayers) && passedPlayers.length > 0) {
+        activePlayers = passedPlayers.slice(0, 2).map((p, idx) => {
+          let isThisMe = false;
+          if (myPlayerIndex !== -1 && !isNaN(myPlayerIndex)) {
+            isThisMe = (idx === myPlayerIndex);
+          } else {
+            isThisMe = (
+              (myUserId && String(p.id) === String(myUserId)) ||
+              (myUsername && p.username && p.username.toLowerCase() === myUsername.toLowerCase()) ||
+              (isHostParam ? idx === 0 : idx === 1)
+            );
+          }
+          return {
+            id: p.id,
+            username: p.username || (idx === 0 ? 'Host' : 'Friend'),
+            symbol: idx === 0 ? 'X' : 'O',
+            isMe: isThisMe
+          };
+        });
+
+        if (!activePlayers.some(p => p.isMe)) {
+          const fallbackIdx = isHostParam ? 0 : 1;
+          if (activePlayers[fallbackIdx]) activePlayers[fallbackIdx].isMe = true;
+          else if (activePlayers[0]) activePlayers[0].isMe = true;
+        }
+      } else {
+        activePlayers = [
+          { id: 'p1', username: 'Host (You)', symbol: 'X', isMe: isHostParam },
+          { id: 'p2', username: 'Friend', symbol: 'O', isMe: !isHostParam }
+        ];
+      }
+    } else if (isPassPlay) {
+      activePlayers = [
+        { id: 'p1', username: 'Player 1', symbol: 'X', isMe: true },
+        { id: 'p2', username: 'Player 2', symbol: 'O', isMe: true }
+      ];
+    } else {
+      activePlayers = [
+        { id: 'p1', username: 'You', symbol: 'X', isMe: true },
+        { id: 'bot', username: 'AI Bot', symbol: 'O', isMe: false }
+      ];
+    }
+
+    const p1 = activePlayers[0] || { username: 'Player 1', symbol: 'X', isMe: true };
+    const p2 = activePlayers[1] || { username: (isPartyMode ? 'Friend' : 'AI Bot'), symbol: 'O', isMe: false };
+    const mySymbol = p1.isMe ? 'X' : (p2.isMe ? 'O' : 'X');
+
+    // Setup Header UI
+    const modeBadge = document.getElementById('modeBadge');
+    if (modeBadge) {
+      if (isPartyMode) {
+        modeBadge.textContent = p1.isMe ? 'Party Live • X (Host)' : 'Party Live • O (Friend)';
+      } else if (isPassPlay) {
+        modeBadge.textContent = 'Pass & Play (2P)';
+      } else {
+        modeBadge.textContent = 'Vs Smart AI';
+      }
+    }
+
+    const p1Label = document.getElementById('p1Label');
+    const p2Label = document.getElementById('p2Label');
+    if (p1Label) {
+      p1Label.innerHTML = `${p1.username} <span class="text-[9px] text-cyan-300">(X)</span>${(isPartyMode && p1.isMe) ? ' <span class="text-cyan-300 text-[9px] font-bold bg-cyan-950/60 px-1 rounded border border-cyan-400/40">(You)</span>' : ''}`;
+    }
+    if (p2Label) {
+      const isBotLabel = (!isPartyMode && !isPassPlay);
+      p2Label.innerHTML = `${p2.username} <span class="text-[9px] text-pink-400">(${isBotLabel ? 'BOT' : 'O'})</span>${(isPartyMode && p2.isMe) ? ' <span class="text-pink-300 text-[9px] font-bold bg-pink-950/60 px-1 rounded border border-pink-400/40">(You)</span>' : ''}`;
+    }
+
+    document.getElementById('p1ScoreLabel').textContent = `${p1.username.toUpperCase()} (X)`;
+    document.getElementById('p2ScoreLabel').textContent = `${p2.username.toUpperCase()} (O)`;
+
+    // -------------------------------------------------------------
+    // GAME STATE & MECHANICS
+    // -------------------------------------------------------------
     let board = Array(9).fill(null);
-    let isHumanTurn = true;
+    let currentTurnSymbol = 'X'; // X starts first
     let gameOver = false;
-    let pWins = 0, aWins = 0, drawCount = 0;
+    let p1Wins = 0, p2Wins = 0, drawCount = 0;
 
     const WIN_PATTERNS = [
       [0,1,2], [3,4,5], [6,7,8],
@@ -116,16 +234,85 @@
       [0,4,8], [2,4,6]
     ];
 
-    function makeMove(idx) {
-      if (!isHumanTurn || board[idx] || gameOver) return;
+    function isMyTurn() {
+      if (gameOver) return false;
+      if (!isPartyMode && !isPassPlay) {
+        return currentTurnSymbol === 'X'; // Solo vs Bot
+      }
+      if (isPassPlay) return true;
+      return currentTurnSymbol === mySymbol;
+    }
 
-      board[idx] = 'X';
-      renderCell(idx, 'X', 'text-cyan-400');
+    function updateTurnUI() {
+      const status = document.getElementById('statusText');
+      const p1Card = document.getElementById('p1Card');
+      const p2Card = document.getElementById('p2Card');
 
-      if (checkWin('X')) {
-        pWins++;
-        document.getElementById('playerWins').textContent = pWins;
-        endRound('player');
+      if (currentTurnSymbol === 'X') {
+        if (p1Card) p1Card.classList.add('bg-white/10', 'ring-1', 'ring-cyan-400/50');
+        if (p2Card) p2Card.classList.remove('bg-white/10', 'ring-1', 'ring-cyan-400/50', 'ring-pink-400/50');
+      } else {
+        if (p2Card) p2Card.classList.add('bg-white/10', 'ring-1', 'ring-pink-400/50');
+        if (p1Card) p1Card.classList.remove('bg-white/10', 'ring-1', 'ring-cyan-400/50', 'ring-pink-400/50');
+      }
+
+      if (gameOver) return;
+
+      if (isPartyMode) {
+        if (currentTurnSymbol === mySymbol) {
+          status.textContent = `YOUR TURN (${mySymbol}) — TAP CELL`;
+          status.className = "orbitron font-extrabold text-[10.5px] sm:text-xs text-amber-300 tracking-wide text-center truncate px-1";
+        } else {
+          const waitingName = (currentTurnSymbol === 'X') ? p1.username : p2.username;
+          status.textContent = `WAITING FOR ${waitingName.toUpperCase()} (${currentTurnSymbol})...`;
+          status.className = "orbitron font-extrabold text-[10.5px] sm:text-xs text-gray-400 tracking-wide text-center truncate px-1";
+        }
+      } else if (isPassPlay) {
+        status.textContent = (currentTurnSymbol === 'X') ? `${p1.username.toUpperCase()} (X) TURN` : `${p2.username.toUpperCase()} (O) TURN`;
+        status.className = "orbitron font-extrabold text-[10.5px] sm:text-xs text-amber-300 tracking-wide text-center truncate px-1";
+      } else {
+        // AI Solo
+        if (currentTurnSymbol === 'X') {
+          status.textContent = "YOUR TURN (X)";
+          status.className = "orbitron font-extrabold text-[10.5px] sm:text-xs text-cyan-300 tracking-wide text-center truncate px-1";
+        } else {
+          status.textContent = "AI IS THINKING...";
+          status.className = "orbitron font-extrabold text-[10.5px] sm:text-xs text-pink-400 tracking-wide text-center truncate px-1";
+        }
+      }
+    }
+
+    function handleCellClick(idx) {
+      if (!isMyTurn() || board[idx] || gameOver) return;
+
+      const sym = currentTurnSymbol;
+      executeMove(idx, sym);
+
+      if (isPartyMode) {
+        sendPartyAction({
+          action: 'TICTACTOE_MOVE',
+          index: idx,
+          symbol: sym
+        });
+      }
+    }
+
+    function executeMove(idx, sym) {
+      if (board[idx] || gameOver) return;
+      board[idx] = sym;
+      const colorClass = (sym === 'X') ? 'text-cyan-400' : 'text-pink-400';
+      renderCell(idx, sym, colorClass);
+
+      if (checkWin(sym)) {
+        if (sym === 'X') {
+          p1Wins++;
+          document.getElementById('playerWins').textContent = p1Wins;
+          endRound('p1');
+        } else {
+          p2Wins++;
+          document.getElementById('aiWins').textContent = p2Wins;
+          endRound('p2');
+        }
         return;
       }
 
@@ -136,42 +323,29 @@
         return;
       }
 
-      isHumanTurn = false;
-      document.getElementById('statusText').textContent = "AI IS THINKING...";
+      currentTurnSymbol = (sym === 'X') ? 'O' : 'X';
+      updateTurnUI();
 
-      setTimeout(aiMove, 600);
+      // Trigger AI in Single-Player AI Mode
+      if (!isPartyMode && !isPassPlay && currentTurnSymbol === 'O') {
+        setTimeout(aiMove, 500);
+      }
     }
 
     function aiMove() {
-      if (gameOver) return;
+      if (gameOver || isPartyMode || isPassPlay || currentTurnSymbol !== 'O') return;
 
-      // Minimax or smart block logic
       let bestMove = findWinningMove('O') || findWinningMove('X') || (board[4] === null ? 4 : null);
-
       if (bestMove === null) {
         const available = board.map((c, i) => c === null ? i : null).filter(c => c !== null);
-        bestMove = available[Math.floor(Math.random() * available.length)];
+        if (available.length > 0) {
+          bestMove = available[Math.floor(Math.random() * available.length)];
+        }
       }
 
-      board[bestMove] = 'O';
-      renderCell(bestMove, 'O', 'text-purple-400');
-
-      if (checkWin('O')) {
-        aWins++;
-        document.getElementById('aiWins').textContent = aWins;
-        endRound('ai');
-        return;
+      if (bestMove !== null) {
+        executeMove(bestMove, 'O');
       }
-
-      if (board.every(c => c !== null)) {
-        drawCount++;
-        document.getElementById('draws').textContent = drawCount;
-        endRound('draw');
-        return;
-      }
-
-      isHumanTurn = true;
-      document.getElementById('statusText').textContent = "YOUR TURN (X)";
     }
 
     function findWinningMove(player) {
@@ -189,8 +363,10 @@
 
     function renderCell(idx, val, colorClass) {
       const el = document.getElementById(`cell-${idx}`);
-      el.textContent = val;
-      el.className = `cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-5xl font-black orbitron flex items-center justify-center transition-all h-full ${colorClass}`;
+      if (el) {
+        el.textContent = val;
+        el.className = `cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-4xl sm:text-5xl font-black orbitron flex items-center justify-center transition-all h-full ${colorClass}`;
+      }
     }
 
     function endRound(outcome) {
@@ -201,46 +377,100 @@
       const desc = document.getElementById('ttDesc');
       const icon = document.getElementById('ttIcon');
 
-      if (outcome === 'player') {
-        status.textContent = "YOU WON!";
+      if (outcome === 'p1') {
+        const isWinnerMe = p1.isMe;
+        status.textContent = isWinnerMe ? "YOU WON!" : `${p1.username.toUpperCase()} WON!`;
         status.className = "orbitron font-extrabold text-xs text-cyan-400";
-        title.textContent = "YOU WON!";
+        title.textContent = isWinnerMe ? "YOU WON!" : `${p1.username.toUpperCase()} WON!`;
         title.className = "text-xl font-black orbitron text-cyan-400";
-        desc.textContent = "Great moves! 3 in a row!";
+        desc.textContent = `${p1.username} completed 3-in-a-row with ✕!`;
         icon.innerHTML = '<i class="fa-solid fa-trophy text-cyan-400 text-3xl animate-bounce"></i>';
-      } else if (outcome === 'ai') {
-        status.textContent = "AI BOT WON!";
-        status.className = "orbitron font-extrabold text-xs text-purple-400";
-        title.textContent = "AI BOT WON!";
-        title.className = "text-xl font-black orbitron text-purple-400";
-        desc.textContent = "The Unbeatable Bot caught the winning line.";
-        icon.innerHTML = '<i class="fa-solid fa-robot text-purple-400 text-3xl"></i>';
+      } else if (outcome === 'p2') {
+        const isWinnerMe = p2.isMe;
+        status.textContent = isWinnerMe ? "YOU WON!" : `${p2.username.toUpperCase()} WON!`;
+        status.className = "orbitron font-extrabold text-xs text-pink-400";
+        title.textContent = isWinnerMe ? "YOU WON!" : `${p2.username.toUpperCase()} WON!`;
+        title.className = "text-xl font-black orbitron text-pink-400";
+        desc.textContent = `${p2.username} completed 3-in-a-row with ◯!`;
+        icon.innerHTML = '<i class="fa-solid fa-trophy text-pink-400 text-3xl animate-bounce"></i>';
       } else {
         status.textContent = "IT'S A DRAW!";
         status.className = "orbitron font-extrabold text-xs text-gray-400";
         title.textContent = "ROUND DRAW!";
         title.className = "text-xl font-black orbitron text-amber-400";
-        desc.textContent = "Cat's game! Both played well.";
+        desc.textContent = "Equal moves played! Board is full.";
         icon.innerHTML = '<i class="fa-solid fa-handshake text-amber-400 text-3xl"></i>';
       }
 
       setTimeout(() => {
-        modal.classList.remove('hidden');
+        if (modal) modal.classList.remove('hidden');
       }, 400);
     }
 
-    function resetBoard() {
+    function resetBoardLocal() {
       board = Array(9).fill(null);
       gameOver = false;
-      isHumanTurn = true;
-      document.getElementById('tictacModal').classList.add('hidden');
-      document.getElementById('statusText').textContent = "YOUR TURN (X)";
-      document.getElementById('statusText').className = "orbitron font-extrabold text-xs text-amber-300";
+      currentTurnSymbol = 'X';
+      const modal = document.getElementById('tictacModal');
+      if (modal) modal.classList.add('hidden');
       for (let i = 0; i < 9; i++) {
         const el = document.getElementById(`cell-${i}`);
-        el.textContent = '';
+        if (el) {
+          el.textContent = '';
+          el.className = 'cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full';
+        }
+      }
+      updateTurnUI();
+    }
+
+    function requestResetRound() {
+      resetBoardLocal();
+      if (isPartyMode) {
+        sendPartyAction({ action: 'TICTACTOE_RESET' });
       }
     }
+
+    // -------------------------------------------------------------
+    // REALTIME PARTY SYNC
+    // -------------------------------------------------------------
+    function sendPartyAction(actionPayload) {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: 'PARTY_ACTION',
+          gameSlug: 'tictactoe-neon-ai',
+          roomCode: roomCode || window.parent?.activePartySession?.roomCode,
+          ...actionPayload
+        }, '*');
+      }
+    }
+
+    function handleRemotePartyAction(data) {
+      if (!data) return;
+
+      if (data.action === 'TICTACTOE_MOVE') {
+        const idx = data.index;
+        const sym = data.symbol;
+        if (idx !== undefined && sym && board[idx] === null) {
+          executeMove(idx, sym);
+        }
+      } else if (data.action === 'TICTACTOE_RESET') {
+        resetBoardLocal();
+      }
+    }
+
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'PARTY_GAME_UPDATE') {
+        const payload = event.data.actionData || event.data;
+        const sId = event.data.senderId || payload.senderId;
+        if (sId && myUserId && String(sId) === String(myUserId)) {
+          return; // Ignore own action echo
+        }
+        handleRemotePartyAction(payload);
+      }
+    });
+
+    // Initialize UI
+    resetBoardLocal();
   </script>
 </body>
 </html>

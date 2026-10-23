@@ -488,9 +488,17 @@ function setupMultiplayer(wss) {
             if (!room || room.status !== 'PLAYING') return;
 
             // Realtime In-House Games Action Synchronization (Ludo, Carrom, Chess, Checkers, Connect4, TicTacToe)
+            const CUSTOM_MP_SLUGS = [
+              'ludo-hero-ai', 'ludo',
+              'carrom-clash-ai', 'carrom-pool', 'carrom', 'striker-king-3d',
+              'chess-master-ai', 'chess',
+              'checkers-classic-ai', 'checkers',
+              'connect4-arena-ai', 'connect-4', 'connect4',
+              'tictactoe-neon-ai', 'tictactoe-neon', 'tic-tac-toe', 'tictactoe'
+            ];
             const isCustomMultiplayer = 
-              ['ludo-hero-ai', 'carrom-clash-ai', 'carrom-pool', 'chess-master-ai', 'checkers-classic-ai', 'connect4-arena-ai', 'tictactoe-neon-ai'].includes(msg.gameSlug) ||
-              ['ludo-hero-ai', 'carrom-clash-ai', 'carrom-pool', 'chess-master-ai', 'checkers-classic-ai', 'connect4-arena-ai', 'tictactoe-neon-ai'].includes(room.gameSlug) ||
+              CUSTOM_MP_SLUGS.includes(msg.gameSlug) ||
+              CUSTOM_MP_SLUGS.includes(room.gameSlug) ||
               (msg.action && (msg.action.startsWith('LUDO_') || msg.action.startsWith('CARROM_') || msg.action.startsWith('CHESS_') || msg.action.startsWith('CHECKERS_') || msg.action.startsWith('CONNECT4_') || msg.action.startsWith('TICTACTOE_') || msg.action === 'BOARD_ACTION'));
 
             if (isCustomMultiplayer) {

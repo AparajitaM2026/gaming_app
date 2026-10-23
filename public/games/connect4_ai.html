@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Connect 4 Arena — You vs Smart AI</title>
+  <title>Connect 4 Arena — Live 2-Player & Smart AI</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -18,6 +18,7 @@
       font-family: 'Inter', sans-serif;
       color: #fff;
       user-select: none;
+      touch-action: manipulation;
     }
     .orbitron { font-family: 'Orbitron', sans-serif; }
     
@@ -28,7 +29,7 @@
       box-shadow: inset 0 4px 6px rgba(0,0,0,0.6);
       transition: background-color 0.25s, transform 0.2s;
     }
-    .col-btn:hover .col-arrow {
+    .col-btn:hover:not(:disabled) .col-arrow {
       opacity: 1;
       transform: translateY(2px);
     }
@@ -37,15 +38,20 @@
 <body class="h-full w-full flex flex-col items-center justify-between p-2 sm:p-3 max-w-md mx-auto box-border overflow-hidden">
 
   <!-- Header -->
-  <div class="w-full shrink-0 flex items-center justify-between bg-slate-900 border border-slate-700/60 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl">
-    <div class="flex items-center gap-2">
-      <div class="w-3.5 h-3.5 rounded-full bg-red-500 border border-white"></div>
-      <span class="text-xs font-bold text-red-400">YOU (RED)</span>
+  <div class="w-full shrink-0 flex items-center justify-between bg-slate-900 border border-slate-700/60 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-lg gap-2">
+    <!-- Player 1 (Red) -->
+    <div id="p1Card" class="flex items-center gap-2 min-w-0 transition-all rounded-lg p-1">
+      <div class="w-3.5 h-3.5 rounded-full bg-red-500 border border-white shrink-0"></div>
+      <span class="text-xs font-bold text-red-400 leading-none truncate" id="p1Label">Host (Red)</span>
     </div>
-    <span class="orbitron font-extrabold text-xs text-amber-300" id="statusBanner">YOUR TURN</span>
-    <div class="flex items-center gap-2">
-      <span class="text-xs font-bold text-yellow-400">AI (YELLOW)</span>
-      <div class="w-3.5 h-3.5 rounded-full bg-yellow-400 border border-white"></div>
+
+    <!-- Center Turn Banner -->
+    <span class="orbitron font-extrabold text-[10.5px] sm:text-xs text-amber-300 tracking-wide text-center truncate px-1" id="statusBanner">YOUR TURN (RED)</span>
+
+    <!-- Player 2 (Yellow) -->
+    <div id="p2Card" class="flex items-center gap-2 text-right min-w-0 transition-all rounded-lg p-1">
+      <span class="text-xs font-bold text-yellow-400 leading-none truncate" id="p2Label">Friend (Yellow)</span>
+      <div class="w-3.5 h-3.5 rounded-full bg-yellow-400 border border-white shrink-0"></div>
     </div>
   </div>
 
@@ -65,13 +71,19 @@
   </div>
 
   <!-- Bottom Deck -->
-  <div class="w-full shrink-0 flex gap-2 sm:gap-3 pt-1">
-    <button onclick="resetConnect4()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-blue-500 text-white font-extrabold orbitron text-xs uppercase hover:opacity-90 active:scale-95 transition-all">
-      New Game
-    </button>
-    <button onclick="window.parent.closeGameTheater()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-xs hover:bg-white/20 active:scale-95 transition-all">
-      Exit to Games
-    </button>
+  <div class="w-full shrink-0 flex flex-col gap-1.5 pt-1">
+    <div class="flex items-center justify-between text-[11px] text-gray-400 px-1">
+      <span id="modeBadge" class="font-bold text-emerald-400">Live 2-Player</span>
+      <span class="text-[10px] text-gray-400">Tap arrow to drop colored disc</span>
+    </div>
+    <div class="flex gap-2 sm:gap-3">
+      <button onclick="requestResetConnect4()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-extrabold orbitron text-xs uppercase shadow-lg transition-all active:scale-95">
+        New Game
+      </button>
+      <button onclick="window.parent.closeGameTheater()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-xs hover:bg-white/20 active:scale-95 transition-all">
+        Exit to Games
+      </button>
+    </div>
   </div>
 
   <!-- VICTORY MODAL -->
@@ -85,7 +97,7 @@
         <p id="c4Desc" class="text-xs text-gray-300 mt-1">4 connected discs in a row!</p>
       </div>
       <div class="space-y-2 pt-1">
-        <button onclick="resetConnect4()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-extrabold orbitron text-xs uppercase shadow-lg shadow-blue-500/30 hover:opacity-90 active:scale-95 transition-all">
+        <button onclick="requestResetConnect4()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-extrabold orbitron text-xs uppercase shadow-lg shadow-blue-500/30 hover:opacity-90 active:scale-95 transition-all">
           <i class="fa-solid fa-rotate-right mr-1"></i> Play Again
         </button>
         <button onclick="window.parent.closeGameTheater()" class="w-full py-2.5 rounded-xl bg-slate-800 border border-white/10 text-white font-bold text-xs hover:bg-slate-700 active:scale-95 transition-all">
@@ -96,17 +108,117 @@
   </div>
 
   <script>
+    // -------------------------------------------------------------
+    // URL PARAMETERS & MULTIPLAYER SETUP
+    // -------------------------------------------------------------
+    const urlParams = new URLSearchParams(window.location.search);
+    const gameMode = urlParams.get('mode') || 'ai'; // 'party', 'passplay', or 'ai'
+    const isPartyMode = (gameMode === 'party');
+    const isPassPlay = (gameMode === 'passplay');
+    const myUserId = String(urlParams.get('myId') || '');
+    const myUsername = String(urlParams.get('myUsername') || '');
+    const myPlayerIndexParam = urlParams.get('myPlayerIndex');
+    const myPlayerIndex = (myPlayerIndexParam !== null && myPlayerIndexParam !== '') ? parseInt(myPlayerIndexParam, 10) : -1;
+    const isHostParam = (urlParams.get('isHost') === 'true');
+    const roomCode = urlParams.get('room') || '';
+
+    // Active Players
+    let activePlayers = [];
+    if (isPartyMode) {
+      let passedPlayers = [];
+      try {
+        passedPlayers = JSON.parse(urlParams.get('players') || '[]');
+      } catch (e) {}
+      if (!passedPlayers || passedPlayers.length === 0) {
+        if (window.parent?.activePartySession?.players) {
+          passedPlayers = window.parent.activePartySession.players;
+        }
+      }
+
+      if (Array.isArray(passedPlayers) && passedPlayers.length > 0) {
+        activePlayers = passedPlayers.slice(0, 2).map((p, idx) => {
+          let isThisMe = false;
+          if (myPlayerIndex !== -1 && !isNaN(myPlayerIndex)) {
+            isThisMe = (idx === myPlayerIndex);
+          } else {
+            isThisMe = (
+              (myUserId && String(p.id) === String(myUserId)) ||
+              (myUsername && p.username && p.username.toLowerCase() === myUsername.toLowerCase()) ||
+              (isHostParam ? idx === 0 : idx === 1)
+            );
+          }
+          return {
+            id: p.id,
+            username: p.username || (idx === 0 ? 'Host' : 'Friend'),
+            color: idx === 0 ? 'RED' : 'YELLOW',
+            num: idx + 1,
+            isMe: isThisMe
+          };
+        });
+
+        if (!activePlayers.some(p => p.isMe)) {
+          const fallbackIdx = isHostParam ? 0 : 1;
+          if (activePlayers[fallbackIdx]) activePlayers[fallbackIdx].isMe = true;
+          else if (activePlayers[0]) activePlayers[0].isMe = true;
+        }
+      } else {
+        activePlayers = [
+          { id: 'p1', username: 'Host (You)', color: 'RED', num: 1, isMe: isHostParam },
+          { id: 'p2', username: 'Friend', color: 'YELLOW', num: 2, isMe: !isHostParam }
+        ];
+      }
+    } else if (isPassPlay) {
+      activePlayers = [
+        { id: 'p1', username: 'Player 1', color: 'RED', num: 1, isMe: true },
+        { id: 'p2', username: 'Player 2', color: 'YELLOW', num: 2, isMe: true }
+      ];
+    } else {
+      activePlayers = [
+        { id: 'p1', username: 'You', color: 'RED', num: 1, isMe: true },
+        { id: 'bot', username: 'AI Bot', color: 'YELLOW', num: 2, isMe: false }
+      ];
+    }
+
+    const p1 = activePlayers[0] || { username: 'Player 1', color: 'RED', num: 1, isMe: true };
+    const p2 = activePlayers[1] || { username: (isPartyMode ? 'Friend' : 'AI Bot'), color: 'YELLOW', num: 2, isMe: false };
+    const myPlayerNum = p1.isMe ? 1 : (p2.isMe ? 2 : 1);
+
+    // Setup Header UI
+    const modeBadge = document.getElementById('modeBadge');
+    if (modeBadge) {
+      if (isPartyMode) {
+        modeBadge.textContent = p1.isMe ? 'Party Live • Red (Host)' : 'Party Live • Yellow (Friend)';
+      } else if (isPassPlay) {
+        modeBadge.textContent = 'Pass & Play (2P)';
+      } else {
+        modeBadge.textContent = 'Vs Smart AI';
+      }
+    }
+
+    const p1Label = document.getElementById('p1Label');
+    const p2Label = document.getElementById('p2Label');
+    if (p1Label) {
+      p1Label.innerHTML = `${p1.username} <span class="text-[9px] text-red-300">(RED)</span>${(isPartyMode && p1.isMe) ? ' <span class="text-cyan-300 text-[9px] font-bold bg-cyan-950/60 px-1 rounded border border-cyan-400/40">(You)</span>' : ''}`;
+    }
+    if (p2Label) {
+      const isBotLabel = (!isPartyMode && !isPassPlay);
+      p2Label.innerHTML = `${p2.username} <span class="text-[9px] text-yellow-300">(${isBotLabel ? 'BOT' : 'YELLOW'})</span>${(isPartyMode && p2.isMe) ? ' <span class="text-cyan-300 text-[9px] font-bold bg-cyan-950/60 px-1 rounded border border-cyan-400/40">(You)</span>' : ''}`;
+    }
+
+    // -------------------------------------------------------------
+    // BOARD LOGIC & RENDERING
+    // -------------------------------------------------------------
     const ROWS = 6;
     const COLS = 7;
-    let grid = Array(ROWS).fill(null).map(() => Array(COLS).fill(0)); // 0: empty, 1: Player (Red), 2: AI (Yellow)
-    let isHumanTurn = true;
+    let grid = Array(ROWS).fill(null).map(() => Array(COLS).fill(0)); // 0: empty, 1: Red (P1), 2: Yellow (P2)
+    let currentTurnNum = 1; // 1 = Red, 2 = Yellow
     let isGameOver = false;
 
     // Build Drop Indicators & Slots
     const colBtns = document.getElementById('colButtons');
     colBtns.innerHTML = Array(COLS).fill(0).map((_, c) => `
-      <button onclick="dropDisc(${c})" class="col-btn flex flex-col items-center py-1 group">
-        <i class="fa-solid fa-arrow-down text-red-400 text-xs col-arrow opacity-40 group-hover:opacity-100 transition-all"></i>
+      <button onclick="handleColClick(${c})" class="col-btn flex flex-col items-center py-1 group">
+        <i class="fa-solid fa-arrow-down text-cyan-400 text-xs col-arrow opacity-50 group-hover:opacity-100 transition-all"></i>
       </button>
     `).join('');
 
@@ -115,9 +227,73 @@
       <div class="grid-slot" id="slot-${i}"></div>
     `).join('');
 
-    function dropDisc(col) {
-      if (!isHumanTurn || isGameOver) return;
+    function isMyTurn() {
+      if (isGameOver) return false;
+      if (!isPartyMode && !isPassPlay) {
+        return currentTurnNum === 1; // Solo vs AI
+      }
+      if (isPassPlay) return true;
+      return currentTurnNum === myPlayerNum;
+    }
 
+    function updateTurnUI() {
+      const banner = document.getElementById('statusBanner');
+      const p1Card = document.getElementById('p1Card');
+      const p2Card = document.getElementById('p2Card');
+
+      if (currentTurnNum === 1) {
+        if (p1Card) p1Card.classList.add('bg-white/10', 'ring-1', 'ring-red-500/50');
+        if (p2Card) p2Card.classList.remove('bg-white/10', 'ring-1', 'ring-red-500/50', 'ring-yellow-400/50');
+      } else {
+        if (p2Card) p2Card.classList.add('bg-white/10', 'ring-1', 'ring-yellow-400/50');
+        if (p1Card) p1Card.classList.remove('bg-white/10', 'ring-1', 'ring-red-500/50', 'ring-yellow-400/50');
+      }
+
+      if (isGameOver) return;
+
+      if (isPartyMode) {
+        if (currentTurnNum === myPlayerNum) {
+          const colName = (myPlayerNum === 1) ? 'RED' : 'YELLOW';
+          banner.textContent = `YOUR TURN (${colName}) — DROP DISC`;
+          banner.className = "orbitron font-extrabold text-[10.5px] sm:text-xs text-amber-300 tracking-wide text-center truncate px-1";
+        } else {
+          const waitingName = (currentTurnNum === 1) ? p1.username : p2.username;
+          const colName = (currentTurnNum === 1) ? 'RED' : 'YELLOW';
+          banner.textContent = `WAITING FOR ${waitingName.toUpperCase()} (${colName})...`;
+          banner.className = "orbitron font-extrabold text-[10.5px] sm:text-xs text-gray-400 tracking-wide text-center truncate px-1";
+        }
+      } else if (isPassPlay) {
+        banner.textContent = (currentTurnNum === 1) ? `${p1.username.toUpperCase()} (RED) TURN` : `${p2.username.toUpperCase()} (YELLOW) TURN`;
+        banner.className = "orbitron font-extrabold text-[10.5px] sm:text-xs text-amber-300 tracking-wide text-center truncate px-1";
+      } else {
+        // AI Solo
+        if (currentTurnNum === 1) {
+          banner.textContent = "YOUR TURN (RED)";
+          banner.className = "orbitron font-extrabold text-[10.5px] sm:text-xs text-cyan-300 tracking-wide text-center truncate px-1";
+        } else {
+          banner.textContent = "AI IS THINKING...";
+          banner.className = "orbitron font-extrabold text-[10.5px] sm:text-xs text-yellow-400 tracking-wide text-center truncate px-1";
+        }
+      }
+    }
+
+    function handleColClick(col) {
+      if (!isMyTurn() || isGameOver) return;
+
+      const player = currentTurnNum;
+      const targetRow = executeDrop(col, player);
+      if (targetRow === -1) return; // Full col
+
+      if (isPartyMode) {
+        sendPartyAction({
+          action: 'CONNECT4_DROP',
+          col: col,
+          player: player
+        });
+      }
+    }
+
+    function executeDrop(col, player) {
       // Find lowest available row in column
       let targetRow = -1;
       for (let r = ROWS - 1; r >= 0; r--) {
@@ -127,34 +303,39 @@
         }
       }
 
-      if (targetRow === -1) return; // Column full
+      if (targetRow === -1) return -1; // Column full
 
-      grid[targetRow][col] = 1;
-      animateSlot(targetRow, col, 'bg-red-500');
+      grid[targetRow][col] = player;
+      const bgClass = (player === 1) ? 'bg-red-500' : 'bg-yellow-400';
+      animateSlot(targetRow, col, bgClass);
 
-      if (checkConnect4Win(1)) {
-        finishRound("🏆 YOU CONNECTED 4! VICTORY!", "text-red-400");
-        return;
+      if (checkConnect4Win(player)) {
+        finishRound(player);
+        return targetRow;
       }
 
       if (grid.every(row => row.every(c => c !== 0))) {
-        finishRound("IT'S A DRAW!", "text-gray-400");
-        return;
+        finishRound('draw');
+        return targetRow;
       }
 
-      isHumanTurn = false;
-      document.getElementById('statusBanner').textContent = "AI IS THINKING...";
-      setTimeout(runAiTurn, 700);
+      currentTurnNum = (player === 1) ? 2 : 1;
+      updateTurnUI();
+
+      // Trigger AI in Single Player mode
+      if (!isPartyMode && !isPassPlay && currentTurnNum === 2) {
+        setTimeout(runAiTurn, 600);
+      }
+
+      return targetRow;
     }
 
     function runAiTurn() {
-      if (isGameOver) return;
+      if (isGameOver || isPartyMode || isPassPlay || currentTurnNum !== 2) return;
 
-      // Smart AI: Priority 1 - Win if possible; Priority 2 - Block player win
+      // Smart AI
       let bestCol = findWinningMove(2) ?? findWinningMove(1);
-
       if (bestCol === null) {
-        // Pick center column first if available
         const validCols = [];
         for (let c = 0; c < COLS; c++) {
           if (grid[0][c] === 0) validCols.push(c);
@@ -162,24 +343,9 @@
         bestCol = validCols.includes(3) ? 3 : validCols[Math.floor(Math.random() * validCols.length)];
       }
 
-      let targetRow = -1;
-      for (let r = ROWS - 1; r >= 0; r--) {
-        if (grid[r][bestCol] === 0) {
-          targetRow = r;
-          break;
-        }
+      if (bestCol !== null && bestCol !== undefined) {
+        executeDrop(bestCol, 2);
       }
-
-      grid[targetRow][bestCol] = 2;
-      animateSlot(targetRow, bestCol, 'bg-yellow-400');
-
-      if (checkConnect4Win(2)) {
-        finishRound("AI CONNECTED 4! DEFEAT!", "text-yellow-400");
-        return;
-      }
-
-      isHumanTurn = true;
-      document.getElementById('statusBanner').textContent = "YOUR TURN (RED)";
     }
 
     function findWinningMove(player) {
@@ -199,7 +365,6 @@
     }
 
     function checkConnect4Win(p) {
-      // Horizontal, Vertical, Diagonal checks
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
           if (grid[r][c] !== p) continue;
@@ -215,7 +380,9 @@
     function animateSlot(r, c, bgClass) {
       const idx = r * COLS + c;
       const el = document.getElementById(`slot-${idx}`);
-      el.className = `grid-slot ${bgClass} shadow-lg scale-95`;
+      if (el) {
+        el.className = `grid-slot ${bgClass} shadow-lg scale-95 transition-all`;
+      }
     }
 
     function finishRound(outcome) {
@@ -226,45 +393,97 @@
       const desc = document.getElementById('c4Desc');
       const icon = document.getElementById('c4Icon');
 
-      if (outcome === 'player' || (typeof outcome === 'string' && (outcome.includes('VICTORY') || outcome.includes('YOU')))) {
-        s.textContent = "🏆 YOU CONNECTED 4! VICTORY!";
+      if (outcome === 1) {
+        const isWinnerMe = p1.isMe;
+        s.textContent = isWinnerMe ? "🏆 YOU CONNECTED 4! VICTORY!" : `🏆 ${p1.username.toUpperCase()} WON!`;
         s.className = "orbitron font-extrabold text-xs text-red-400";
-        title.textContent = "YOU WON!";
-        title.className = "text-xl font-black orbitron text-blue-400";
-        desc.textContent = "Awesome moves! You connected 4 in a row!";
-        icon.innerHTML = '<i class="fa-solid fa-trophy text-blue-400 text-3xl animate-bounce"></i>';
-      } else if (outcome === 'ai' || (typeof outcome === 'string' && (outcome.includes('AI') || outcome.includes('DEFEAT')))) {
-        s.textContent = "AI CONNECTED 4! DEFEAT!";
+        title.textContent = isWinnerMe ? "YOU WON!" : `${p1.username.toUpperCase()} WON!`;
+        title.className = "text-xl font-black orbitron text-red-400";
+        desc.textContent = `${p1.username} connected 4 RED discs in a line!`;
+        icon.innerHTML = '<i class="fa-solid fa-trophy text-red-400 text-3xl animate-bounce"></i>';
+      } else if (outcome === 2) {
+        const isWinnerMe = p2.isMe;
+        s.textContent = isWinnerMe ? "🏆 YOU CONNECTED 4! VICTORY!" : `🏆 ${p2.username.toUpperCase()} WON!`;
         s.className = "orbitron font-extrabold text-xs text-yellow-400";
-        title.textContent = "AI BOT WON!";
+        title.textContent = isWinnerMe ? "YOU WON!" : `${p2.username.toUpperCase()} WON!`;
         title.className = "text-xl font-black orbitron text-yellow-400";
-        desc.textContent = "AI Bot completed 4 discs in a line first.";
-        icon.innerHTML = '<i class="fa-solid fa-robot text-yellow-400 text-3xl"></i>';
+        desc.textContent = `${p2.username} connected 4 YELLOW discs in a line!`;
+        icon.innerHTML = '<i class="fa-solid fa-trophy text-yellow-400 text-3xl animate-bounce"></i>';
       } else {
         s.textContent = "IT'S A DRAW!";
         s.className = "orbitron font-extrabold text-xs text-gray-400";
         title.textContent = "BOARD FULL!";
         title.className = "text-xl font-black orbitron text-gray-300";
-        desc.textContent = "Match ended in a tie.";
+        desc.textContent = "Match ended in a tie. Well played!";
         icon.innerHTML = '<i class="fa-solid fa-handshake text-gray-300 text-3xl"></i>';
       }
 
       setTimeout(() => {
-        modal.classList.remove('hidden');
+        if (modal) modal.classList.remove('hidden');
       }, 400);
     }
 
-    function resetConnect4() {
+    function resetConnect4Local() {
       grid = Array(ROWS).fill(null).map(() => Array(COLS).fill(0));
       isGameOver = false;
-      isHumanTurn = true;
-      document.getElementById('c4Modal').classList.add('hidden');
-      document.getElementById('statusBanner').textContent = "YOUR TURN (RED)";
-      document.getElementById('statusBanner').className = "orbitron font-extrabold text-xs text-amber-300";
+      currentTurnNum = 1;
+      const modal = document.getElementById('c4Modal');
+      if (modal) modal.classList.add('hidden');
       for (let i = 0; i < ROWS * COLS; i++) {
-        document.getElementById(`slot-${i}`).className = 'grid-slot';
+        const el = document.getElementById(`slot-${i}`);
+        if (el) el.className = 'grid-slot';
+      }
+      updateTurnUI();
+    }
+
+    function requestResetConnect4() {
+      resetConnect4Local();
+      if (isPartyMode) {
+        sendPartyAction({ action: 'CONNECT4_RESET' });
       }
     }
+
+    // -------------------------------------------------------------
+    // REALTIME PARTY SYNC
+    // -------------------------------------------------------------
+    function sendPartyAction(actionPayload) {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: 'PARTY_ACTION',
+          gameSlug: 'connect4-arena-ai',
+          roomCode: roomCode || window.parent?.activePartySession?.roomCode,
+          ...actionPayload
+        }, '*');
+      }
+    }
+
+    function handleRemotePartyAction(data) {
+      if (!data) return;
+
+      if (data.action === 'CONNECT4_DROP') {
+        const col = data.col;
+        const player = data.player;
+        if (col !== undefined && player !== undefined) {
+          executeDrop(col, player);
+        }
+      } else if (data.action === 'CONNECT4_RESET') {
+        resetConnect4Local();
+      }
+    }
+
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'PARTY_GAME_UPDATE') {
+        const payload = event.data.actionData || event.data;
+        const sId = event.data.senderId || payload.senderId;
+        if (sId && myUserId && String(sId) === String(myUserId)) {
+          return; // Ignore own action echo
+        }
+        handleRemotePartyAction(payload);
+      }
+    });
+
+    // Initialize UI
+    resetConnect4Local();
   </script>
 </body>
 </html>

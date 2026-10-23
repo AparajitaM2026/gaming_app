@@ -765,7 +765,9 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
     (slug.startsWith('carrom') && window.activePartySession.slug?.startsWith('carrom')) ||
     (slug.startsWith('chess') && window.activePartySession.slug?.startsWith('chess')) ||
     (slug.startsWith('checkers') && window.activePartySession.slug?.startsWith('checkers')) ||
-    (slug.startsWith('connect4') && window.activePartySession.slug?.startsWith('connect4'))
+    (slug.startsWith('connect4') && window.activePartySession.slug?.startsWith('connect4')) ||
+    (slug.startsWith('tictactoe') && window.activePartySession.slug?.startsWith('tictactoe')) ||
+    (slug.startsWith('tic-tac-toe') && window.activePartySession.slug?.startsWith('tic-tac-toe'))
   )) {
     const sess = window.activePartySession;
     const players = sess.players || [];
@@ -3220,8 +3222,8 @@ function handlePartySocketMessage(msg) {
       partyGameState = msg.gameState;
       partyCurrentRoom.players = msg.players;
       
-      // If native dice duel or tic-tac-toe arena:
-      if (msg.gameSlug === 'dice-duel' || msg.gameSlug === 'tictactoe-neon') {
+      // If native dice duel track race:
+      if (msg.gameSlug === 'dice-duel') {
         showPartyScreen('arena');
         initGameArena(msg.gameSlug, msg.players, msg.currentTurn, msg.gameState);
       } else {
