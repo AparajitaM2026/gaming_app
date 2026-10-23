@@ -1210,12 +1210,10 @@ app.get('/api/game-frame', async (req, res) => {
             if (fixtop) fixtop.remove();
             var nav = document.querySelector('.nav') || document.querySelector('#gz-topnav');
             if (nav) nav.remove();
-            var faq = document.querySelector('[itemtype*="FAQPage"]');
-            if (faq) {
-              var parentDiv = faq.closest('div');
-              if (parentDiv && parentDiv !== document.body) parentDiv.remove();
-              else faq.remove();
-            }
+            var faqs = document.querySelectorAll('.faq-section, section.faq-section, .gz-seo-section, section.gz-seo-section, section, [class*="faq"], #share-btn-overlay, [id*="share-btn"], [itemtype*="FAQPage"]');
+            faqs.forEach(function(f) {
+              try { f.remove(); } catch(e) {}
+            });
           }, 100);
           setTimeout(function() { clearInterval(scrubInterval); }, 15000);
 
@@ -1659,6 +1657,16 @@ app.get('/api/game-frame', async (req, res) => {
         #gz-ad-above-game,
         #gz-ad-below-canvas,
         #gz-ad-below-game,
+        .faq-section,
+        section.faq-section,
+        [class*="faq"],
+        .gz-seo-section,
+        section.gz-seo-section,
+        section,
+        #share-btn-overlay,
+        [id*="share-btn"],
+        .gz-sr-only,
+        h1.gz-sr-only,
         h3,
         div[style*="max-width:800px"],
         div[style*="max-width: 800px"] {
@@ -1940,6 +1948,8 @@ app.get('/api/game-frame', async (req, res) => {
     html = html.replace(/<section[^>]*class=["'][^"']*gz-related-games[^"']*["'][\s\S]*?<\/section>/gi, '');
     html = html.replace(/<div[^>]*class=["']gz-related-games["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<div[^>]*class=["']gz-seo-section["'][\s\S]*?<\/div>/gi, '');
+    html = html.replace(/<section\b[\s\S]*?<\/section>/gi, '');
+    html = html.replace(/<div[^>]*id=["']share-btn-overlay["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<a[^>]*class=["']fix-top["'][\s\S]*?<\/a>/gi, '');
     html = html.replace(/<p[^>]*>\s*<a[^>]*href=["'][^"']*blog[^"']*["'][\s\S]*?<\/a>\s*<\/p>/gi, '');
     html = html.replace(/<a[^>]*href=["'][^"']*\/blog\.html["'][\s\S]*?<\/a>/gi, '');
@@ -2172,6 +2182,14 @@ app.get('/api/game-frame', async (req, res) => {
     // Inlined patched script for Bubble Shooter (fixes collision detection, grid snapping, and aim pointer)
     if ((finalUrl.includes('bubble-shooter') || targetUrl.includes('bubble-shooter')) && cachedPatchedBubble) {
       html = html.replace(/<script>[\s\S]*?const canvas\s*=\s*document\.getElementById\('gameCanvas'\);[\s\S]*?<\/script>/i, `<script>${cachedPatchedBubble}</script>`);
+    }
+
+    // Auto-start Brick Breaker level 1 and clean canvas loop
+    if (finalUrl.includes('brick-breaker') || targetUrl.includes('brick-breaker')) {
+      html = html.replace(
+        "var score=0,lives=3,currentLevel=1,gameState='menu',paused=false;",
+        "var score=0,lives=3,currentLevel=1,gameState='waiting',paused=false; setTimeout(function(){ if(typeof startGame==='function') startGame(1); }, 150);"
+      );
     }
 
     html = html.replace(/<head[^>]*>/i, `$&${cleanInjection}`);

@@ -95,7 +95,7 @@
     "min_players": 1,
     "max_players": 1,
     "entry_fee_coins": 0,
-    "orientation": "portrait",
+    "orientation": "landscape",
     "rating": "4.7",
     "plays_count": 15020,
     "is_featured": true,

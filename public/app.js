@@ -517,7 +517,7 @@ const STANDARD_GAMES = new Set([
   'mahjong-solitaire', 'sliding-puzzle', '2048-galaxy',
   'ludo-hero-ai', 'carrom-clash-ai', 'chess-master-ai',
   'checkers-classic-ai', 'connect4-arena-ai', 'tictactoe-neon-ai',
-  'pong'
+  'pong', 'brick-breaker'
 ]);
 
 let currentTheaterSize = 'standard';
