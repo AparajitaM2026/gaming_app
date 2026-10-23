@@ -687,30 +687,21 @@ function joinRoomFromModeModal() {
 }
 
 // Games that support 2-player / versus / multiplayer / AI vs Human modes
+// Only true multiplayer games (with real 2-player Pass & Play + Live WebSocket Party + AI) show the Mode Selector modal
 const MULTIPLAYER_ELIGIBLE_GAMES = new Set([
   'ludo-hero-ai', 'ludo',
-  'carrom-clash-ai', 'carrom-pool', 'carrom', 'striker-king-3d',
+  'carrom-clash-ai', 'carrom-pool', 'carrom',
   'chess-master-ai', 'chess',
   'checkers-classic-ai', 'checkers',
   'connect4-arena-ai', 'connect-4', 'connect4',
   'tictactoe-neon-ai', 'tictactoe-neon', 'tic-tac-toe', 'tictactoe',
-  'dice-duel', 'neon-dice-duel',
-  '8-ball-billiards-classic', 'pro-billiards-3d', '8ball-pool', 'billiards',
-  'power-puck-hockey', 'air-hockey',
-  'table-tennis-world-tour', 'pong', 'ping-pong',
-  'dots-and-boxes', 'reversi', 'go', 'trivia-crack',
-  'penalty-shooters-2', 'cars-arena'
+  'dice-duel', 'neon-dice-duel'
 ]);
 
 function isMultiplayerGame(slug) {
   if (!slug) return false;
   const s = String(slug).toLowerCase().trim();
-  if (MULTIPLAYER_ELIGIBLE_GAMES.has(s)) return true;
-  const g = window.gameMap && window.gameMap[s];
-  if (g && (g.is_multiplayer || g.category === '2 Player' || g.category === 'Multiplayer' || g.category === 'Board')) {
-    return true;
-  }
-  return false;
+  return MULTIPLAYER_ELIGIBLE_GAMES.has(s);
 }
 
 async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false) {
