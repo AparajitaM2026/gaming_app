@@ -141,47 +141,44 @@
     if (isPartyMode) {
       let passedPlayers = [];
       try {
-        passedPlayers = JSON.parse(urlParams.get('players') || '[]');
-      } catch (e) {}
+        passedPlayers = JSON.parse(decodeURIComponent(urlParams.get('players') || '[]'));
+      } catch (e) {
+        try { passedPlayers = JSON.parse(urlParams.get('players') || '[]'); } catch (err) {}
+      }
       if (!passedPlayers || passedPlayers.length === 0) {
         if (window.parent?.activePartySession?.players) {
           passedPlayers = window.parent.activePartySession.players;
         }
       }
 
-      if (Array.isArray(passedPlayers) && passedPlayers.length > 0) {
-        activePlayers = passedPlayers.slice(0, 2).map((p, idx) => {
-          let isThisMe = false;
-          if (myPlayerIndex !== -1 && !isNaN(myPlayerIndex)) {
-            isThisMe = (idx === myPlayerIndex);
-          } else {
-            isThisMe = (
-              (myUserId && String(p.id) === String(myUserId)) ||
-              (myUsername && p.username && p.username.toLowerCase() === myUsername.toLowerCase()) ||
-              (isHostParam ? idx === 0 : idx === 1)
-            );
-          }
-          return {
-            id: p.id,
-            username: p.username || (idx === 0 ? 'Host' : 'Friend'),
-            color: idx === 0 ? 'WHITE' : 'BLACK',
-            isBot: p.isBot || false,
-            isMe: isThisMe
-          };
-        });
-
-        // Ensure at least one has isMe
-        if (!activePlayers.some(p => p.isMe)) {
-          const fallbackIdx = isHostParam ? 0 : 1;
-          if (activePlayers[fallbackIdx]) activePlayers[fallbackIdx].isMe = true;
-          else if (activePlayers[0]) activePlayers[0].isMe = true;
-        }
+      // Guarantee strict binary exclusivity between Host (White) and Friend (Black)
+      let amIHost = false;
+      if (myPlayerIndex === 0) {
+        amIHost = true;
+      } else if (myPlayerIndex === 1) {
+        amIHost = false;
+      } else if (isHostParam) {
+        amIHost = true;
       } else {
-        activePlayers = [
-          { id: 'p1', username: 'Host (You)', color: 'WHITE', isBot: false, isMe: isHostParam },
-          { id: 'p2', username: 'Friend', color: 'BLACK', isBot: false, isMe: !isHostParam }
-        ];
+        amIHost = false;
       }
+
+      let hostName = 'Host';
+      let friendName = 'Friend';
+      if (Array.isArray(passedPlayers) && passedPlayers.length > 0) {
+        if (passedPlayers[0] && passedPlayers[0].username) hostName = passedPlayers[0].username;
+        if (passedPlayers[1] && passedPlayers[1].username) friendName = passedPlayers[1].username;
+      }
+      if (!amIHost && myUsername) {
+        friendName = myUsername;
+      } else if (amIHost && myUsername) {
+        hostName = myUsername;
+      }
+
+      activePlayers = [
+        { id: 'p1', username: hostName, color: 'WHITE', isBot: false, isMe: amIHost },
+        { id: 'p2', username: friendName, color: 'BLACK', isBot: false, isMe: !amIHost }
+      ];
     } else if (isPassPlay) {
       activePlayers = [
         { id: 'p1', username: 'Player 1', color: 'WHITE', isBot: false, isMe: true },
@@ -538,6 +535,7 @@
       if (!data) return;
 
       if (data.action === 'CARROM_STRIKE') {
+        clearTimeout(window._carromSyncTimeout);
         striker.x = data.strikerX;
         striker.y = data.strikerY;
         striker.vx = data.vx;
@@ -551,7 +549,9 @@
           striker.y = data.strikerY;
           render();
         }
-      } else if (data.action === 'CARROM_SYNC_STATE') {
+      } else if (data.action === 'CARROM_TURN_RESULT' || data.action === 'CARROM_SYNC_STATE') {
+        clearTimeout(window._carromSyncTimeout);
+        moving = false;
         if (Array.isArray(data.coins)) {
           coins = data.coins.map(c => ({
             x: c.x,
@@ -565,19 +565,23 @@
         }
         if (data.pScore !== undefined) {
           pScore = data.pScore;
-          document.getElementById('playerScoreText').textContent = `${pScore} Pkts`;
+          const pEl = document.getElementById('playerScoreText');
+          if (pEl) pEl.textContent = `${pScore} Pkts`;
         }
         if (data.aScore !== undefined) {
           aScore = data.aScore;
-          document.getElementById('aiScoreText').textContent = `${aScore} Pkts`;
+          const aEl = document.getElementById('aiScoreText');
+          if (aEl) aEl.textContent = `${aScore} Pkts`;
         }
         if (data.nextTurn !== undefined) {
           isWhiteTurn = data.nextTurn;
           resetStrikerForTurn();
           updateStatusBanner();
         }
+        checkGameOver();
         render();
       } else if (data.action === 'CARROM_RESET') {
+        clearTimeout(window._carromSyncTimeout);
         resetCarromLocal();
       }
     }
@@ -749,32 +753,60 @@
           return;
         }
 
-        // Determine if player keeps turn (pocketed own coin)
-        const pocketedOwn = isWhiteTurn ? (pocketedWhiteThisTurn > 0) : (pocketedBlackThisTurn > 0);
-        let nextTurnIsWhite = isWhiteTurn;
-        if (!pocketedOwn) {
-          nextTurnIsWhite = !isWhiteTurn;
-        }
-        isWhiteTurn = nextTurnIsWhite;
+        if (isPartyMode) {
+          // In 2-Player Live Party Mode: The shooter authoritatively resolves the turn outcome!
+          const iWasShooter = isWhiteTurn ? Boolean(p1.isMe) : Boolean(p2.isMe);
+          if (iWasShooter) {
+            const pocketedOwn = isWhiteTurn ? (pocketedWhiteThisTurn > 0) : (pocketedBlackThisTurn > 0);
+            let nextTurnIsWhite = isWhiteTurn;
+            if (!pocketedOwn) {
+              nextTurnIsWhite = !isWhiteTurn;
+            }
+            isWhiteTurn = nextTurnIsWhite;
+            resetStrikerForTurn();
+            updateStatusBanner();
 
-        resetStrikerForTurn();
-        updateStatusBanner();
+            // Broadcast authoritative turn outcome to the other player
+            sendPartyAction({
+              action: 'CARROM_TURN_RESULT',
+              coins: coins.map(c => ({ x: c.x, y: c.y, type: c.type, color: c.color })),
+              pScore: pScore,
+              aScore: aScore,
+              nextTurn: isWhiteTurn
+            });
+          } else {
+            // Non-shooter waits for shooter's authoritative sync
+            updateStatusBanner();
 
-        // Host authoritatively syncs final coin positions & scores
-        if (isPartyMode && isHost) {
-          sendPartyAction({
-            action: 'CARROM_SYNC_STATE',
-            coins: coins.map(c => ({ x: c.x, y: c.y, type: c.type, color: c.color })),
-            pScore: pScore,
-            aScore: aScore,
-            nextTurn: isWhiteTurn
-          });
-        }
+            // Resilient fallback: If remote message is delayed > 2.5s, resolve locally so game never hangs
+            clearTimeout(window._carromSyncTimeout);
+            window._carromSyncTimeout = setTimeout(() => {
+              if (!moving && isPartyMode) {
+                const pocketedOwn = isWhiteTurn ? (pocketedWhiteThisTurn > 0) : (pocketedBlackThisTurn > 0);
+                let nextTurnIsWhite = isWhiteTurn;
+                if (!pocketedOwn) nextTurnIsWhite = !isWhiteTurn;
+                isWhiteTurn = nextTurnIsWhite;
+                resetStrikerForTurn();
+                updateStatusBanner();
+              }
+            }, 2500);
+          }
+        } else {
+          // AI or Pass & Play Mode
+          const pocketedOwn = isWhiteTurn ? (pocketedWhiteThisTurn > 0) : (pocketedBlackThisTurn > 0);
+          let nextTurnIsWhite = isWhiteTurn;
+          if (!pocketedOwn) {
+            nextTurnIsWhite = !isWhiteTurn;
+          }
+          isWhiteTurn = nextTurnIsWhite;
+          resetStrikerForTurn();
+          updateStatusBanner();
 
-        // Run AI turn ONLY in AI mode when it's Black's turn (AI will NEVER run in Party Mode!)
-        if (!isPartyMode && !isPassPlay && !isWhiteTurn) {
-          clearTimeout(aiTimer);
-          aiTimer = setTimeout(aiTurn, 1000);
+          // Run AI turn ONLY in AI mode when it's Black's turn
+          if (!isPassPlay && !isWhiteTurn) {
+            clearTimeout(aiTimer);
+            aiTimer = setTimeout(aiTurn, 1000);
+          }
         }
       }
 

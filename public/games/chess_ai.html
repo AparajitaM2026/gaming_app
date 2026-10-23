@@ -168,37 +168,34 @@
         }
       }
 
-      if (Array.isArray(passedPlayers) && passedPlayers.length > 0) {
-        activePlayers = passedPlayers.slice(0, 2).map((p, idx) => {
-          let isThisMe = false;
-          if (myPlayerIndex !== -1 && !isNaN(myPlayerIndex)) {
-            isThisMe = (idx === myPlayerIndex);
-          } else {
-            isThisMe = (
-              (myUserId && String(p.id) === String(myUserId)) ||
-              (myUsername && p.username && p.username.toLowerCase() === myUsername.toLowerCase()) ||
-              (isHostParam ? idx === 0 : idx === 1)
-            );
-          }
-          return {
-            id: p.id,
-            username: p.username || (idx === 0 ? 'Host' : 'Friend'),
-            color: idx === 0 ? 'WHITE' : 'BLACK',
-            isMe: isThisMe
-          };
-        });
-
-        if (!activePlayers.some(p => p.isMe)) {
-          const fallbackIdx = isHostParam ? 0 : 1;
-          if (activePlayers[fallbackIdx]) activePlayers[fallbackIdx].isMe = true;
-          else if (activePlayers[0]) activePlayers[0].isMe = true;
-        }
+      // Guarantee strict binary exclusivity between Host (White) and Friend (Black)
+      let amIHost = false;
+      if (myPlayerIndex === 0) {
+        amIHost = true;
+      } else if (myPlayerIndex === 1) {
+        amIHost = false;
+      } else if (isHostParam) {
+        amIHost = true;
       } else {
-        activePlayers = [
-          { id: 'p1', username: 'Host (You)', color: 'WHITE', isMe: isHostParam },
-          { id: 'p2', username: 'Friend', color: 'BLACK', isMe: !isHostParam }
-        ];
+        amIHost = false;
       }
+
+      let hostName = 'Host';
+      let friendName = 'Friend';
+      if (Array.isArray(passedPlayers) && passedPlayers.length > 0) {
+        if (passedPlayers[0] && passedPlayers[0].username) hostName = passedPlayers[0].username;
+        if (passedPlayers[1] && passedPlayers[1].username) friendName = passedPlayers[1].username;
+      }
+      if (!amIHost && myUsername) {
+        friendName = myUsername;
+      } else if (amIHost && myUsername) {
+        hostName = myUsername;
+      }
+
+      activePlayers = [
+        { id: 'p1', username: hostName, color: 'WHITE', isMe: amIHost },
+        { id: 'p2', username: friendName, color: 'BLACK', isMe: !amIHost }
+      ];
     } else if (isPassPlay) {
       activePlayers = [
         { id: 'p1', username: 'Player 1', color: 'WHITE', isMe: true },

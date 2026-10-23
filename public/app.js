@@ -3457,7 +3457,7 @@ function joinPartyRoom(codeFromUrl) {
 
   if (!code) {
     if (errorEl) {
-      errorEl.textContent = '⚠️ Pehle friend dwara share kiya gaya room code enter karein (e.g. VX-8492)';
+      errorEl.textContent = '⚠️ Please enter the room code shared by your friend (e.g. VX-8492)';
       errorEl.classList.remove('hidden');
     }
     if (inputEl) {

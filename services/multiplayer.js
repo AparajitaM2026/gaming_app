@@ -250,21 +250,21 @@ function setupMultiplayer(wss) {
             if (!room) {
               return ws.send(JSON.stringify({ 
                 type: 'PARTY_ERROR', 
-                message: `Room "${rawCode}" nahi mila! Kripya sahi 4 ya 6 letter code enter karein.` 
+                message: `Room "${rawCode}" not found! Please check and enter the correct room code.` 
               }));
             }
 
             if (room.status !== 'LOBBY') {
               return ws.send(JSON.stringify({ 
                 type: 'PARTY_ERROR', 
-                message: 'Ye match pehle hi start ho chuka hai.' 
+                message: 'This match has already started.' 
               }));
             }
 
             if (room.players.length >= room.maxPlayers) {
               return ws.send(JSON.stringify({ 
                 type: 'PARTY_ERROR', 
-                message: `Room full ho gaya hai (Max ${room.maxPlayers} players).` 
+                message: `This room is full (Max ${room.maxPlayers} players).` 
               }));
             }
 
