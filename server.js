@@ -1831,6 +1831,56 @@ app.get('/api/game-frame', async (req, res) => {
           pointer-events: auto !important;
           cursor: crosshair;
         }
+        /* Universal Responsive Overlay & Glass Cards (Slice Master / Fruit Slash & Arcade Overlays) */
+        .glass {
+          max-width: min(94vw, 440px) !important;
+          padding: clamp(0.8rem, 3vw, 1.5rem) clamp(0.6rem, 2.5vw, 1.2rem) !important;
+          width: 94% !important;
+          box-sizing: border-box !important;
+        }
+        .lv-grid {
+          display: grid !important;
+          grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+          gap: clamp(4px, 1.5vw, 8px) !important;
+          max-width: 100% !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+          margin: 0.8rem auto !important;
+        }
+        .lv-btn {
+          width: 100% !important;
+          max-width: 50px !important;
+          height: auto !important;
+          aspect-ratio: 1 / 1 !important;
+          min-width: 0 !important;
+          min-height: 0 !important;
+          font-size: clamp(0.75rem, 2.5vw, 1.05rem) !important;
+          padding: 2px !important;
+          box-sizing: border-box !important;
+          margin: 0 auto !important;
+        }
+        .lv-btn .st {
+          font-size: clamp(0.45rem, 1.5vw, 0.6rem) !important;
+        }
+        .ch-grid {
+          display: flex !important;
+          flex-wrap: wrap !important;
+          gap: 8px !important;
+          justify-content: center !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+        }
+        .ch-card {
+          width: calc(50% - 8px) !important;
+          max-width: 130px !important;
+          padding: 0.8rem 0.5rem !important;
+          box-sizing: border-box !important;
+        }
+        .btn {
+          min-width: unset !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+        }
       </style>
     `;
 
