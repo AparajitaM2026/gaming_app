@@ -744,16 +744,18 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
   const title = cleanGameTitle(game.title);
   let playUrl = game.url || game.game_url;
 
-  // Detect orientation
-  const isPortrait = game.orientation === 'portrait' || PORTRAIT_GAMES.has(slug);
-  window.currentTheaterGameOrientation = isPortrait ? 'portrait' : 'landscape';
-
-  // Auto-detect optimal aspect ratio cabinet mode
-  if (isPortrait) {
+  // Detect optimal aspect ratio cabinet mode
+  if (PORTRAIT_GAMES.has(slug)) {
+    window.currentTheaterGameOrientation = 'portrait';
     setTheaterSize('mobile');
   } else if (STANDARD_GAMES.has(slug)) {
+    window.currentTheaterGameOrientation = 'landscape';
     setTheaterSize('standard');
+  } else if (game.orientation === 'portrait') {
+    window.currentTheaterGameOrientation = 'portrait';
+    setTheaterSize('mobile');
   } else {
+    window.currentTheaterGameOrientation = 'landscape';
     setTheaterSize('wide');
   }
 
@@ -1337,7 +1339,7 @@ function openGameTheater(title, url, game = null) {
   const titleEl = document.getElementById('theaterGameTitle');
 
   if (game) {
-    const isPortrait = game.orientation === 'portrait' || (game.slug && PORTRAIT_GAMES.has(game.slug));
+    const isPortrait = PORTRAIT_GAMES.has(game.slug) || (game.orientation === 'portrait' && !STANDARD_GAMES.has(game.slug));
     window.currentTheaterGameOrientation = isPortrait ? 'portrait' : 'landscape';
     window.currentTheaterGameSlug = game.slug;
   } else {

@@ -1927,9 +1927,7 @@ app.get('/api/game-frame', async (req, res) => {
       return match;
     });
 
-    // Strip ad placeholders and markup
-    html = html.replace(/<ins[^>]*class=["'][^"']*adsbygoogle[^"']*["'][\s\S]*?<\/ins>/gi, '');
-    html = html.replace(/<ins[\s\S]*?<\/ins>/gi, '');
+    // Strip ad placeholders and markup (safe non-greedy, ins is already hidden by CSS)
     html = html.replace(/<link[^>]*(pagead2|googlesyndication|doubleclick|monetag|adsterra)[^>]*>/gi, '');
     html = html.replace(/<meta[^>]*http-equiv=["']?refresh["']?[^>]*>/gi, '');
     html = html.replace(/<div[^>]*id=["']gz-ad-[^"']*["'][^>]*><\/div>/gi, '');
