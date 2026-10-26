@@ -1401,15 +1401,65 @@ app.get('/api/game-frame', async (req, res) => {
           document.getElementById = function(id) {
             const el = origGetElementById(id);
             if (el) return el;
-            if (id === 'sound-toggle' || id === 'soundToggle' || id === 'start-btn' || id === 'mute-btn') {
+            if (id === 'sound-toggle' || id === 'soundToggle' || id === 'start-btn' || id === 'mute-btn' || id === 'loader') {
               const dummy = document.createElement('div');
               dummy.id = id;
               dummy.style.display = 'none';
-              document.body.appendChild(dummy);
+              if (document.body) document.body.appendChild(dummy);
+              else if (document.documentElement) document.documentElement.appendChild(dummy);
               return dummy;
             }
             return null;
           };
+
+          // Ensure Unity WebGL instances resolve streaming assets correctly relative to baseURI
+          let _origCreateUnityInstance = window.createUnityInstance;
+          Object.defineProperty(window, 'createUnityInstance', {
+            configurable: true,
+            get: function() { return _origCreateUnityInstance; },
+            set: function(fn) {
+              _origCreateUnityInstance = function(canvas, config, onProgress) {
+                if (config && config.streamingAssetsUrl && !config.streamingAssetsUrl.startsWith('http')) {
+                  try {
+                    config.streamingAssetsUrl = new URL(config.streamingAssetsUrl, document.baseURI || window.location.href).href;
+                  } catch(e) {}
+                }
+                return fn(canvas, config, onProgress);
+              };
+            }
+          });
+
+          const origXhrOpen = XMLHttpRequest.prototype.open;
+          XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+            if (typeof url === 'string' && url.includes('StreamingAssets/')) {
+              try {
+                const sub = url.substring(url.indexOf('StreamingAssets/'));
+                url = new URL(sub, document.baseURI || window.location.href).href;
+              } catch(e) {}
+            } else if (typeof url === 'string' && (url.startsWith('StreamingAssets/') || url.startsWith('Build/'))) {
+              try {
+                url = new URL(url, document.baseURI || window.location.href).href;
+              } catch(e) {}
+            }
+            return origXhrOpen.call(this, method, url, ...rest);
+          };
+
+          const origFetch = window.fetch;
+          if (origFetch) {
+            window.fetch = function(resource, init) {
+              if (typeof resource === 'string' && resource.includes('StreamingAssets/')) {
+                try {
+                  const sub = resource.substring(resource.indexOf('StreamingAssets/'));
+                  resource = new URL(sub, document.baseURI || window.location.href).href;
+                } catch(e) {}
+              } else if (typeof resource === 'string' && (resource.startsWith('StreamingAssets/') || resource.startsWith('Build/'))) {
+                try {
+                  resource = new URL(resource, document.baseURI || window.location.href).href;
+                } catch(e) {}
+              }
+              return origFetch.call(this, resource, init);
+            };
+          }
 
           // Famobi Autonomous Emulator (bypasses anti-embed redirects and loads game assets directly)
           const _famobiStore = {};
@@ -1461,7 +1511,7 @@ app.get('/api/game-frame', async (req, res) => {
               gameParams: {}
             },
             hasFeature: function(f) { 
-              if (f === 'external_start' || f === 'external_pause' || f === 'external_mute') return false;
+              if (f === 'visibilitychange' || f === 'external_start' || f === 'external_pause' || f === 'external_mute') return false;
               if (f === 'ads' || f === 'rewarded_ads' || f === 'highscores' || f === 'leaderboard' || f === 'branding') return false;
               return true;
             },
@@ -1592,6 +1642,21 @@ app.get('/api/game-frame', async (req, res) => {
                     const s = document.createElement('script');
                     s.src = src;
                     s.async = false;
+                    if (typeof src === 'string' && src.includes('WebGL.loader.js')) {
+                      s.onload = function() {
+                        if (typeof window.createUnityInstance === 'function') {
+                          const _real = window.createUnityInstance;
+                          window.createUnityInstance = function(c, cfg, p) {
+                            if (cfg && cfg.streamingAssetsUrl && !cfg.streamingAssetsUrl.startsWith('http')) {
+                              try {
+                                cfg.streamingAssetsUrl = new URL(cfg.streamingAssetsUrl, document.baseURI || window.location.href).href;
+                              } catch(e) {}
+                            }
+                            return _real(c, cfg, p);
+                          };
+                        }
+                      };
+                    }
                     document.head.appendChild(s);
                   } else if (typeof f === 'function') {
                     try { f(); } catch(e) {}
@@ -1605,7 +1670,7 @@ app.get('/api/game-frame', async (req, res) => {
             sessionStorage: mockStorage,
             getStorage: function() { return mockStorage; },
             hasFeature: function(f) { 
-              if (f === 'external_start' || f === 'external_pause' || f === 'external_mute') return false;
+              if (f === 'visibilitychange' || f === 'external_start' || f === 'external_pause' || f === 'external_mute') return false;
               if (f === 'ads' || f === 'rewarded_ads' || f === 'highscores' || f === 'leaderboard' || f === 'branding') return false;
               return true;
             },
@@ -1619,6 +1684,11 @@ app.get('/api/game-frame', async (req, res) => {
             onMuteStateChange: function() {},
             onPauseStateChange: function() {},
             onOffsetChange: function() {},
+            getCurrentLanguage: function() { return 'en'; },
+            getLanguage: function() { return 'en'; },
+            getCopyrightLogoURL: function() { return ''; },
+            isMuted: function() { return false; },
+            isPaused: function() { return false; },
             hasRewardedAd: function() { return Promise.resolve(false); },
             hasInterstitialAd: function() { return Promise.resolve(false); },
             hasAd: function() { return Promise.resolve(false); },
@@ -1632,6 +1702,9 @@ app.get('/api/game-frame', async (req, res) => {
               if (prop === 'then') return undefined;
               if (typeof prop === 'string' && prop.startsWith('get') && prop.includes('Image')) {
                 return function() { return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; };
+              }
+              if (typeof prop === 'string' && (prop.includes('URL') || prop.includes('Url') || prop.includes('Target') || prop.includes('Language'))) {
+                return function() { return ''; };
               }
               return function() { return Promise.resolve(true); };
             }
@@ -2434,6 +2507,11 @@ app.get('/api/game-frame', async (req, res) => {
       );
     }
 
+    // Fix Sudoku stopTimer null reference during unload or pause
+    if (html.includes('stopTimer') && html.includes('run.timerInterval')) {
+      html = html.replace(/if\s*\(\s*run\.timerInterval\s*\)/g, 'if(run && run.timerInterval)');
+    }
+
     html = html.replace(/<head[^>]*>/i, `$&${cleanInjection}`);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -2441,6 +2519,24 @@ app.get('/api/game-frame', async (req, res) => {
   } catch (err) {
     console.error('Failed to proxy game:', err);
     res.redirect(targetUrl);
+  }
+});
+
+// StreamingAssets proxy fallback for WebGL games
+app.get(/^\/(?:api\/)?StreamingAssets\/(.*)/, async (req, res) => {
+  try {
+    const referer = req.headers.referer || '';
+    const match = referer.match(/url=([^&]+)/);
+    const origUrl = match ? decodeURIComponent(match[1]) : 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-magic/v040/';
+    const subPath = req.params[0] || '';
+    const targetUrl = new URL(`StreamingAssets/${subPath}`, origUrl).href;
+    const resp = await fetch(targetUrl);
+    if (!resp.ok) return res.status(resp.status).send('Asset fetch failed');
+    res.setHeader('Content-Type', resp.headers.get('content-type') || 'application/octet-stream');
+    const buffer = Buffer.from(await resp.arrayBuffer());
+    return res.send(buffer);
+  } catch (e) {
+    res.status(404).send('Asset not found');
   }
 });
 
