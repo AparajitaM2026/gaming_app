@@ -902,6 +902,50 @@ app.get('/api/leaderboard', async (req, res) => {
   }
 });
 
+// Cross-Origin Game Asset Streamer (Bypasses CORS for game engines & physics assets)
+app.options('/api/game-asset', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', '*');
+  res.sendStatus(204);
+});
+
+app.get('/api/game-asset', async (req, res) => {
+  const assetUrl = req.query.url;
+  if (!assetUrl || !assetUrl.startsWith('http')) {
+    return res.status(400).send('Invalid url');
+  }
+  try {
+    const fetchHeaders = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    };
+    if (req.headers.range) {
+      fetchHeaders['range'] = req.headers.range;
+    }
+    const upstream = await fetch(assetUrl, { headers: fetchHeaders });
+    if (!upstream.ok && upstream.status !== 206) {
+      return res.status(upstream.status).send('Upstream error');
+    }
+    const contentType = upstream.headers.get('content-type') || 'application/octet-stream';
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    if (upstream.headers.get('content-range')) {
+      res.setHeader('Content-Range', upstream.headers.get('content-range'));
+    }
+    if (upstream.headers.get('accept-ranges')) {
+      res.setHeader('Accept-Ranges', upstream.headers.get('accept-ranges'));
+    }
+    res.status(upstream.status);
+    const buffer = await upstream.arrayBuffer();
+    res.send(Buffer.from(buffer));
+  } catch (err) {
+    res.status(500).send('Asset stream failed');
+  }
+});
+
 // Clean Game Embed Streamer (Eliminates blur, ads, banners, redirects & UI overlapping)
 app.get('/api/game-frame', async (req, res) => {
   let targetUrl = req.query.url;
@@ -1021,23 +1065,97 @@ app.get('/api/game-frame', async (req, res) => {
             return el;
           };
 
-          // Network-level Ad Blocker (blocks fetch & XHR to ad networks)
+          // Cross-Origin Asset Proxy Bridge (bypasses CORS restrictions on CDN JSON/physics/media assets)
+          function proxyAssetUrl(url) {
+            if (!url || typeof url !== 'string') return url;
+            if (url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('/api/')) return url;
+            var fullUrl = url;
+            try { 
+              var base = document.baseURI || window.location.href;
+              fullUrl = new URL(url, base).href; 
+            } catch(e) {}
+            if (fullUrl.includes('html5.gamedistribution.com')) {
+              return (window.location.origin || '') + '/api/game-asset?url=' + encodeURIComponent(fullUrl);
+            }
+            return url;
+          }
+
+          // Intercept image textures for WebGL CORS compliance
+          try {
+            const _origImgSrcDesc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+            if (_origImgSrcDesc && _origImgSrcDesc.set) {
+              Object.defineProperty(HTMLImageElement.prototype, 'src', {
+                get: _origImgSrcDesc.get,
+                set: function(val) {
+                  if (typeof val === 'string' && (val.includes('html5.gamedistribution.com') || (document.baseURI && document.baseURI.includes('html5.gamedistribution.com')))) {
+                    this.crossOrigin = 'anonymous';
+                    val = proxyAssetUrl(val);
+                  }
+                  return _origImgSrcDesc.set.call(this, val);
+                },
+                configurable: true
+              });
+            }
+          } catch(e) {}
+
+          // Intercept audio media elements for cross-origin audio streaming
+          try {
+            const _origMediaSrcDesc = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'src');
+            if (_origMediaSrcDesc && _origMediaSrcDesc.set) {
+              Object.defineProperty(HTMLMediaElement.prototype, 'src', {
+                get: _origMediaSrcDesc.get,
+                set: function(val) {
+                  if (typeof val === 'string' && (val.includes('html5.gamedistribution.com') || (document.baseURI && document.baseURI.includes('html5.gamedistribution.com')))) {
+                    val = proxyAssetUrl(val);
+                  }
+                  return _origMediaSrcDesc.set.call(this, val);
+                },
+                configurable: true
+              });
+            }
+          } catch(e) {}
+
+          // Intercept setAttribute('src', ...)
+          try {
+            const _origSetAttr = Element.prototype.setAttribute;
+            Element.prototype.setAttribute = function(name, val) {
+              if (typeof name === 'string' && name.toLowerCase() === 'src' && typeof val === 'string') {
+                if (val.includes('html5.gamedistribution.com') || (document.baseURI && document.baseURI.includes('html5.gamedistribution.com'))) {
+                  if (this.tagName === 'IMG') {
+                    this.crossOrigin = 'anonymous';
+                  }
+                  val = proxyAssetUrl(val);
+                }
+              }
+              return _origSetAttr.call(this, name, val);
+            };
+          } catch(e) {}
+
+          // Network-level Ad Blocker & Asset Proxy (blocks ads, proxies cross-origin game assets)
           const _origFetch = window.fetch;
           if (typeof _origFetch === 'function') {
             window.fetch = function(input, init) {
-              const u = typeof input === 'string' ? input : (input && input.url ? input.url : '');
+              var u = typeof input === 'string' ? input : (input && input.url ? input.url : '');
               if (isAdUrl(u)) {
                 return Promise.resolve(new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } }));
               }
-              return _origFetch.apply(this, arguments);
+              var proxied = proxyAssetUrl(u);
+              if (proxied !== u) {
+                if (typeof input === 'string') input = proxied;
+                else if (input && input.url) input = new Request(proxied, input);
+              }
+              return _origFetch.call(this, input, init);
             };
           }
           const _origXhrOpen = XMLHttpRequest.prototype.open;
           XMLHttpRequest.prototype.open = function(method, url) {
+            var args = Array.prototype.slice.call(arguments);
             if (isAdUrl(url)) {
-              arguments[1] = 'data:application/json,{}';
+              args[1] = 'data:application/json,{}';
+            } else {
+              args[1] = proxyAssetUrl(url);
             }
-            return _origXhrOpen.apply(this, arguments);
+            return _origXhrOpen.apply(this, args);
           };
 
           // Stub Google AdSense & Ad Networks
@@ -1786,7 +1904,7 @@ app.get('/api/game-frame', async (req, res) => {
         }
         /* Landscape 3:2 games like Pong get wider horizontal bounds */
         #wrap:has(#hud) {
-          max-width: min(680px, calc((100vh - 110px) * 1.5)) !important;
+          max-width: min(620px, calc((100vh - 180px) * 1.5)) !important;
         }
         /* Tetris & vertical grid responsive cabinet containment */
         #game-wrap {
@@ -1858,7 +1976,7 @@ app.get('/api/game-frame', async (req, res) => {
           background: transparent !important;
         }
         #wrap:has(#hud) #canvas-wrap {
-          max-width: min(680px, calc((100vh - 120px) * 1.5)) !important;
+          max-width: min(620px, calc((100vh - 180px) * 1.5)) !important;
         }
         #controls {
           display: flex !important;
@@ -1905,7 +2023,7 @@ app.get('/api/game-frame', async (req, res) => {
           display: block !important;
           margin: auto !important;
           max-width: 100% !important;
-          max-height: calc(100vh - 110px) !important;
+          max-height: calc(100vh - 180px) !important;
           object-fit: contain !important;
         }
         #unity-container {
