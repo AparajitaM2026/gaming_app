@@ -801,13 +801,8 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
   } else if (slug === 'neon-runner') {
     playUrl = '/games/runner.html?title=' + encodeURIComponent(title);
   } else if (playUrl && playUrl.startsWith('http')) {
-    if (playUrl.includes('games.ottsol.cloud')) {
-      // Direct load! games.ottsol.cloud is fully ad-free and requires direct same-origin relative asset loading
-      playUrl = game?.game_url || game?.url || playUrl;
-    } else {
-      // Route through our clean game proxy to remove external ads & banners!
-      playUrl = `/api/game-frame?url=${encodeURIComponent(playUrl)}`;
-    }
+    // Route all external games through our clean, ad-free, responsive game proxy
+    playUrl = `/api/game-frame?url=${encodeURIComponent(playUrl)}`;
   } else {
     playUrl = '/games/runner.html?title=' + encodeURIComponent(title);
   }
