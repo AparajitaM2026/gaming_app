@@ -92,7 +92,7 @@
             <button onclick="requestResetCarrom()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-black font-extrabold orbitron text-xs uppercase shadow-lg shadow-amber-500/30 hover:opacity-90 active:scale-95 transition-all">
               <i class="fa-solid fa-rotate-right mr-1"></i> Play Again
             </button>
-            <button onclick="window.parent.closeGameTheater()" class="w-full py-2.5 rounded-xl bg-slate-800 border border-white/10 text-white font-bold text-xs hover:bg-slate-700 active:scale-95 transition-all">
+            <button onclick="window.parent?.closeGameTheater?.()" class="w-full py-2.5 rounded-xl bg-slate-800 border border-white/10 text-white font-bold text-xs hover:bg-slate-700 active:scale-95 transition-all">
               <i class="fa-solid fa-arrow-left mr-1"></i> Exit to Games
             </button>
           </div>
@@ -114,7 +114,7 @@
       <button onclick="requestResetCarrom()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-extrabold orbitron text-xs uppercase shadow-lg transition-all active:scale-95">
         Reset Board
       </button>
-      <button onclick="window.parent.closeGameTheater()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-xs hover:bg-white/20 active:scale-95 transition-all">
+      <button onclick="window.parent?.closeGameTheater?.()" class="flex-1 py-2 sm:py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-xs hover:bg-white/20 active:scale-95 transition-all">
         Exit to Games
       </button>
     </div>
@@ -331,14 +331,40 @@
       }
     }
 
+    function getSafeStrikerX(desiredX, targetY) {
+      let x = Math.max(90, Math.min(SIZE - 90, desiredX));
+      for (const c of coins) {
+        const minDist = striker.radius + c.radius + 3;
+        const dy = targetY - c.y;
+        if (Math.abs(dy) < minDist) {
+          const dx = x - c.x;
+          const dist = Math.hypot(dx, dy);
+          if (dist < minDist) {
+            const sign = dx >= 0 ? 1 : -1;
+            const requiredDx = Math.sqrt(Math.max(0, minDist * minDist - dy * dy)) + 3;
+            let testX = c.x + sign * requiredDx;
+            if (testX >= 90 && testX <= SIZE - 90) {
+              x = testX;
+            } else {
+              testX = c.x - sign * requiredDx;
+              if (testX >= 90 && testX <= SIZE - 90) x = testX;
+            }
+          }
+        }
+      }
+      return x;
+    }
+
     function resetStrikerForTurn() {
-      striker.x = SIZE / 2;
-      striker.y = isWhiteTurn ? BASE_Y_WHITE : BASE_Y_BLACK;
+      const targetBaseY = isWhiteTurn ? BASE_Y_WHITE : BASE_Y_BLACK;
+      striker.x = getSafeStrikerX(SIZE / 2, targetBaseY);
+      striker.y = targetBaseY;
       striker.vx = 0;
       striker.vy = 0;
       striker.color = isWhiteTurn ? '#DC2626' : '#1E293B';
       pocketedWhiteThisTurn = 0;
       pocketedBlackThisTurn = 0;
+      strikerFoul = false;
     }
 
     function isMyTurnNow() {
@@ -414,6 +440,20 @@
     // -------------------------------------------------------------
     // CONTROLS: POINTER DOWN, MOVE, UP
     // -------------------------------------------------------------
+    let lastStrikerMoveTime = 0;
+    function sendStrikerMoveThrottled(x, y, force = false) {
+      if (!isPartyMode) return;
+      const now = performance.now();
+      if (force || now - lastStrikerMoveTime >= 50) {
+        lastStrikerMoveTime = now;
+        sendPartyAction({
+          action: 'CARROM_STRIKER_MOVE',
+          strikerX: x,
+          strikerY: y
+        });
+      }
+    }
+
     canvas.addEventListener('pointerdown', (e) => {
       if (!isMyTurnNow()) return;
       try { canvas.setPointerCapture(e.pointerId); } catch(err) {}
@@ -434,18 +474,12 @@
         aimStart = { x: striker.x, y: striker.y };
         aimCurrent = { x, y };
       } else if (Math.abs(y - targetBaseY) < 38 && x >= 60 && x <= SIZE - 60) {
-        // Tap or drag along baseline to reposition striker
+        // Tap or drag along baseline to reposition striker safely
         isPlacing = true;
         isAiming = false;
-        striker.x = Math.max(90, Math.min(SIZE - 90, x));
+        striker.x = getSafeStrikerX(x, targetBaseY);
         render();
-        if (isPartyMode) {
-          sendPartyAction({
-            action: 'CARROM_STRIKER_MOVE',
-            strikerX: striker.x,
-            strikerY: striker.y
-          });
-        }
+        sendStrikerMoveThrottled(striker.x, striker.y, true);
       }
     });
 
@@ -463,15 +497,10 @@
       if (isAiming) {
         aimCurrent = { x, y };
       } else if (isPlacing) {
-        striker.x = Math.max(90, Math.min(SIZE - 90, x));
+        const targetBaseY = isWhiteTurn ? BASE_Y_WHITE : BASE_Y_BLACK;
+        striker.x = getSafeStrikerX(x, targetBaseY);
         render();
-        if (isPartyMode) {
-          sendPartyAction({
-            action: 'CARROM_STRIKER_MOVE',
-            strikerX: striker.x,
-            strikerY: striker.y
-          });
-        }
+        sendStrikerMoveThrottled(striker.x, striker.y, false);
       }
     });
 
@@ -480,6 +509,7 @@
 
       if (isPlacing) {
         isPlacing = false;
+        sendStrikerMoveThrottled(striker.x, striker.y, true);
         return;
       }
       if (!isAiming || gameOver) return;
@@ -496,6 +526,7 @@
       striker.vx = Math.cos(angle) * power;
       striker.vy = Math.sin(angle) * power;
       moving = true;
+      movingStartTime = performance.now();
       updateStatusBanner();
 
       // Broadcast strike to party peer
@@ -535,6 +566,10 @@
       if (!data) return;
 
       if (data.action === 'CARROM_STRIKE') {
+        // Strict receiver validation: only accept strike if idle and on sender's turn
+        if (moving) return;
+        if (data.isWhiteTurn !== isWhiteTurn) return;
+
         clearTimeout(window._carromSyncTimeout);
         striker.x = data.strikerX;
         striker.y = data.strikerY;
@@ -542,6 +577,7 @@
         striker.vy = data.vy;
         isWhiteTurn = data.isWhiteTurn;
         moving = true;
+        movingStartTime = performance.now();
         updateStatusBanner();
       } else if (data.action === 'CARROM_STRIKER_MOVE') {
         if (!moving) {
@@ -549,9 +585,10 @@
           striker.y = data.strikerY;
           render();
         }
-      } else if (data.action === 'CARROM_TURN_RESULT' || data.action === 'CARROM_SYNC_STATE') {
+      } else if (data.action === 'CARROM_TURN_RESULT' || data.action === 'CARROM_SYNC_STATE' || data.action === 'CARROM_GAME_OVER') {
         clearTimeout(window._carromSyncTimeout);
         moving = false;
+        movingStartTime = 0;
         if (Array.isArray(data.coins)) {
           coins = data.coins.map(c => ({
             x: c.x,
@@ -573,12 +610,17 @@
           const aEl = document.getElementById('aiScoreText');
           if (aEl) aEl.textContent = `${aScore} Pkts`;
         }
-        if (data.nextTurn !== undefined) {
-          isWhiteTurn = data.nextTurn;
-          resetStrikerForTurn();
-          updateStatusBanner();
+
+        if (data.isGameOver || data.action === 'CARROM_GAME_OVER') {
+          triggerGameOver(data.winnerPlayerId, data.winnerReason);
+        } else {
+          if (data.nextTurn !== undefined) {
+            isWhiteTurn = data.nextTurn;
+            resetStrikerForTurn();
+            updateStatusBanner();
+          }
+          checkGameOver();
         }
-        checkGameOver();
         render();
       } else if (data.action === 'CARROM_RESET') {
         clearTimeout(window._carromSyncTimeout);
@@ -598,6 +640,15 @@
     });
 
     function requestResetCarrom() {
+      if (isPartyMode && !isHost) {
+        const banner = document.getElementById('statusBanner');
+        if (banner) {
+          banner.textContent = "ONLY ROOM HOST CAN RESET THE BOARD";
+          banner.className = "orbitron font-extrabold text-[10px] sm:text-xs text-amber-400 tracking-wide text-center truncate px-1";
+          setTimeout(updateStatusBanner, 1800);
+        }
+        return;
+      }
       resetCarromLocal();
       if (isPartyMode) {
         sendPartyAction({ action: 'CARROM_RESET' });
@@ -606,10 +657,13 @@
 
     function resetCarromLocal() {
       clearTimeout(aiTimer);
+      clearTimeout(window._carromSyncTimeout);
       pScore = 0;
       aScore = 0;
       isWhiteTurn = true;
       moving = false;
+      movingStartTime = 0;
+      strikerFoul = false;
       gameOver = false;
       document.getElementById('gameOverModal').classList.add('hidden');
       document.getElementById('playerScoreText').textContent = '0 Pkts';
@@ -621,7 +675,7 @@
     }
 
     // -------------------------------------------------------------
-    // GAME OVER & VICTORY
+    // GAME OVER & VICTORY (First to clear assigned coins wins!)
     // -------------------------------------------------------------
     function checkGameOver() {
       if (gameOver) return true;
@@ -630,57 +684,101 @@
       const hasBlack = coins.some(c => c.type === 'black');
 
       if (!hasWhite || !hasBlack || coins.length === 0) {
-        gameOver = true;
-        clearTimeout(aiTimer);
-        moving = false;
-
-        const modal = document.getElementById('gameOverModal');
-        const winnerText = document.getElementById('winnerText');
-        const winnerSubtext = document.getElementById('winnerSubtext');
-        const winnerIcon = document.getElementById('winnerIcon');
-        const finalPScore = document.getElementById('finalPScore');
-        const finalAScore = document.getElementById('finalAScore');
-
-        if (finalPScore) finalPScore.textContent = `${pScore} Pkts`;
-        if (finalAScore) finalAScore.textContent = `${aScore} Pkts`;
-
         let winnerPlayer = null;
-        if (pScore > aScore || (!hasWhite && hasBlack)) {
+        let winnerReason = '';
+
+        if (!hasWhite && hasBlack) {
           winnerPlayer = p1;
-          winnerText.textContent = `${p1.username.toUpperCase()} WON!`;
-          winnerText.className = "text-xl font-black orbitron text-amber-400";
-          winnerSubtext.textContent = `${p1.username} pocketed all white coins!`;
-          winnerIcon.innerHTML = '<i class="fa-solid fa-trophy text-amber-400 text-3xl animate-bounce"></i>';
-          document.getElementById('statusBanner').textContent = `MATCH OVER — ${p1.username.toUpperCase()} WON!`;
-        } else if (aScore > pScore || (!hasBlack && hasWhite)) {
+          winnerReason = `${p1.username} cleared all White coins first!`;
+        } else if (!hasBlack && hasWhite) {
           winnerPlayer = p2;
-          winnerText.textContent = `${p2.username.toUpperCase()} WON!`;
-          winnerText.className = "text-xl font-black orbitron text-rose-400";
-          winnerSubtext.textContent = `${p2.username} cleared all black coins!`;
-          winnerIcon.innerHTML = '<i class="fa-solid fa-trophy text-rose-400 text-3xl animate-bounce"></i>';
-          document.getElementById('statusBanner').textContent = `MATCH OVER — ${p2.username.toUpperCase()} WON!`;
+          winnerReason = `${p2.username} cleared all Black coins first!`;
         } else {
-          winnerText.textContent = "MATCH TIED!";
-          winnerText.className = "text-xl font-black orbitron text-cyan-400";
-          winnerSubtext.textContent = "Equal points pocketed!";
-          winnerIcon.innerHTML = '<i class="fa-solid fa-handshake text-cyan-400 text-3xl"></i>';
-          document.getElementById('statusBanner').textContent = "MATCH FINISHED — TIED!";
+          // If both cleared simultaneously or queen cleared, compare points
+          if (pScore > aScore) {
+            winnerPlayer = p1;
+            winnerReason = `${p1.username} won on points (${pScore} vs ${aScore})!`;
+          } else if (aScore > pScore) {
+            winnerPlayer = p2;
+            winnerReason = `${p2.username} won on points (${aScore} vs ${pScore})!`;
+          } else {
+            winnerPlayer = null;
+            winnerReason = `Equal points (${pScore} - ${aScore})! Match Tied!`;
+          }
         }
 
-        if (modal) modal.classList.remove('hidden');
+        triggerGameOver(winnerPlayer ? winnerPlayer.id : null, winnerReason);
         return true;
       }
       return false;
     }
 
-    // -------------------------------------------------------------
-    // MAIN LOOP & PHYSICS
-    // -------------------------------------------------------------
-    function update() {
-      if (gameOver) {
-        render();
-        return;
+    function triggerGameOver(winnerId, customReason = '') {
+      gameOver = true;
+      clearTimeout(aiTimer);
+      moving = false;
+      movingStartTime = 0;
+
+      const modal = document.getElementById('gameOverModal');
+      const winnerText = document.getElementById('winnerText');
+      const winnerSubtext = document.getElementById('winnerSubtext');
+      const winnerIcon = document.getElementById('winnerIcon');
+      const finalPScore = document.getElementById('finalPScore');
+      const finalAScore = document.getElementById('finalAScore');
+
+      if (finalPScore) finalPScore.textContent = `${pScore} Pkts`;
+      if (finalAScore) finalAScore.textContent = `${aScore} Pkts`;
+
+      const winner = (winnerId === 'p1' || winnerId === p1.id) ? p1 : ((winnerId === 'p2' || winnerId === p2.id) ? p2 : null);
+
+      if (winner) {
+        winnerText.textContent = `${winner.username.toUpperCase()} WON!`;
+        winnerText.className = (winner === p1) ? "text-xl font-black orbitron text-amber-400" : "text-xl font-black orbitron text-rose-400";
+        winnerSubtext.textContent = customReason || `${winner.username} cleared all designated coins!`;
+        winnerIcon.innerHTML = `<i class="fa-solid fa-trophy ${winner === p1 ? 'text-amber-400' : 'text-rose-400'} text-3xl animate-bounce"></i>`;
+        document.getElementById('statusBanner').textContent = `MATCH OVER — ${winner.username.toUpperCase()} WON!`;
+      } else {
+        winnerText.textContent = "MATCH TIED!";
+        winnerText.className = "text-xl font-black orbitron text-cyan-400";
+        winnerSubtext.textContent = customReason || "Equal points pocketed!";
+        winnerIcon.innerHTML = '<i class="fa-solid fa-handshake text-cyan-400 text-3xl"></i>';
+        document.getElementById('statusBanner').textContent = "MATCH FINISHED — TIED!";
       }
+
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function returnCoinToCenter(type) {
+      let cx = SIZE / 2;
+      let cy = SIZE / 2;
+      let attempts = 0;
+      while (coins.some(c => Math.hypot(c.x - cx, c.y - cy) < 26) && attempts < 10) {
+        cx = SIZE / 2 + (Math.random() - 0.5) * 35;
+        cy = SIZE / 2 + (Math.random() - 0.5) * 35;
+        attempts++;
+      }
+      coins.push({
+        x: cx,
+        y: cy,
+        radius: 12,
+        vx: 0,
+        vy: 0,
+        type: type,
+        color: (type === 'white') ? '#FFFFFF' : '#1E293B'
+      });
+    }
+
+    // -------------------------------------------------------------
+    // FIXED TIMESTEP PHYSICS & MAIN LOOP (60Hz Synchronous Execution)
+    // -------------------------------------------------------------
+    const FIXED_DT = 1000 / 60; // 16.666ms per physics step
+    let lastFrameTime = performance.now();
+    let accumulator = 0;
+    let strikerFoul = false;
+    let movingStartTime = 0;
+
+    function physicsStep() {
+      if (gameOver) return;
 
       const allObjects = [striker, ...coins];
 
@@ -703,27 +801,53 @@
         if (obj.y + obj.radius > SIZE - 25) { obj.y = SIZE - 25 - obj.radius; obj.vy *= -0.85; }
       });
 
-      // Coin & Striker Collisions
+      // Coin & Striker Collisions: Positional Correction + Approach Check (Eliminates Jitter/Sticking)
       for (let i = 0; i < allObjects.length; i++) {
         for (let j = i + 1; j < allObjects.length; j++) {
           const a = allObjects[i];
           const b = allObjects[j];
           const dist = Math.hypot(b.x - a.x, b.y - a.y);
-          if (dist < a.radius + b.radius && dist > 0) {
+          const minDist = a.radius + b.radius;
+          if (dist < minDist && dist > 0) {
             const nx = (b.x - a.x) / dist;
             const ny = (b.y - a.y) / dist;
+
+            // 1. Positional correction: separate overlapping pairs along normal by overlap / 2
+            const overlap = minDist - dist;
+            const sep = overlap / 2;
+            a.x -= nx * sep;
+            a.y -= ny * sep;
+            b.x += nx * sep;
+            b.y += ny * sep;
+
+            // 2. Approach check: only apply impulse when bodies are approaching each other
             const kx = a.vx - b.vx;
             const ky = a.vy - b.vy;
-            const p = 2 * (nx * kx + ny * ky) / 2;
-            a.vx -= p * nx;
-            a.vy -= p * ny;
-            b.vx += p * nx;
-            b.vy += p * ny;
+            const approach = nx * kx + ny * ky;
+            if (approach > 0) {
+              const restitution = 0.92;
+              const p = (1 + restitution) * approach / 2;
+              a.vx -= p * nx;
+              a.vy -= p * ny;
+              b.vx += p * nx;
+              b.vy += p * ny;
+            }
           }
         }
       }
 
-      // Check Pockets
+      // Check Striker in Pocket (Foul)
+      if (moving && !strikerFoul) {
+        if (pockets.some(p => Math.hypot(striker.x - p.x, striker.y - p.y) < POCKET_RADIUS)) {
+          strikerFoul = true;
+          striker.vx = 0;
+          striker.vy = 0;
+          striker.x = -100;
+          striker.y = -100;
+        }
+      }
+
+      // Check Coins in Pockets
       for (let i = coins.length - 1; i >= 0; i--) {
         const c = coins[i];
         if (pockets.some(p => Math.hypot(c.x - p.x, c.y - p.y) < POCKET_RADIUS)) {
@@ -744,29 +868,45 @@
         }
       }
 
+      // Watchdog: If moving for > 10s, force stop all motion to prevent freeze
+      if (moving) {
+        if (!movingStartTime) movingStartTime = performance.now();
+        if (performance.now() - movingStartTime > 10000) {
+          allObjects.forEach(o => { o.vx = 0; o.vy = 0; });
+        }
+      } else {
+        movingStartTime = 0;
+      }
+
       // Check if all motion has ceased
       if (moving && allObjects.every(o => Math.hypot(o.vx, o.vy) === 0)) {
         moving = false;
+        movingStartTime = 0;
 
-        if (checkGameOver()) {
-          render();
-          return;
-        }
+        // Handle Striker Foul Penalty
+        if (strikerFoul) {
+          const banner = document.getElementById('statusBanner');
+          if (banner) {
+            banner.textContent = "⚠️ FOUL! STRIKER POCKETED! (PENALTY -1)";
+            banner.className = "orbitron font-extrabold text-[10px] sm:text-xs text-rose-400 tracking-wide text-center truncate px-1";
+          }
+          // Return 1 pocketed coin to center if score > 0
+          if (isWhiteTurn && pScore > 0) {
+            pScore--;
+            document.getElementById('playerScoreText').textContent = `${pScore} Pkts`;
+            returnCoinToCenter('white');
+          } else if (!isWhiteTurn && aScore > 0) {
+            aScore--;
+            document.getElementById('aiScoreText').textContent = `${aScore} Pkts`;
+            returnCoinToCenter('black');
+          }
+          strikerFoul = false;
+          // Turn passes to opponent on foul
+          isWhiteTurn = !isWhiteTurn;
+          resetStrikerForTurn();
+          updateStatusBanner();
 
-        if (isPartyMode) {
-          // In 2-Player Live Party Mode: The shooter authoritatively resolves the turn outcome!
-          const iWasShooter = isWhiteTurn ? Boolean(p1.isMe) : Boolean(p2.isMe);
-          if (iWasShooter) {
-            const pocketedOwn = isWhiteTurn ? (pocketedWhiteThisTurn > 0) : (pocketedBlackThisTurn > 0);
-            let nextTurnIsWhite = isWhiteTurn;
-            if (!pocketedOwn) {
-              nextTurnIsWhite = !isWhiteTurn;
-            }
-            isWhiteTurn = nextTurnIsWhite;
-            resetStrikerForTurn();
-            updateStatusBanner();
-
-            // Broadcast authoritative turn outcome to the other player
+          if (isPartyMode) {
             sendPartyAction({
               action: 'CARROM_TURN_RESULT',
               coins: coins.map(c => ({ x: c.x, y: c.y, type: c.type, color: c.color })),
@@ -774,11 +914,39 @@
               aScore: aScore,
               nextTurn: isWhiteTurn
             });
+          }
+          return;
+        }
+
+        const isOver = checkGameOver();
+
+        if (isPartyMode) {
+          const iWasShooter = isWhiteTurn ? Boolean(p1.isMe) : Boolean(p2.isMe);
+          if (iWasShooter) {
+            let nextTurnIsWhite = isWhiteTurn;
+            if (!isOver) {
+              const pocketedOwn = isWhiteTurn ? (pocketedWhiteThisTurn > 0) : (pocketedBlackThisTurn > 0);
+              if (!pocketedOwn) {
+                nextTurnIsWhite = !isWhiteTurn;
+              }
+              isWhiteTurn = nextTurnIsWhite;
+              resetStrikerForTurn();
+              updateStatusBanner();
+            }
+
+            // Always broadcast turn result or game over!
+            sendPartyAction({
+              action: isOver ? 'CARROM_GAME_OVER' : 'CARROM_TURN_RESULT',
+              coins: coins.map(c => ({ x: c.x, y: c.y, type: c.type, color: c.color })),
+              pScore: pScore,
+              aScore: aScore,
+              nextTurn: isWhiteTurn,
+              isGameOver: isOver,
+              winnerPlayerId: isOver ? (pScore > aScore ? p1.id : p2.id) : null
+            });
           } else {
             // Non-shooter waits for shooter's authoritative sync
             updateStatusBanner();
-
-            // Resilient fallback: If remote message is delayed > 2.5s, resolve locally so game never hangs
             clearTimeout(window._carromSyncTimeout);
             window._carromSyncTimeout = setTimeout(() => {
               if (!moving && isPartyMode) {
@@ -793,25 +961,45 @@
           }
         } else {
           // AI or Pass & Play Mode
-          const pocketedOwn = isWhiteTurn ? (pocketedWhiteThisTurn > 0) : (pocketedBlackThisTurn > 0);
-          let nextTurnIsWhite = isWhiteTurn;
-          if (!pocketedOwn) {
-            nextTurnIsWhite = !isWhiteTurn;
-          }
-          isWhiteTurn = nextTurnIsWhite;
-          resetStrikerForTurn();
-          updateStatusBanner();
+          if (!isOver) {
+            const pocketedOwn = isWhiteTurn ? (pocketedWhiteThisTurn > 0) : (pocketedBlackThisTurn > 0);
+            let nextTurnIsWhite = isWhiteTurn;
+            if (!pocketedOwn) {
+              nextTurnIsWhite = !isWhiteTurn;
+            }
+            isWhiteTurn = nextTurnIsWhite;
+            resetStrikerForTurn();
+            updateStatusBanner();
 
-          // Run AI turn ONLY in AI mode when it's Black's turn
-          if (!isPassPlay && !isWhiteTurn) {
-            clearTimeout(aiTimer);
-            aiTimer = setTimeout(aiTurn, 1000);
+            if (!isPassPlay && !isWhiteTurn) {
+              clearTimeout(aiTimer);
+              aiTimer = setTimeout(aiTurn, 1000);
+            }
           }
         }
       }
+    }
+
+    function update(currentTime) {
+      // Loop NEVER dies: ALWAYS schedules next animation frame
+      requestAnimationFrame(update);
+
+      if (!currentTime) currentTime = performance.now();
+      let elapsed = currentTime - lastFrameTime;
+      lastFrameTime = currentTime;
+
+      // Cap accumulator to avoid spiral of death on tab switch
+      if (elapsed > 180) elapsed = 180;
+      accumulator += elapsed;
+
+      let steps = 0;
+      while (accumulator >= FIXED_DT && steps < 5) {
+        physicsStep();
+        accumulator -= FIXED_DT;
+        steps++;
+      }
 
       render();
-      requestAnimationFrame(update);
     }
 
     // -------------------------------------------------------------
