@@ -1394,7 +1394,6 @@ app.get('/api/game-frame', async (req, res) => {
             document.querySelectorAll('.how-item, .how-text, .how-icon, [class*="how-"]').forEach(el => el.remove());
             var tg = document.querySelector('.gz-tips-guides'); if (tg) tg.remove();
             var ch = document.getElementById('controls-hint'); if (ch) ch.remove();
-            var hdr = document.getElementById('header'); if (hdr) hdr.remove();
             // Ensure games waiting for SDK_GAME_START get kicked into active state
             var contentDiv = document.getElementById('content');
             if (contentDiv && !contentDiv.__sdk_kick) {
@@ -1888,8 +1887,6 @@ app.get('/api/game-frame', async (req, res) => {
         [id*="share-btn"],
         .gz-sr-only,
         h1.gz-sr-only,
-        #header,
-        div#header,
         #how-to-play,
         [id*="how-to-play"],
         .how-item,
@@ -2248,7 +2245,6 @@ app.get('/api/game-frame', async (req, res) => {
     html = html.replace(/<!--\s*More Games[\s\S]*?(?=<\/body>|$)/gi, '');
     html = html.replace(/<div[^>]*class=["'][^"']*gz-tips-guides[^"']*["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<div[^>]*id=["']controls-hint["'][\s\S]*?<\/div>/gi, '');
-    html = html.replace(/<div[^>]*id=["']header["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<a[^>]*class=["']fix-top["'][\s\S]*?<\/a>/gi, '');
     html = html.replace(/<p[^>]*>\s*<a[^>]*href=["'][^"']*blog[^"']*["'][\s\S]*?<\/a>\s*<\/p>/gi, '');
     html = html.replace(/<a[^>]*href=["'][^"']*\/blog\.html["'][\s\S]*?<\/a>/gi, '');
