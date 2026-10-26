@@ -951,11 +951,6 @@ app.get('/api/game-frame', async (req, res) => {
   let targetUrl = req.query.url;
   if (!targetUrl) return res.status(400).send('Missing url');
 
-  // If games.ottsol.cloud, redirect directly (it is 100% ad-free and needs native same-origin assets)
-  if (targetUrl.includes('games.ottsol.cloud')) {
-    return res.redirect(targetUrl);
-  }
-
   // Fast redirect alias for color-sort to magic-sort
   if (targetUrl.includes('color-sort')) {
     targetUrl = targetUrl.replace('color-sort', 'magic-sort');
@@ -1013,9 +1008,24 @@ app.get('/api/game-frame', async (req, res) => {
       <base href="${baseUrl}">
       <script>
         (function() {
-          // Block external popup/tab hijacking
+          // Block external popup/tab hijacking & neutralize anti-embed iframe checks
           window.open = function() { 
             return { closed: true, focus: function(){}, close: function(){} }; 
+          };
+          try {
+            Object.defineProperty(window, 'top', { get: function() { return window.self; } });
+            Object.defineProperty(window, 'parent', { get: function() { return window.self; } });
+            Object.defineProperty(window, 'frameElement', { get: function() { return null; } });
+          } catch(e) {}
+
+          // Autonomous extGameLoad for Famobi engines
+          window.extGameLoad = function() {
+            try { if (typeof window.onGameStarted === 'function') window.onGameStarted(); } catch(e) {}
+            try { if (typeof window.visibleResume === 'function') window.visibleResume(); } catch(e) {}
+            try {
+              const c = document.getElementById('canvas') || document.querySelector('canvas');
+              if (c) c.dispatchEvent(new Event('start_game'));
+            } catch(e) {}
           };
 
           // Universal Ad Network URL Filter (strictly targets ad scripts/trackers without blocking game assets)
@@ -1139,6 +1149,20 @@ app.get('/api/game-frame', async (req, res) => {
               if (isAdUrl(u)) {
                 return Promise.resolve(new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } }));
               }
+              if (typeof u === 'string') {
+                if (u.includes('data.json')) {
+                  u = u.replace('data.json', 'data.js');
+                  if (typeof input === 'string') input = u;
+                  else if (input && input.url) input = new Request(u, input);
+                } else if (u.includes('StreamingAssets/') || u.startsWith('StreamingAssets/') || u.startsWith('Build/')) {
+                  try {
+                    var sub = u.includes('StreamingAssets/') ? u.substring(u.indexOf('StreamingAssets/')) : u;
+                    u = new URL(sub, document.baseURI || window.location.href).href;
+                    if (typeof input === 'string') input = u;
+                    else if (input && input.url) input = new Request(u, input);
+                  } catch(e) {}
+                }
+              }
               var proxied = proxyAssetUrl(u);
               if (proxied !== u) {
                 if (typeof input === 'string') input = proxied;
@@ -1148,14 +1172,21 @@ app.get('/api/game-frame', async (req, res) => {
             };
           }
           const _origXhrOpen = XMLHttpRequest.prototype.open;
-          XMLHttpRequest.prototype.open = function(method, url) {
-            var args = Array.prototype.slice.call(arguments);
+          XMLHttpRequest.prototype.open = function(method, url, ...rest) {
             if (isAdUrl(url)) {
-              args[1] = 'data:application/json,{}';
-            } else {
-              args[1] = proxyAssetUrl(url);
+              url = 'data:application/json,{}';
+            } else if (typeof url === 'string') {
+              if (url.includes('data.json')) {
+                url = url.replace('data.json', 'data.js');
+              } else if (url.includes('StreamingAssets/') || url.startsWith('StreamingAssets/') || url.startsWith('Build/')) {
+                try {
+                  var sub = url.includes('StreamingAssets/') ? url.substring(url.indexOf('StreamingAssets/')) : url;
+                  url = new URL(sub, document.baseURI || window.location.href).href;
+                } catch(e) {}
+              }
+              url = proxyAssetUrl(url);
             }
-            return _origXhrOpen.apply(this, args);
+            return _origXhrOpen.call(this, method, url, ...rest);
           };
 
           // Stub Google AdSense & Ad Networks
@@ -1206,12 +1237,33 @@ app.get('/api/game-frame', async (req, res) => {
           };
 
           // Stub GameDistribution & GameMonetize SDK
-          const mockGdSdk = {
-            showAd: function() { return Promise.resolve(); },
+          const rawMockGdSdk = {
+            showAd: function() {
+              if (window.GD_OPTIONS && typeof window.GD_OPTIONS.onEvent === 'function') {
+                try { window.GD_OPTIONS.onEvent({ name: 'SDK_GAME_START' }); } catch(e) {}
+              }
+              const cnt = document.getElementById('content');
+              if (cnt) cnt.dispatchEvent(new Event('SDK_GAME_START'));
+              return Promise.resolve();
+            },
+            showBanner: function() {
+              const cnt = document.getElementById('content');
+              if (cnt) cnt.dispatchEvent(new Event('SDK_GAME_START'));
+              return Promise.resolve();
+            },
             preloadAd: function() { return Promise.resolve(); },
             play: function() { return Promise.resolve(); },
-            init: function() { return Promise.resolve(); }
+            init: function() { return Promise.resolve(); },
+            openConsole: function() {},
+            cancelAd: function() {}
           };
+          const mockGdSdk = typeof Proxy !== 'undefined' ? new Proxy(rawMockGdSdk, {
+            get(target, prop) {
+              if (prop in target) return target[prop];
+              return function() { return Promise.resolve(); };
+            }
+          }) : rawMockGdSdk;
+
           window.gdsdk = mockGdSdk;
           window.sdk = mockGdSdk;
           window.gamedistribution = mockGdSdk;
@@ -1379,17 +1431,6 @@ app.get('/api/game-frame', async (req, res) => {
             }
           });
 
-          // Construct 2 data.json 404 fix for Windows (resolves black screen in Penalty Shooters 2)
-          try {
-            const origXhrOpen = XMLHttpRequest.prototype.open;
-            XMLHttpRequest.prototype.open = function(method, url) {
-              if (typeof url === 'string' && url.includes('data.json')) {
-                arguments[1] = url.replace('data.json', 'data.js');
-              }
-              return origXhrOpen.apply(this, arguments);
-            };
-          } catch(e) {}
-
           // Suppress disruptive alert popups from WebGL/WASM engines
           window.LocalizationData = window.LocalizationData || "{}";
           window.alert = function(msg) {
@@ -1412,54 +1453,26 @@ app.get('/api/game-frame', async (req, res) => {
             return null;
           };
 
-          // Ensure Unity WebGL instances resolve streaming assets correctly relative to baseURI
+          // Ensure Unity WebGL instances resolve all build and streaming assets correctly relative to baseURI
           let _origCreateUnityInstance = window.createUnityInstance;
           Object.defineProperty(window, 'createUnityInstance', {
             configurable: true,
             get: function() { return _origCreateUnityInstance; },
             set: function(fn) {
               _origCreateUnityInstance = function(canvas, config, onProgress) {
-                if (config && config.streamingAssetsUrl && !config.streamingAssetsUrl.startsWith('http')) {
-                  try {
-                    config.streamingAssetsUrl = new URL(config.streamingAssetsUrl, document.baseURI || window.location.href).href;
-                  } catch(e) {}
+                if (config) {
+                  ['streamingAssetsUrl', 'dataUrl', 'frameworkUrl', 'codeUrl'].forEach(function(k) {
+                    if (config[k] && typeof config[k] === 'string' && !config[k].startsWith('http') && !config[k].startsWith('blob:') && !config[k].startsWith('data:')) {
+                      try {
+                        config[k] = new URL(config[k], document.baseURI || window.location.href).href;
+                      } catch(e) {}
+                    }
+                  });
                 }
                 return fn(canvas, config, onProgress);
               };
             }
           });
-
-          const origXhrOpen = XMLHttpRequest.prototype.open;
-          XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-            if (typeof url === 'string' && url.includes('StreamingAssets/')) {
-              try {
-                const sub = url.substring(url.indexOf('StreamingAssets/'));
-                url = new URL(sub, document.baseURI || window.location.href).href;
-              } catch(e) {}
-            } else if (typeof url === 'string' && (url.startsWith('StreamingAssets/') || url.startsWith('Build/'))) {
-              try {
-                url = new URL(url, document.baseURI || window.location.href).href;
-              } catch(e) {}
-            }
-            return origXhrOpen.call(this, method, url, ...rest);
-          };
-
-          const origFetch = window.fetch;
-          if (origFetch) {
-            window.fetch = function(resource, init) {
-              if (typeof resource === 'string' && resource.includes('StreamingAssets/')) {
-                try {
-                  const sub = resource.substring(resource.indexOf('StreamingAssets/'));
-                  resource = new URL(sub, document.baseURI || window.location.href).href;
-                } catch(e) {}
-              } else if (typeof resource === 'string' && (resource.startsWith('StreamingAssets/') || resource.startsWith('Build/'))) {
-                try {
-                  resource = new URL(resource, document.baseURI || window.location.href).href;
-                } catch(e) {}
-              }
-              return origFetch.call(this, resource, init);
-            };
-          }
 
           // Famobi Autonomous Emulator (bypasses anti-embed redirects and loads game assets directly)
           const _famobiStore = {};
@@ -1865,17 +1878,16 @@ app.get('/api/game-frame', async (req, res) => {
         #gz-ad-above-game,
         #gz-ad-below-canvas,
         #gz-ad-below-game,
-        .faq-section,
+        div.faq-section,
         section.faq-section,
-        [class*="faq"],
-        .gz-seo-section,
+        div.gz-seo-section,
         section.gz-seo-section,
-        section,
+        section.gz-related-games,
+        section#game-info,
         #share-btn-overlay,
         [id*="share-btn"],
         .gz-sr-only,
         h1.gz-sr-only,
-        h3,
         #header,
         div#header,
         #how-to-play,
@@ -1887,14 +1899,6 @@ app.get('/api/game-frame', async (req, res) => {
         .gz-tips-guides,
         [class*="tips-guides"],
         #controls-hint,
-        div[style*="max-width:800px"],
-        div[style*="max-width: 800px"],
-        div[style*="max-width:700px"],
-        div[style*="max-width: 700px"],
-        div[style*="max-width:600px"],
-        div[style*="max-width: 600px"],
-        div:has(> h2),
-        div:has(> h3),
         [itemtype*="FAQPage"],
         [itemtype*="Question"],
         [itemprop*="acceptedAnswer"],
@@ -2237,13 +2241,11 @@ app.get('/api/game-frame', async (req, res) => {
     html = html.replace(/<!--\s*SEO Content Section[\s\S]*?(?=<\/body>|$)/gi, '');
     html = html.replace(/<div[^>]*itemtype=["'][^"']*FAQPage["'][\s\S]*?(?=<\/body>|$)/gi, '');
     html = html.replace(/<div[^>]*style=["'][^"']*margin:\s*0\s*auto;padding:\s*16px\s*20px\s*32px[\s\S]*?(?=<\/body>|$)/gi, '');
-    html = html.replace(/<div[^>]*style=["'][^"']*max-width:\s*[5678]00px[^"']*["'][\s\S]*?<\/div>/gi, '');
-    html = html.replace(/<section\b[\s\S]*?<\/section>/gi, '');
+    html = html.replace(/<section[^>]*class=["'][^"']*(?:gz-seo|gz-related|faq|game-info)[^"']*["'][\s\S]*?<\/section>/gi, '');
     html = html.replace(/<div[^>]*id=["']share-btn-overlay["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<div[^>]*id=["']how-to-play["'][\s\S]*?(?=<script\b[^>]*src=["'][^"']*game\.js)/gi, '');
     html = html.replace(/<div[^>]*id=["']how-to-play["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<!--\s*More Games[\s\S]*?(?=<\/body>|$)/gi, '');
-    html = html.replace(/<div[^>]*style=["'][^"']*max-width:\s*[5678]00px[^"']*[\s\S]*?(?=<\/body>|$)/gi, '');
     html = html.replace(/<div[^>]*class=["'][^"']*gz-tips-guides[^"']*["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<div[^>]*id=["']controls-hint["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<div[^>]*id=["']header["'][\s\S]*?<\/div>/gi, '');
@@ -2521,6 +2523,9 @@ app.get('/api/game-frame', async (req, res) => {
     if (html.includes('stopTimer') && html.includes('run.timerInterval')) {
       html = html.replace(/if\s*\(\s*run\.timerInterval\s*\)/g, 'if(run && run.timerInterval)');
     }
+
+    // Strip GameZipper unclosed AdSense comment text bleed
+    html = html.replace(/\+\s*standalone[\s\S]*?(?=<div|<style|<script)/gi, '');
 
     html = html.replace(/<head[^>]*>/i, `$&${cleanInjection}`);
 

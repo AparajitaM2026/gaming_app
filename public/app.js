@@ -506,8 +506,7 @@ const PORTRAIT_GAMES = new Set([
   'block-stacker', 'cyberpunk-flappy', 'bubble-shooter',
   'cloud-amp-sheep', 'paint-splash',
   'cut-the-rope-experiments', 'cut-the-rope-magic',
-  'om-nom-run', 'om-nom-bubbles', 'cannon-balls-3d', 'tower-crash-3d',
-  'table-tennis-world-tour', 'archery-world-tour'
+  'om-nom-run', 'om-nom-bubbles', 'tower-crash-3d'
 ]);
 
 const STANDARD_GAMES = new Set([
@@ -517,7 +516,8 @@ const STANDARD_GAMES = new Set([
   'mahjong-solitaire', 'sliding-puzzle', '2048-galaxy',
   'ludo-hero-ai', 'carrom-clash-ai', 'chess-master-ai',
   'checkers-classic-ai', 'connect4-arena-ai', 'tictactoe-neon-ai',
-  'pong', 'brick-breaker', 'tetris'
+  'pong', 'brick-breaker', 'tetris',
+  'table-tennis-world-tour', 'archery-world-tour', 'cannon-balls-3d'
 ]);
 
 let currentTheaterSize = 'standard';
@@ -1362,33 +1362,39 @@ function openGameTheater(title, url, game = null) {
     }
   }, 12000);
 
+  const handleFrameLoaded = () => {
+    if (theaterLoadTimeout) clearTimeout(theaterLoadTimeout);
+    setTimeout(() => {
+      if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => { loader.classList.add('hidden'); }, 250);
+      }
+      try {
+        frame?.focus();
+        frame?.contentWindow?.focus();
+      } catch (e) {}
+    }, 250);
+  };
+
   if (frame) {
     frame.removeAttribute('sandbox');
+    frame.onload = handleFrameLoaded;
     frame.src = url;
+    try {
+      if (frame.contentDocument && frame.contentDocument.readyState === 'complete') {
+        handleFrameLoaded();
+      }
+    } catch(e) {}
   }
   overlay.classList.remove('hidden');
 
   // Update How to Play dock and modal
   updateTheaterHowToPlay(game, title);
 
-  // Automatically focus the iframe on load so arrow keys and spacebar respond immediately
-  frame.onload = () => {
-    if (theaterLoadTimeout) clearTimeout(theaterLoadTimeout);
-    setTimeout(() => {
-      if (loader) {
-        loader.style.opacity = '0';
-        setTimeout(() => { loader.classList.add('hidden'); }, 300);
-      }
-      try {
-        frame.focus();
-        frame.contentWindow?.focus();
-      } catch (e) {}
-    }, 400);
-  };
   setTimeout(() => {
     try {
-      frame.focus();
-      frame.contentWindow?.focus();
+      frame?.focus();
+      frame?.contentWindow?.focus();
     } catch (e) {}
   }, 200);
 }

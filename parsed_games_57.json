@@ -456,7 +456,8 @@
     "rating": "4.9",
     "plays_count": 9876,
     "is_featured": false,
-    "is_premium": false
+    "is_premium": false,
+    "url": "https://play.famobi.com/mahjong-classic"
   },
   {
     "id": 44,
@@ -532,7 +533,7 @@
     "title": "Drive Fury",
     "category": "action",
     "thumbnail": "https://gamezipper.com/og-images/drive-fury.png",
-    "game_url": "https://games.ottsol.cloud/turbo-drift-unleashed/",
+    "game_url": "https://gamezipper.com/drive-fury/?utm_source=embed",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -541,7 +542,8 @@
     "rating": "4.8",
     "plays_count": 17799,
     "is_featured": false,
-    "is_premium": false
+    "is_premium": false,
+    "url": "https://gamezipper.com/drive-fury/?utm_source=embed"
   },
   {
     "id": 52,
@@ -770,7 +772,7 @@
     "title": "Cars Arena 3D",
     "category": "action",
     "thumbnail": "/assets/posters/cars-arena.svg",
-    "game_url": "https://games.ottsol.cloud/low-poly-speedster/",
+    "game_url": "https://games.cdn.famobi.com/html5games/c/cars-arena/v010/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=bfca421b-0e9a-491b-8840-da277bda1aa4&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=471",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -779,7 +781,8 @@
     "rating": "4.8",
     "plays_count": 24150,
     "is_featured": true,
-    "is_premium": false
+    "is_premium": false,
+    "url": "https://games.cdn.famobi.com/html5games/c/cars-arena/v010/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=bfca421b-0e9a-491b-8840-da277bda1aa4&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=471"
   },
   {
     "id": 74,
@@ -872,7 +875,7 @@
     "title": "Om Nom Run 3D",
     "category": "arcade",
     "thumbnail": "/assets/posters/om-nom-run.svg",
-    "game_url": "https://games.ottsol.cloud/lost-tomb-runner/",
+    "game_url": "https://games.cdn.famobi.com/html5games/o/om-nom-run/v1240/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=abe80572-560a-444d-baf7-2fa4a7b2c02f&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -881,7 +884,8 @@
     "rating": "4.9",
     "plays_count": 42100,
     "is_featured": true,
-    "is_premium": false
+    "is_premium": false,
+    "url": "https://games.cdn.famobi.com/html5games/o/om-nom-run/v1240/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=abe80572-560a-444d-baf7-2fa4a7b2c02f&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472"
   },
   {
     "id": 80,
@@ -889,7 +893,7 @@
     "title": "Om Nom Bubbles",
     "category": "puzzle",
     "thumbnail": "/assets/posters/om-nom-bubbles.svg",
-    "game_url": "https://games.ottsol.cloud/bubble-column-match/",
+    "game_url": "https://games.cdn.famobi.com/html5games/o/om-nom-bubbles/v040/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=04a8baa6-e3ad-43e7-8b35-b274552d5890&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -898,7 +902,8 @@
     "rating": "4.8",
     "plays_count": 19450,
     "is_featured": false,
-    "is_premium": false
+    "is_premium": false,
+    "url": "https://games.cdn.famobi.com/html5games/o/om-nom-bubbles/v040/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=04a8baa6-e3ad-43e7-8b35-b274552d5890&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472"
   },
   {
     "id": 81,
@@ -906,7 +911,7 @@
     "title": "TNT Bomb 3D",
     "category": "puzzle",
     "thumbnail": "/assets/posters/tnt-bomb.svg",
-    "game_url": "https://games.ottsol.cloud/tnt-demolition/",
+    "game_url": "https://games.cdn.famobi.com/html5games/t/tnt-bomb/v250/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=fa946169-bde2-4b3b-8552-08a85d7ae0e7&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -915,7 +920,8 @@
     "rating": "4.7",
     "plays_count": 15300,
     "is_featured": false,
-    "is_premium": false
+    "is_premium": false,
+    "url": "https://games.cdn.famobi.com/html5games/t/tnt-bomb/v250/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=fa946169-bde2-4b3b-8552-08a85d7ae0e7&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472"
   },
   {
     "id": 82,
@@ -923,16 +929,17 @@
     "title": "Cannon Balls 3D",
     "category": "arcade",
     "thumbnail": "/assets/posters/cannon-balls-3d.svg",
-    "game_url": "https://games.ottsol.cloud/cannon-target-smash/",
+    "game_url": "https://games.cdn.famobi.com/html5games/c/cannon-balls-3d/v320/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=3ffa11c2-61da-4974-892b-473582253371&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
     "entry_fee_coins": 0,
-    "orientation": "portrait",
+    "orientation": "landscape",
     "rating": "4.8",
     "plays_count": 22600,
     "is_featured": true,
-    "is_premium": false
+    "is_premium": false,
+    "url": "https://games.cdn.famobi.com/html5games/c/cannon-balls-3d/v320/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=3ffa11c2-61da-4974-892b-473582253371&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472"
   },
   {
     "id": 83,
@@ -940,7 +947,7 @@
     "title": "Tower Crash 3D",
     "category": "arcade",
     "thumbnail": "/assets/posters/tower-crash-3d.svg",
-    "game_url": "https://games.ottsol.cloud/stack-smash-3d/",
+    "game_url": "https://games.cdn.famobi.com/html5games/t/tower-crash-3d/v290/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=68a7c06e-ec27-4fa4-99a5-a5e9702ac4ef&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -949,7 +956,8 @@
     "rating": "4.8",
     "plays_count": 26400,
     "is_featured": true,
-    "is_premium": false
+    "is_premium": false,
+    "url": "https://games.cdn.famobi.com/html5games/t/tower-crash-3d/v290/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=68a7c06e-ec27-4fa4-99a5-a5e9702ac4ef&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472"
   },
   {
     "id": 84,
@@ -957,7 +965,7 @@
     "title": "Drift Cup Racing",
     "category": "action",
     "thumbnail": "/assets/posters/drift-cup-racing.svg",
-    "game_url": "https://games.ottsol.cloud/zigzag-drift-king/",
+    "game_url": "https://games.cdn.famobi.com/html5games/d/drift-cup-racing/v620/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=e8ca54ee-cfbe-417c-b69e-e4f4858a9957&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -966,7 +974,8 @@
     "rating": "4.8",
     "plays_count": 21900,
     "is_featured": false,
-    "is_premium": false
+    "is_premium": false,
+    "url": "https://games.cdn.famobi.com/html5games/d/drift-cup-racing/v620/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=e8ca54ee-cfbe-417c-b69e-e4f4858a9957&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472"
   },
   {
     "id": 85,
@@ -979,7 +988,7 @@
     "min_players": 1,
     "max_players": 1,
     "entry_fee_coins": 0,
-    "orientation": "portrait",
+    "orientation": "landscape",
     "rating": "4.8",
     "plays_count": 28700,
     "is_featured": true,
@@ -991,16 +1000,17 @@
     "title": "Archery World Tour",
     "category": "action",
     "thumbnail": "/assets/posters/archery-world-tour.svg",
-    "game_url": "https://games.cdn.famobi.com/html5games/a/archery-world-tour/v610/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=ebcb987a-3fd0-4b4a-bae6-f456fff9cac3&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472",
+    "game_url": "https://html5.gamedistribution.com/0ccd52f987014bb49708e6afa2e3a8f7/",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
     "entry_fee_coins": 0,
-    "orientation": "portrait",
+    "orientation": "landscape",
     "rating": "4.8",
     "plays_count": 25800,
     "is_featured": false,
-    "is_premium": false
+    "is_premium": false,
+    "url": "https://html5.gamedistribution.com/0ccd52f987014bb49708e6afa2e3a8f7/"
   },
   {
     "id": 87,
@@ -1008,7 +1018,7 @@
     "title": "8 Ball Billiards Classic",
     "category": "arcade",
     "thumbnail": "/assets/posters/8-ball-billiards-classic.svg",
-    "game_url": "https://games.ottsol.cloud/pro-billiards-3d/",
+    "game_url": "https://games.cdn.famobi.com/html5games/0/8-ball-billiards-classic/f6589445/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=82038e98-d4e1-46dd-8de9-1460d1395eab&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -1017,7 +1027,8 @@
     "rating": "4.9",
     "plays_count": 38900,
     "is_featured": true,
-    "is_premium": false
+    "is_premium": false,
+    "url": "https://games.cdn.famobi.com/html5games/0/8-ball-billiards-classic/f6589445/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=82038e98-d4e1-46dd-8de9-1460d1395eab&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472"
   },
   {
     "id": 88,
