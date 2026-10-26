@@ -1220,6 +1220,11 @@ app.get('/api/game-frame', async (req, res) => {
             faqs.forEach(function(f) {
               try { f.remove(); } catch(e) {}
             });
+            var htp = document.getElementById('how-to-play'); if (htp) htp.remove();
+            document.querySelectorAll('.how-item, .how-text, .how-icon, [class*="how-"]').forEach(el => el.remove());
+            var tg = document.querySelector('.gz-tips-guides'); if (tg) tg.remove();
+            var ch = document.getElementById('controls-hint'); if (ch) ch.remove();
+            var hdr = document.getElementById('header'); if (hdr) hdr.remove();
             // Ensure games waiting for SDK_GAME_START get kicked into active state
             var contentDiv = document.getElementById('content');
             if (contentDiv && !contentDiv.__sdk_kick) {
@@ -1680,6 +1685,17 @@ app.get('/api/game-frame', async (req, res) => {
         .gz-sr-only,
         h1.gz-sr-only,
         h3,
+        #header,
+        div#header,
+        #how-to-play,
+        [id*="how-to-play"],
+        .how-item,
+        .how-icon,
+        .how-text,
+        [class*="how-"],
+        .gz-tips-guides,
+        [class*="tips-guides"],
+        #controls-hint,
         div[style*="max-width:800px"],
         div[style*="max-width: 800px"],
         div[style*="max-width:700px"],
@@ -1771,6 +1787,52 @@ app.get('/api/game-frame', async (req, res) => {
         /* Landscape 3:2 games like Pong get wider horizontal bounds */
         #wrap:has(#hud) {
           max-width: min(680px, calc((100vh - 110px) * 1.5)) !important;
+        }
+        /* Tetris & vertical grid responsive cabinet containment */
+        #game-wrap {
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          justify-content: center !important;
+          width: 100% !important;
+          height: 100% !important;
+          max-height: 100vh !important;
+          margin: auto !important;
+          padding: 4px 6px !important;
+          box-sizing: border-box !important;
+        }
+        #game-wrap #hud {
+          display: flex !important;
+          width: 100% !important;
+          max-width: min(380px, calc((100vh - 120px) * (10 / 19))) !important;
+          margin: 0 auto 6px auto !important;
+          gap: 6px !important;
+          flex-shrink: 0 !important;
+        }
+        #game-wrap .hud-box {
+          padding: 4px 8px !important;
+        }
+        #game-wrap .hud-box .val {
+          font-size: 16px !important;
+        }
+        #canvas-container {
+          position: relative !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          height: calc(100vh - 100px) !important;
+          max-height: calc(100vh - 100px) !important;
+          max-width: min(380px, calc((100vh - 100px) * (10 / 19))) !important;
+          width: calc((100vh - 100px) * (10 / 19)) !important;
+          aspect-ratio: 10 / 19 !important;
+          flex-shrink: 1 !important;
+        }
+        #canvas-container canvas#main {
+          width: 100% !important;
+          height: 100% !important;
+          max-width: 100% !important;
+          max-height: 100% !important;
+          object-fit: contain !important;
         }
         #wrap #header {
           width: 100% !important;
@@ -1952,8 +2014,9 @@ app.get('/api/game-frame', async (req, res) => {
     // Strip ad placeholders and markup (safe non-greedy, ins is already hidden by CSS)
     html = html.replace(/<link[^>]*(pagead2|googlesyndication|doubleclick|monetag|adsterra)[^>]*>/gi, '');
     html = html.replace(/<meta[^>]*http-equiv=["']?refresh["']?[^>]*>/gi, '');
-    html = html.replace(/<div[^>]*id=["']gz-ad-[^"']*["'][^>]*><\/div>/gi, '');
-    html = html.replace(/<div[^>]*class=["']gz-injected-banner[^"']*["'][^>]*><\/div>/gi, '');
+    html = html.replace(/max-height:\s*280px;[^<]*faint\s*"Sponsored"[\s\S]*?-->/gi, '');
+    html = html.replace(/<div[^>]*id=["']gz-ad-[^"']*["'][\s\S]*?<\/div>/gi, '');
+    html = html.replace(/<div[^>]*class=["']gz-injected-banner[^"']*["'][\s\S]*?<\/div>/gi, '');
 
     // Strip Famobi official anti-embed API caller & tracker so autonomous emulator runs
     html = html.replace(/<script[^>]*src=["'][^"']*gameapi\/v1\.js[^"']*["'][^>]*><\/script>/gi, '');
@@ -1976,6 +2039,13 @@ app.get('/api/game-frame', async (req, res) => {
     html = html.replace(/<div[^>]*style=["'][^"']*max-width:\s*[5678]00px[^"']*["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<section\b[\s\S]*?<\/section>/gi, '');
     html = html.replace(/<div[^>]*id=["']share-btn-overlay["'][\s\S]*?<\/div>/gi, '');
+    html = html.replace(/<div[^>]*id=["']how-to-play["'][\s\S]*?(?=<script\b[^>]*src=["'][^"']*game\.js)/gi, '');
+    html = html.replace(/<div[^>]*id=["']how-to-play["'][\s\S]*?<\/div>/gi, '');
+    html = html.replace(/<!--\s*More Games[\s\S]*?(?=<\/body>|$)/gi, '');
+    html = html.replace(/<div[^>]*style=["'][^"']*max-width:\s*[5678]00px[^"']*[\s\S]*?(?=<\/body>|$)/gi, '');
+    html = html.replace(/<div[^>]*class=["'][^"']*gz-tips-guides[^"']*["'][\s\S]*?<\/div>/gi, '');
+    html = html.replace(/<div[^>]*id=["']controls-hint["'][\s\S]*?<\/div>/gi, '');
+    html = html.replace(/<div[^>]*id=["']header["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<a[^>]*class=["']fix-top["'][\s\S]*?<\/a>/gi, '');
     html = html.replace(/<p[^>]*>\s*<a[^>]*href=["'][^"']*blog[^"']*["'][\s\S]*?<\/a>\s*<\/p>/gi, '');
     html = html.replace(/<a[^>]*href=["'][^"']*\/blog\.html["'][\s\S]*?<\/a>/gi, '');
