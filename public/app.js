@@ -500,7 +500,6 @@ function handleSearch(query) {
 // 6. SAFE GAME LAUNCHER & IN-APP THEATER (With Multi-Aspect Cabinet Controller)
 // -------------------------------------------------------------
 const PORTRAIT_GAMES = new Set([
-  'cut-the-rope',
   'magic-sort', 'memory-master', 
   'arrow-escape', 'sand-balls', 'fruit-slash', 'katana-fruits', 'slice-master', 'watermelon-merge', 
   'block-stacker', 'cyberpunk-flappy', 'bubble-shooter',

@@ -499,16 +499,17 @@
     "title": "Cut the Rope",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/cut-the-rope.png",
-    "game_url": "https://games.cdn.famobi.com/html5games/c/cut-the-rope/v100/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=4531b37c-a8e0-4a67-9ebd-e8d3190b6277&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472",
+    "game_url": "https://games.ottsol.cloud/cut-the-rope/",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
     "entry_fee_coins": 0,
-    "orientation": "portrait",
+    "orientation": "landscape",
     "rating": "4.8",
     "plays_count": 12288,
     "is_featured": false,
-    "is_premium": false
+    "is_premium": false,
+    "url": "https://games.ottsol.cloud/cut-the-rope/"
   },
   {
     "id": 50,
