@@ -543,7 +543,7 @@ function setTheaterSize(mode) {
   if (btnWide) btnWide.className = defaultBtnClass;
 
   const isPortrait = window.currentTheaterGameOrientation === 'portrait';
-  const isMobileScreen = window.innerWidth < 640;
+  const isMobileScreen = window.innerWidth < 768 || window.innerHeight < 600;
 
   if (isMobileScreen) {
     // Fill full screen cleanly on mobile devices without any letterboxing/overflow
@@ -1319,10 +1319,19 @@ function closeHowToPlayModal() {
   if (modal) modal.classList.add('hidden');
 }
 
+let theaterLoadTimeout = null;
+
 function openGameTheater(title, url, game = null) {
   const overlay = document.getElementById('gameTheaterOverlay');
   const frame = document.getElementById('gameTheaterFrame');
   const titleEl = document.getElementById('theaterGameTitle');
+  const loader = document.getElementById('theaterLoadingIndicator');
+  const loaderTitle = document.getElementById('theaterLoadingTitle');
+  const errorFallback = document.getElementById('theaterErrorFallback');
+
+  // Prevent background viewport scroll & clipping on all devices
+  document.body.classList.add('overflow-hidden');
+  document.documentElement.classList.add('overflow-hidden');
 
   if (game) {
     const isPortrait = PORTRAIT_GAMES.has(game.slug) || (game.orientation === 'portrait' && !STANDARD_GAMES.has(game.slug));
@@ -1335,13 +1344,26 @@ function openGameTheater(title, url, game = null) {
   updateTheaterFavoriteBtn();
   playArcadeSound('click');
 
-  titleEl.textContent = title;
-  if (frame) {
-    if (url.includes('/games/') || url.includes('games/') || url.includes('games.ottsol.cloud')) {
-      frame.removeAttribute('sandbox');
-    } else {
-      frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-modals allow-orientation-lock allow-downloads');
+  if (titleEl) titleEl.textContent = title;
+  if (loaderTitle) loaderTitle.textContent = `LOADING ${title.toUpperCase()}...`;
+
+  if (loader) {
+    loader.style.opacity = '1';
+    loader.classList.remove('hidden');
+  }
+  if (errorFallback) errorFallback.classList.add('hidden');
+
+  if (theaterLoadTimeout) clearTimeout(theaterLoadTimeout);
+  theaterLoadTimeout = setTimeout(() => {
+    // If still loading after 12s, show error fallback
+    if (loader && !loader.classList.contains('hidden') && errorFallback) {
+      loader.classList.add('hidden');
+      errorFallback.classList.remove('hidden');
     }
+  }, 12000);
+
+  if (frame) {
+    frame.removeAttribute('sandbox');
     frame.src = url;
   }
   overlay.classList.remove('hidden');
@@ -1351,12 +1373,17 @@ function openGameTheater(title, url, game = null) {
 
   // Automatically focus the iframe on load so arrow keys and spacebar respond immediately
   frame.onload = () => {
+    if (theaterLoadTimeout) clearTimeout(theaterLoadTimeout);
     setTimeout(() => {
+      if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => { loader.classList.add('hidden'); }, 300);
+      }
       try {
         frame.focus();
         frame.contentWindow?.focus();
       } catch (e) {}
-    }, 150);
+    }, 400);
   };
   setTimeout(() => {
     try {
@@ -1369,9 +1396,20 @@ function openGameTheater(title, url, game = null) {
 function closeGameTheater() {
   const overlay = document.getElementById('gameTheaterOverlay');
   const frame = document.getElementById('gameTheaterFrame');
-  frame.src = 'about:blank';
+  const loader = document.getElementById('theaterLoadingIndicator');
+  const errorFallback = document.getElementById('theaterErrorFallback');
+
+  if (theaterLoadTimeout) clearTimeout(theaterLoadTimeout);
+  if (frame) frame.src = 'about:blank';
   window.currentTheaterGameSlug = null;
-  overlay.classList.add('hidden');
+  if (overlay) overlay.classList.add('hidden');
+  if (loader) loader.classList.add('hidden');
+  if (errorFallback) errorFallback.classList.add('hidden');
+
+  // Restore page scroll
+  document.body.classList.remove('overflow-hidden');
+  document.documentElement.classList.remove('overflow-hidden');
+
   closeHowToPlayModal();
   if (window.activePartySession) {
     if (partyWs && partyWs.readyState === WebSocket.OPEN) {
@@ -1386,6 +1424,13 @@ function closeGameTheater() {
 
 function reloadCurrentGame() {
   const frame = document.getElementById('gameTheaterFrame');
+  const loader = document.getElementById('theaterLoadingIndicator');
+  const errorFallback = document.getElementById('theaterErrorFallback');
+  if (errorFallback) errorFallback.classList.add('hidden');
+  if (loader) {
+    loader.style.opacity = '1';
+    loader.classList.remove('hidden');
+  }
   if (frame && frame.src && frame.src !== 'about:blank') {
     const s = frame.src;
     frame.src = 'about:blank';
@@ -3119,7 +3164,44 @@ function updatePartyGuestName() {
   playArcadeSound('click');
 }
 
-// Connect WebSocket with Automatic Keep-Alive
+let partyReconnectTimer = null;
+let partyReconnectAttempts = 0;
+const MAX_PARTY_RECONNECTS = 15;
+
+function schedulePartyReconnect() {
+  if (partyReconnectTimer) return;
+  if (partyReconnectAttempts >= MAX_PARTY_RECONNECTS) {
+    console.warn('Max WebSocket reconnect attempts reached.');
+    return;
+  }
+  const delay = Math.min(1000 * Math.pow(1.3, partyReconnectAttempts), 6000);
+  partyReconnectAttempts++;
+  console.log(`Voltixz WebSocket reconnecting in ${delay}ms (attempt ${partyReconnectAttempts})...`);
+  partyReconnectTimer = setTimeout(() => {
+    partyReconnectTimer = null;
+    ensurePartyWebSocket(() => {
+      partyReconnectAttempts = 0;
+      // If we were inside an active party match, re-join seamlessly
+      if (partyCurrentRoom && partyCurrentRoom.code && partyWs && partyWs.readyState === WebSocket.OPEN) {
+        console.log('⚡ Seamlessly re-syncing active party room:', partyCurrentRoom.code);
+        partyWs.send(JSON.stringify({
+          type: 'PARTY_REJOIN',
+          roomCode: partyCurrentRoom.code,
+          gameSlug: partyCurrentRoom.gameSlug
+        }));
+      }
+    });
+  }, delay);
+}
+
+window.addEventListener('online', () => {
+  console.log('Network online detected. Triggering instant WS reconnect...');
+  partyReconnectAttempts = 0;
+  if (partyReconnectTimer) { clearTimeout(partyReconnectTimer); partyReconnectTimer = null; }
+  ensurePartyWebSocket();
+});
+
+// Connect WebSocket with Automatic Keep-Alive & Robust Reconnection
 function ensurePartyWebSocket(callback) {
   if (partyWs && partyWs.readyState === WebSocket.OPEN) {
     if (callback) callback();
@@ -3129,10 +3211,19 @@ function ensurePartyWebSocket(callback) {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const wsUrl = `${protocol}//${window.location.host}`;
 
-  partyWs = new WebSocket(wsUrl);
+  try {
+    partyWs = new WebSocket(wsUrl);
+  } catch(e) {
+    console.warn('Failed to construct WebSocket:', e);
+    schedulePartyReconnect();
+    return;
+  }
 
   partyWs.onopen = () => {
     console.log('⚡ Voltixz Party WebSocket Connected!');
+    partyReconnectAttempts = 0;
+    if (partyReconnectTimer) { clearTimeout(partyReconnectTimer); partyReconnectTimer = null; }
+
     const u = getPartyUser();
     partyWs.send(JSON.stringify({
       type: 'AUTH',
@@ -3158,7 +3249,8 @@ function ensurePartyWebSocket(callback) {
   };
 
   partyWs.onclose = () => {
-    console.log('Voltixz Party WS closed.');
+    console.log('Voltixz Party WS closed. Scheduling auto-reconnect...');
+    schedulePartyReconnect();
   };
 }
 

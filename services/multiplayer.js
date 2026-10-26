@@ -480,6 +480,54 @@ function setupMultiplayer(wss) {
             break;
           }
 
+          case 'PARTY_REJOIN': {
+            const pCode = msg.roomCode || currentPartyCode;
+            if (!pCode) return;
+            const room = partyRooms.get(pCode);
+            if (!room) {
+              return ws.send(JSON.stringify({ type: 'PARTY_ERROR', message: 'Room no longer exists' }));
+            }
+            const userId = currentUser ? currentUser.id : msg.userId;
+            const player = room.players.find(p => p.user && (p.user.id === userId || (currentUser && p.user.username === currentUser.username)));
+            if (player) {
+              player.ws = ws;
+              player.disconnected = false;
+              if (player.disconnectTimer) {
+                clearTimeout(player.disconnectTimer);
+                player.disconnectTimer = null;
+              }
+              currentPartyCode = pCode;
+              ws.send(JSON.stringify({
+                type: 'PARTY_REJOIN_SUCCESS',
+                roomCode: room.code,
+                gameSlug: room.gameSlug,
+                status: room.status,
+                hostId: room.hostId,
+                currentTurnIndex: room.currentTurnIndex,
+                gameState: room.gameState,
+                players: room.players.map(p => ({
+                  id: p.user.id,
+                  username: p.user.username,
+                  avatar_url: p.user.avatar_url,
+                  color: p.color,
+                  score: p.score,
+                  position: p.position,
+                  isHost: p.isHost,
+                  disconnected: !!p.disconnected
+                }))
+              }));
+              broadcastToParty(room, {
+                type: 'PLAYER_RECONNECTED',
+                roomCode: room.code,
+                userId: player.user.id,
+                username: player.user.username
+              }, ws);
+            } else {
+              ws.send(JSON.stringify({ type: 'PARTY_ERROR', message: 'Not a member of this active room' }));
+            }
+            break;
+          }
+
           case 'PARTY_ACTION': {
             const pCode = currentPartyCode || msg.roomCode || msg.room;
             if (!pCode) return;
@@ -506,7 +554,7 @@ function setupMultiplayer(wss) {
                 type: 'PARTY_GAME_UPDATE',
                 roomCode: room.code,
                 gameSlug: room.gameSlug,
-                senderId: currentUser.id,
+                senderId: currentUser ? currentUser.id : (msg.senderId || msg.myId || 'guest'),
                 actionData: msg
               }, ws);
               break;
@@ -719,9 +767,55 @@ function setupMultiplayer(wss) {
         }
       }
 
-      // 2. Remove from active party
-      if (currentPartyCode && currentUser) {
-        removePlayerFromParty(currentPartyCode, currentUser.id);
+      // 2. Handle active 1v1 rooms
+      for (const [roomId, room] of activeRooms.entries()) {
+        if (room.p1 && room.p1.ws === ws) {
+          if (room.p2 && room.p2.ws && room.p2.ws.readyState === 1) {
+            try {
+              room.p2.ws.send(JSON.stringify({
+                type: 'MATCH_OPPONENT_DISCONNECTED',
+                message: 'Opponent disconnected. You win by walkover!'
+              }));
+            } catch(e) {}
+          }
+          activeRooms.delete(roomId);
+        } else if (room.p2 && room.p2.ws === ws) {
+          if (room.p1 && room.p1.ws && room.p1.ws.readyState === 1) {
+            try {
+              room.p1.ws.send(JSON.stringify({
+                type: 'MATCH_OPPONENT_DISCONNECTED',
+                message: 'Opponent disconnected. You win by walkover!'
+              }));
+            } catch(e) {}
+          }
+          activeRooms.delete(roomId);
+        }
+      }
+
+      // 3. Graceful handling for active party rooms
+      if (currentPartyCode) {
+        const room = partyRooms.get(currentPartyCode);
+        const userId = currentUser ? currentUser.id : null;
+        if (room && userId) {
+          if (room.status === 'PLAYING') {
+            const player = room.players.find(p => p.user && p.user.id === userId);
+            if (player) {
+              player.disconnected = true;
+              broadcastToParty(room, {
+                type: 'PLAYER_DISCONNECTED_GRACE',
+                userId: userId,
+                username: player.user.username,
+                gracePeriodMs: 30000
+              });
+              if (player.disconnectTimer) clearTimeout(player.disconnectTimer);
+              player.disconnectTimer = setTimeout(() => {
+                removePlayerFromParty(currentPartyCode, userId);
+              }, 30000);
+              return;
+            }
+          }
+          removePlayerFromParty(currentPartyCode, userId);
+        }
       }
     });
   });

@@ -666,7 +666,7 @@
   </div>
 
   <!-- GAME THEATER OVERLAY -->
-  <div id="gameTheaterOverlay" class="hidden fixed inset-0 z-50 bg-black flex flex-col">
+  <div id="gameTheaterOverlay" class="hidden fixed inset-0 w-full h-full h-[100dvh] max-h-[100dvh] z-50 bg-black flex flex-col overflow-hidden select-none">
     <div class="bg-portalNav border-b border-white/10 px-2.5 sm:px-5 py-2 sm:py-2.5 flex items-center justify-between shadow-2xl z-50 gap-2 overflow-x-auto no-scrollbar">
       <div class="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
         <button onclick="closeGameTheater()" class="px-3 sm:px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 shadow-lg shadow-red-600/30 transition-all active:scale-95 shrink-0">
@@ -761,6 +761,40 @@
       <div id="theaterFrameContainer" onclick="document.getElementById('gameTheaterFrame')?.focus()" class="w-full h-full max-w-full max-h-full bg-black rounded-none sm:rounded-2xl overflow-hidden shadow-2xl border-0 sm:border border-white/10 transition-all duration-300 flex items-center justify-center relative">
         <iframe id="gameTheaterFrame" src="about:blank" class="w-full h-full border-0" allow="autoplay; fullscreen; gamepad; keyboard-map; clipboard-write; accelerometer; gyroscope"></iframe>
         
+        <!-- Elegant Arcade Loading Spinner Overlay (Prevents Black Screen) -->
+        <div id="theaterLoadingIndicator" class="absolute inset-0 z-20 bg-slate-950 flex flex-col items-center justify-center p-4 transition-opacity duration-300 pointer-events-none">
+          <div class="relative w-16 h-16 mb-3 flex items-center justify-center">
+            <div class="absolute inset-0 rounded-full border-4 border-cyan-500/20 border-t-cyan-400 animate-spin"></div>
+            <i class="fa-solid fa-gamepad text-cyan-400 text-xl animate-pulse"></i>
+          </div>
+          <div id="theaterLoadingTitle" class="text-white font-orbitron font-extrabold text-sm sm:text-base tracking-widest uppercase text-center">LOADING GAME...</div>
+          <div class="text-cyan-400/80 text-xs font-mono mt-1.5 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span>Initializing Engine & Assets</span>
+          </div>
+        </div>
+
+        <!-- Safe Error Fallback Boundary (Shows if game fails or takes too long) -->
+        <div id="theaterErrorFallback" class="hidden absolute inset-0 z-20 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center space-y-4">
+          <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/40 flex items-center justify-center text-amber-400 text-2xl shadow-lg">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div class="space-y-1">
+            <h3 class="text-white font-orbitron font-extrabold text-base">Game Taking Too Long or Blocked?</h3>
+            <p class="text-gray-400 text-xs max-w-sm">We can reload this game instance or launch it in high-performance full cabinet mode.</p>
+          </div>
+          <div class="flex items-center gap-3 pt-2">
+            <button onclick="reloadCurrentGame()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-black font-extrabold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/20 cursor-pointer">
+              <i class="fa-solid fa-rotate-right"></i>
+              <span>Reload Game</span>
+            </button>
+            <button onclick="setTheaterSize('wide')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/20 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer">
+              <i class="fa-solid fa-expand"></i>
+              <span>Fullscreen Mode</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Floating Live Emoji Reaction Layer -->
         <div id="theaterFloatingEmojiLayer" class="pointer-events-none absolute inset-0 z-30 overflow-hidden"></div>
 
@@ -788,7 +822,7 @@
     </div>
 
     <!-- Dedicated "How to Play & Controls" Sticky Bottom Bar (Slim & Responsive) -->
-    <div id="theaterHowToPlayBar" class="bg-[#0b1020]/95 backdrop-blur-md border-t border-white/15 px-2.5 sm:px-5 py-1.5 sm:py-2 flex items-center justify-between gap-2 z-40 shrink-0 text-xs shadow-2xl">
+    <div id="theaterHowToPlayBar" class="hidden md:flex bg-[#0b1020]/95 backdrop-blur-md border-t border-white/15 px-2.5 sm:px-5 py-1.5 sm:py-2 items-center justify-between gap-2 z-40 shrink-0 text-xs shadow-2xl">
       <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
         <span class="px-2 py-0.5 rounded-lg bg-neonCyan/20 text-neonCyan border border-neonCyan/40 font-orbitron font-bold text-[10px] tracking-wider uppercase shrink-0 flex items-center gap-1">
           <i class="fa-solid fa-gamepad"></i> CONTROLS

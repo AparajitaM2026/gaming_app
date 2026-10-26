@@ -1923,14 +1923,25 @@ app.get('/api/game-frame', async (req, res) => {
           padding: 0 !important;
           width: 100% !important;
           height: 100% !important;
-          max-width: 100% !important;
-          max-height: 100% !important;
+          max-width: 100vw !important;
+          max-height: 100vh !important;
+          max-height: 100dvh !important;
           background: #000000 !important;
           overflow: hidden !important;
+          box-sizing: border-box !important;
+        }
+        body {
           display: flex !important;
           flex-direction: column !important;
           justify-content: center !important;
           align-items: center !important;
+        }
+        /* When body has fixed/absolute wrappers (e.g. Katana Fruits, Phaser, Unity), don't flex-squeeze */
+        body:has(> div[style*="position: fixed"]),
+        body:has(> div[style*="position:fixed"]),
+        body:has(> #unity-container),
+        body:has(> #c2canvasdiv) {
+          display: block !important;
         }
         /* Compact game headers so board gets maximum screen height */
         .ms-header {
@@ -2090,8 +2101,7 @@ app.get('/api/game-frame', async (req, res) => {
           max-height: 100vh !important;
           object-fit: contain !important;
         }
-        #wrap canvas,
-        #canvas-wrap canvas,
+        #wrap:has(#hud) canvas,
         canvas#c {
           display: block !important;
           margin: auto !important;
