@@ -40,7 +40,7 @@
     "title": "2048 Galaxy",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/2048.png",
-    "game_url": "https://games.ottsol.cloud/2048/",
+    "game_url": "https://gamezipper.com/2048/?utm_source=embed",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -50,7 +50,7 @@
     "plays_count": 17934,
     "is_featured": true,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/2048/"
+    "url": "https://gamezipper.com/2048/?utm_source=embed"
   },
   {
     "id": 17,
