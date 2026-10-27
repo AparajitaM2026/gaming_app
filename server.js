@@ -1499,6 +1499,39 @@ app.get('/api/game-frame', async (req, res) => {
             }
           });
 
+          // PlayCanvas / Famobi recursive resizecanvas feedback loop neutralizer (fixes Cannon Balls 3D 94% stack overflow)
+          (function() {
+            function hookPlayCanvas() {
+              if (window.pc && window.pc.EventHandler && window.pc.EventHandler.prototype) {
+                if (!window.pc.EventHandler.prototype._origFire) {
+                  window.pc.EventHandler.prototype._origFire = window.pc.EventHandler.prototype.fire;
+                  let isFiringResize = false;
+                  window.pc.EventHandler.prototype.fire = function(name) {
+                    if (name === 'resizecanvas') {
+                      if (isFiringResize) return this;
+                      isFiringResize = true;
+                      try {
+                        return this._origFire.apply(this, arguments);
+                      } finally {
+                        isFiringResize = false;
+                      }
+                    }
+                    return this._origFire.apply(this, arguments);
+                  };
+                }
+                return true;
+              }
+              return false;
+            }
+
+            if (!hookPlayCanvas()) {
+              const pcTimer = setInterval(function() {
+                if (hookPlayCanvas()) clearInterval(pcTimer);
+              }, 2);
+              setTimeout(function() { clearInterval(pcTimer); }, 15000);
+            }
+          })();
+
           // Famobi Autonomous Emulator (bypasses anti-embed redirects and loads game assets directly)
           const _famobiStore = {};
           const mockStorage = {
@@ -1550,8 +1583,14 @@ app.get('/api/game-frame', async (req, res) => {
             },
             hasFeature: function(f) { 
               if (f === 'visibilitychange' || f === 'external_start' || f === 'external_pause' || f === 'external_mute') return false;
-              if (f === 'ads' || f === 'rewarded_ads' || f === 'highscores' || f === 'leaderboard' || f === 'branding') return false;
+              if (f === 'ads' || f === 'rewarded_ads' || f === 'highscores' || f === 'leaderboard' || f === 'branding' || f === 'iap') return false;
               return true;
+            },
+            iap: {
+              onEvent: function(cb) {},
+              getProducts: function() { return Promise.resolve([]); },
+              buyProduct: function() { return Promise.resolve(); },
+              consumeProduct: function() { return Promise.resolve(); }
             },
             getOffsets: function() { return { top: 0, bottom: 0, left: 0, right: 0 }; },
             onOffsetChange: function(cb) {},
@@ -1645,6 +1684,7 @@ app.get('/api/game-frame', async (req, res) => {
             get: function(target, prop) {
               if (prop in target) return target[prop];
               if (prop === 'storage' || prop === 'localStorage' || prop === 'sessionStorage') return mockStorage;
+              if (prop === 'iap') return mockGameInterfaceBase.iap;
               if (prop === 'config') return target.config;
               if (prop === 'then') return undefined;
               if (typeof prop === 'string' && prop.startsWith('get') && prop.includes('Image')) {
@@ -1709,8 +1749,14 @@ app.get('/api/game-frame', async (req, res) => {
             getStorage: function() { return mockStorage; },
             hasFeature: function(f) { 
               if (f === 'visibilitychange' || f === 'external_start' || f === 'external_pause' || f === 'external_mute') return false;
-              if (f === 'ads' || f === 'rewarded_ads' || f === 'highscores' || f === 'leaderboard' || f === 'branding') return false;
+              if (f === 'ads' || f === 'rewarded_ads' || f === 'highscores' || f === 'leaderboard' || f === 'branding' || f === 'iap') return false;
               return true;
+            },
+            iap: {
+              onEvent: function(cb) {},
+              getProducts: function() { return Promise.resolve([]); },
+              buyProduct: function() { return Promise.resolve(); },
+              consumeProduct: function() { return Promise.resolve(); }
             },
             getFeatureProperties: function() { return {}; },
             sendPreloadProgress: function(p) {},
@@ -1737,6 +1783,7 @@ app.get('/api/game-frame', async (req, res) => {
             get: function(target, prop) {
               if (prop in target) return target[prop];
               if (prop === 'storage' || prop === 'localStorage' || prop === 'sessionStorage') return mockStorage;
+              if (prop === 'iap') return mockGameInterfaceBase.iap;
               if (prop === 'then') return undefined;
               if (typeof prop === 'string' && prop.startsWith('get') && prop.includes('Image')) {
                 return function() { return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; };
