@@ -1617,7 +1617,7 @@ const handleGameFrame = async (req, res) => {
             }
           });
 
-          // PlayCanvas / Famobi recursive resizecanvas feedback loop neutralizer (fixes Cannon Balls 3D 94% stack overflow)
+          // PlayCanvas / Famobi recursive resizecanvas & copyright neutralizer (fixes Cannon Balls 3D 94% freeze)
           (function() {
             function hookPlayCanvas() {
               if (window.pc && window.pc.EventHandler && window.pc.EventHandler.prototype) {
@@ -1635,6 +1635,21 @@ const handleGameFrame = async (req, res) => {
                       }
                     }
                     return this._origFire.apply(this, arguments);
+                  };
+                }
+                if (window.pc.createScript && !window.pc._origCreateScript) {
+                  window.pc._origCreateScript = window.pc.createScript;
+                  window.pc.createScript = function(name) {
+                    const res = window.pc._origCreateScript.apply(this, arguments);
+                    if (name === 'famobiCopyright') {
+                      res.prototype.initialize = function() {
+                        if (this.entity) {
+                          this.entity.enabled = false;
+                          if (this.entity.element) this.entity.element.opacity = 0;
+                        }
+                      };
+                    }
+                    return res;
                   };
                 }
                 return true;
@@ -1867,9 +1882,10 @@ const handleGameFrame = async (req, res) => {
             getStorage: function() { return mockStorage; },
             hasFeature: function(f) { 
               if (f === 'visibilitychange' || f === 'external_start' || f === 'external_pause' || f === 'external_mute') return false;
-              if (f === 'ads' || f === 'rewarded_ads' || f === 'highscores' || f === 'leaderboard' || f === 'branding' || f === 'iap') return false;
+              if (f === 'ads' || f === 'rewarded_ads' || f === 'highscores' || f === 'leaderboard' || f === 'branding' || f === 'iap' || f === 'copyright') return false;
               return true;
             },
+            getOffsets: function() { return { top: 0, bottom: 0, left: 0, right: 0 }; },
             iap: {
               onEvent: function(cb) {},
               getProducts: function() { return Promise.resolve([]); },
@@ -1888,7 +1904,7 @@ const handleGameFrame = async (req, res) => {
             onOffsetChange: function() {},
             getCurrentLanguage: function() { return 'en'; },
             getLanguage: function() { return 'en'; },
-            getCopyrightLogoURL: function() { return ''; },
+            getCopyrightLogoURL: function() { return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; },
             isMuted: function() { return false; },
             isPaused: function() { return false; },
             hasRewardedAd: function() { return Promise.resolve(false); },
@@ -1902,6 +1918,8 @@ const handleGameFrame = async (req, res) => {
               if (prop in target) return target[prop];
               if (prop === 'storage' || prop === 'localStorage' || prop === 'sessionStorage') return mockStorage;
               if (prop === 'iap') return mockGameInterfaceBase.iap;
+              if (prop === 'getOffsets') return function() { return { top: 0, bottom: 0, left: 0, right: 0 }; };
+              if (prop === 'getCopyrightLogoURL') return function() { return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; };
               if (prop === 'then') return undefined;
               if (typeof prop === 'string' && prop.startsWith('get') && prop.includes('Image')) {
                 return function() { return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; };
