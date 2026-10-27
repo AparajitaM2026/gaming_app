@@ -20,6 +20,7 @@ try {
 const db = require('./db');
 // Automatically clean legacy URLs from database so zero external domains are exposed in voltixz.com
 db.query(`UPDATE games SET game_url = '/play/' || slug WHERE game_url LIKE '%games.ottsol.cloud%'`).catch(() => {});
+db.query(`UPDATE games SET game_url = 'https://html5.gamedistribution.com/rvvASMiM/0ccd52f987014bb49708e6afa2e3a8f7/index.html' WHERE slug = 'archery-world-tour'`).catch(() => {});
 const { generateToken, authMiddleware, verifyToken } = require('./middleware/auth');
 const { setupMultiplayer } = require('./services/multiplayer');
 
@@ -1142,6 +1143,25 @@ const handleGameFrame = async (req, res) => {
           });
           html = await secondResponse.text();
           finalUrl = secondResponse.url || cdnUrl;
+        } catch(e) {}
+      }
+    }
+
+    // Automatically resolve GameDistribution wrapper portal stubs to direct CDN game engine URLs
+    if (finalUrl.includes('html5.gamedistribution.com') && !finalUrl.includes('/rvvASMiM/')) {
+      const gdMatch = finalUrl.match(/html5\.gamedistribution\.com\/([a-f0-9]{32})/i);
+      if (gdMatch && gdMatch[1]) {
+        const directEngineUrl = `https://html5.gamedistribution.com/rvvASMiM/${gdMatch[1]}/index.html`;
+        try {
+          const secondResponse = await fetch(directEngineUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+          });
+          if (secondResponse.ok) {
+            html = await secondResponse.text();
+            finalUrl = directEngineUrl;
+          }
         } catch(e) {}
       }
     }
