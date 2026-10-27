@@ -2044,8 +2044,9 @@ app.get('/api/game-frame', async (req, res) => {
           padding: 0 !important;
           background: #000000 !important;
         }
-        /* Level Devil & Fixed Canvas Perfect Centering */
-        canvas#game {
+        /* Level Devil, Neon Run & Fixed Canvas Perfect Centering */
+        canvas#game,
+        canvas#gameCanvas {
           width: auto !important;
           height: auto !important;
           max-width: 100vw !important;

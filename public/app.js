@@ -587,7 +587,7 @@ const STANDARD_GAMES = new Set([
   'flow-connect', 'classic-minesweeper', 'classic-sudoku', 'crossword-puzzle', 
   'nonogram-puzzle', 'jigsaw-puzzle', 'unblock-me', 'word-connections', 
   'go', 'dots-and-boxes', 'queens-puzzle', 
-  'mahjong-solitaire', 'sliding-puzzle', '2048-galaxy', 'level-devil',
+  'mahjong-solitaire', 'sliding-puzzle', '2048-galaxy', 'level-devil', 'neon-run',
   'ludo-hero-ai', 'carrom-clash-ai', 'chess-master-ai',
   'checkers-classic-ai', 'connect4-arena-ai', 'tictactoe-neon-ai',
   'pong', 'brick-breaker', 'tetris',
