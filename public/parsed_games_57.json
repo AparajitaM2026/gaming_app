@@ -1054,24 +1054,6 @@
     "url": "https://html5.gamedistribution.com/0ccd52f987014bb49708e6afa2e3a8f7/"
   },
   {
-    "id": 87,
-    "slug": "8-ball-billiards-classic",
-    "title": "8 Ball Billiards Classic",
-    "category": "arcade",
-    "thumbnail": "/assets/posters/8-ball-billiards-classic.svg",
-    "game_url": "https://games.cdn.famobi.com/html5games/0/8-ball-billiards-classic/f6589445/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=82038e98-d4e1-46dd-8de9-1460d1395eab&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472",
-    "is_multiplayer": false,
-    "min_players": 1,
-    "max_players": 1,
-    "entry_fee_coins": 0,
-    "orientation": "landscape",
-    "rating": "4.9",
-    "plays_count": 38900,
-    "is_featured": true,
-    "is_premium": false,
-    "url": "https://games.cdn.famobi.com/html5games/0/8-ball-billiards-classic/f6589445/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=82038e98-d4e1-46dd-8de9-1460d1395eab&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472"
-  },
-  {
     "id": 88,
     "slug": "low-poly-speedster",
     "title": "OTT Low-Poly Speedster",

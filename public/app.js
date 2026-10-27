@@ -1290,9 +1290,9 @@ const GAME_HOW_TO_PLAY = {
     tips: `• If the wind blows 3 m/s to the right, aim 3 units to the left of the yellow center.
 • Don\'t hold the drawn bowstring too long or your archer\'s hands will begin shaking.`
   },
-  '8-ball-billiards-classic': {
-    title: '8 Ball Billiards Classic',
-    category: 'Sports Classic',
+  'pro-billiards-3d': {
+    title: 'OTT Pro Billiards 3D',
+    category: 'VIP Sports',
     objective: 'Pocket all of your assigned balls (solids or stripes) and sink the 8-ball to claim victory!',
     controls: '🖱️ Mouse Drag / 👆 Touch: Aim cue stick, pull back power slider, and release to strike.',
     rules: `1. The first player to pocket a ball after the break is assigned Solids (1-7) or Stripes (9-15).
