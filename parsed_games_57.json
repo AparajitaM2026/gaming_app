@@ -22,7 +22,7 @@
     "title": "Classic Snake",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/snake.png",
-    "game_url": "https://games.ottsol.cloud/snake/",
+    "game_url": "/play/classic-snake",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -32,7 +32,7 @@
     "plays_count": 14903,
     "is_featured": true,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/snake/"
+    "url": "/play/classic-snake"
   },
   {
     "id": 16,
@@ -58,7 +58,7 @@
     "title": "Tetris",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/tetris.png",
-    "game_url": "https://games.ottsol.cloud/tetris/",
+    "game_url": "/play/tetris",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -68,7 +68,7 @@
     "plays_count": 12370,
     "is_featured": true,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/tetris/"
+    "url": "/play/tetris"
   },
   {
     "id": 18,
@@ -76,7 +76,7 @@
     "title": "Pong",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/pong.png",
-    "game_url": "https://games.ottsol.cloud/pong/",
+    "game_url": "/play/pong",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -86,7 +86,7 @@
     "plays_count": 6638,
     "is_featured": true,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/pong/"
+    "url": "/play/pong"
   },
   {
     "id": 20,
@@ -94,7 +94,7 @@
     "title": "Brick Breaker",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/brick-breaker.png",
-    "game_url": "https://games.ottsol.cloud/brick-breaker/",
+    "game_url": "/play/brick-breaker",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -104,7 +104,7 @@
     "plays_count": 15020,
     "is_featured": true,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/brick-breaker/"
+    "url": "/play/brick-breaker"
   },
   {
     "id": 21,
@@ -112,7 +112,7 @@
     "title": "T-Rex Dino Runner",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/t-rex.png",
-    "game_url": "https://games.ottsol.cloud/t-rex/",
+    "game_url": "/play/t-rex-dino-runner",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -122,7 +122,7 @@
     "plays_count": 6573,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/t-rex/"
+    "url": "/play/t-rex-dino-runner"
   },
   {
     "id": 22,
@@ -130,7 +130,7 @@
     "title": "Cyberpunk Flappy",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/flappy-wings.png",
-    "game_url": "https://games.ottsol.cloud/flappy-wings/",
+    "game_url": "/play/cyberpunk-flappy",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -140,7 +140,7 @@
     "plays_count": 10324,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/flappy-wings/"
+    "url": "/play/cyberpunk-flappy"
   },
   {
     "id": 23,
@@ -148,7 +148,7 @@
     "title": "Fruit Slash Ninja",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/fruit-slash.png",
-    "game_url": "https://games.ottsol.cloud/fruit-slash/",
+    "game_url": "/play/fruit-slash",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -158,7 +158,7 @@
     "plays_count": 17182,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/fruit-slash/"
+    "url": "/play/fruit-slash"
   },
   {
     "id": 24,
@@ -166,7 +166,7 @@
     "title": "Bubble Shooter",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/bubble-shooter.png",
-    "game_url": "https://games.ottsol.cloud/bubble-shooter/",
+    "game_url": "/play/bubble-shooter",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -176,7 +176,7 @@
     "plays_count": 6558,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/bubble-shooter/"
+    "url": "/play/bubble-shooter"
   },
   {
     "id": 25,
@@ -184,7 +184,7 @@
     "title": "Steam Whacker",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/whack-a-mole.png",
-    "game_url": "https://games.ottsol.cloud/whack-a-mole/",
+    "game_url": "/play/steam-whacker",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -194,7 +194,7 @@
     "plays_count": 7517,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/whack-a-mole/"
+    "url": "/play/steam-whacker"
   },
   {
     "id": 26,
@@ -202,7 +202,7 @@
     "title": "Classic Sudoku",
     "category": "puzzle",
     "thumbnail": "https://gamezipper.com/og-images/sudoku.png",
-    "game_url": "https://games.ottsol.cloud/sudoku/",
+    "game_url": "/play/classic-sudoku",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -212,7 +212,7 @@
     "plays_count": 5435,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/sudoku/"
+    "url": "/play/classic-sudoku"
   },
   {
     "id": 27,
@@ -220,7 +220,7 @@
     "title": "Crossword Puzzle",
     "category": "puzzle",
     "thumbnail": "https://gamezipper.com/og-images/crossword.png",
-    "game_url": "https://games.ottsol.cloud/crossword/",
+    "game_url": "/play/crossword-puzzle",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -230,7 +230,7 @@
     "plays_count": 4996,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/crossword/"
+    "url": "/play/crossword-puzzle"
   },
   {
     "id": 28,
@@ -238,7 +238,7 @@
     "title": "Nonogram Puzzle",
     "category": "puzzle",
     "thumbnail": "https://gamezipper.com/og-images/nonogram.png",
-    "game_url": "https://games.ottsol.cloud/nonogram/",
+    "game_url": "/play/nonogram-puzzle",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -248,7 +248,7 @@
     "plays_count": 10849,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/nonogram/"
+    "url": "/play/nonogram-puzzle"
   },
   {
     "id": 29,
@@ -256,7 +256,7 @@
     "title": "Classic Minesweeper",
     "category": "puzzle",
     "thumbnail": "https://gamezipper.com/og-images/minesweeper.png",
-    "game_url": "https://games.ottsol.cloud/minesweeper/",
+    "game_url": "/play/classic-minesweeper",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -266,7 +266,7 @@
     "plays_count": 18769,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/minesweeper/"
+    "url": "/play/classic-minesweeper"
   },
   {
     "id": 30,
@@ -274,7 +274,7 @@
     "title": "Jigsaw Puzzle",
     "category": "puzzle",
     "thumbnail": "https://gamezipper.com/og-images/jigsaw-puzzle.png",
-    "game_url": "https://games.ottsol.cloud/jigsaw-puzzle/",
+    "game_url": "/play/jigsaw-puzzle",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -284,7 +284,7 @@
     "plays_count": 18497,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/jigsaw-puzzle/"
+    "url": "/play/jigsaw-puzzle"
   },
   {
     "id": 31,
@@ -292,7 +292,7 @@
     "title": "Unblock Me",
     "category": "puzzle",
     "thumbnail": "https://gamezipper.com/og-images/unblock-me.png",
-    "game_url": "https://games.ottsol.cloud/unblock-me/",
+    "game_url": "/play/unblock-me",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -302,7 +302,7 @@
     "plays_count": 16453,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/unblock-me/"
+    "url": "/play/unblock-me"
   },
   {
     "id": 32,
@@ -310,7 +310,7 @@
     "title": "Flow Connect",
     "category": "puzzle",
     "thumbnail": "https://gamezipper.com/og-images/flow-connect.png",
-    "game_url": "https://games.ottsol.cloud/flow-connect/",
+    "game_url": "/play/flow-connect",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -320,7 +320,7 @@
     "plays_count": 9149,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/flow-connect/"
+    "url": "/play/flow-connect"
   },
   {
     "id": 33,
@@ -328,7 +328,7 @@
     "title": "Word Connections",
     "category": "puzzle",
     "thumbnail": "https://gamezipper.com/og-images/word-connections.png",
-    "game_url": "https://games.ottsol.cloud/word-connections/",
+    "game_url": "/play/word-connections",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -338,7 +338,7 @@
     "plays_count": 8815,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/word-connections/"
+    "url": "/play/word-connections"
   },
   {
     "id": 35,
@@ -346,7 +346,7 @@
     "title": "Little Alchemy",
     "category": "puzzle",
     "thumbnail": "https://gamezipper.com/og-images/little-alchemy.png",
-    "game_url": "https://games.ottsol.cloud/little-alchemy/",
+    "game_url": "/play/little-alchemy",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -356,7 +356,7 @@
     "plays_count": 4547,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/little-alchemy/"
+    "url": "/play/little-alchemy"
   },
   {
     "id": 36,
@@ -364,7 +364,7 @@
     "title": "The Impossible Quiz",
     "category": "puzzle",
     "thumbnail": "https://gamezipper.com/og-images/impossible-quiz.png",
-    "game_url": "https://games.ottsol.cloud/impossible-quiz/",
+    "game_url": "/play/the-impossible-quiz",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -374,7 +374,7 @@
     "plays_count": 15593,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/impossible-quiz/"
+    "url": "/play/the-impossible-quiz"
   },
   {
     "id": 38,
@@ -399,7 +399,7 @@
     "title": "Solitaire",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/solitaire.png",
-    "game_url": "https://games.ottsol.cloud/solitaire/",
+    "game_url": "/play/solitaire",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -409,7 +409,7 @@
     "plays_count": 8691,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/solitaire/"
+    "url": "/play/solitaire"
   },
   {
     "id": 40,
@@ -417,7 +417,7 @@
     "title": "Reversi",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/reversi.png",
-    "game_url": "https://games.ottsol.cloud/reversi/",
+    "game_url": "/play/reversi",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -427,7 +427,7 @@
     "plays_count": 16829,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/reversi/"
+    "url": "/play/reversi"
   },
   {
     "id": 41,
@@ -435,7 +435,7 @@
     "title": "Dots and Boxes",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/dots-and-boxes.png",
-    "game_url": "https://games.ottsol.cloud/dots-and-boxes/",
+    "game_url": "/play/dots-and-boxes",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -445,7 +445,7 @@
     "plays_count": 11888,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/dots-and-boxes/"
+    "url": "/play/dots-and-boxes"
   },
   {
     "id": 42,
@@ -453,7 +453,7 @@
     "title": "Queens Puzzle",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-image.webp",
-    "game_url": "https://games.ottsol.cloud/queens/",
+    "game_url": "/play/queens-puzzle",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -463,7 +463,7 @@
     "plays_count": 13599,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/queens/"
+    "url": "/play/queens-puzzle"
   },
   {
     "id": 43,
@@ -471,7 +471,7 @@
     "title": "Mahjong Solitaire",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/mahjong-solitaire.png",
-    "game_url": "https://games.ottsol.cloud/mahjong-solitaire/",
+    "game_url": "/play/mahjong-solitaire",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -481,7 +481,7 @@
     "plays_count": 9876,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/mahjong-solitaire/"
+    "url": "/play/mahjong-solitaire"
   },
   {
     "id": 44,
@@ -489,7 +489,7 @@
     "title": "Sliding Puzzle",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/sliding-puzzle.png",
-    "game_url": "https://games.ottsol.cloud/sliding-puzzle/",
+    "game_url": "/play/sliding-puzzle",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -499,7 +499,7 @@
     "plays_count": 9841,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/sliding-puzzle/"
+    "url": "/play/sliding-puzzle"
   },
   {
     "id": 46,
@@ -507,7 +507,7 @@
     "title": "Trivia Crack",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/trivia-crack.png",
-    "game_url": "https://games.ottsol.cloud/trivia-crack/",
+    "game_url": "/play/trivia-crack",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -517,7 +517,7 @@
     "plays_count": 12919,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/trivia-crack/"
+    "url": "/play/trivia-crack"
   },
   {
     "id": 47,
@@ -525,7 +525,7 @@
     "title": "Cut the Rope",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/cut-the-rope.png",
-    "game_url": "https://games.ottsol.cloud/cut-the-rope/",
+    "game_url": "/play/cut-the-rope",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -535,7 +535,7 @@
     "plays_count": 12288,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/cut-the-rope/"
+    "url": "/play/cut-the-rope"
   },
   {
     "id": 50,
@@ -561,7 +561,7 @@
     "title": "Drive Fury",
     "category": "action",
     "thumbnail": "https://gamezipper.com/og-images/drive-fury.png",
-    "game_url": "https://games.ottsol.cloud/drive-fury/",
+    "game_url": "/play/drive-fury",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -571,7 +571,7 @@
     "plays_count": 17799,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/drive-fury/"
+    "url": "/play/drive-fury"
   },
   {
     "id": 52,
@@ -597,7 +597,7 @@
     "title": "Escape Manor",
     "category": "action",
     "thumbnail": "https://gamezipper.com/og-images/escape-manor.png",
-    "game_url": "https://games.ottsol.cloud/escape-manor/",
+    "game_url": "/play/escape-manor",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -607,7 +607,7 @@
     "plays_count": 13371,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/escape-manor/"
+    "url": "/play/escape-manor"
   },
   {
     "id": 55,
@@ -615,7 +615,7 @@
     "title": "Sand Balls",
     "category": "action",
     "thumbnail": "https://gamezipper.com/og-images/sand-balls.png",
-    "game_url": "https://games.ottsol.cloud/sand-balls/",
+    "game_url": "/play/sand-balls",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -625,7 +625,7 @@
     "plays_count": 13362,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/sand-balls/"
+    "url": "/play/sand-balls"
   },
   {
     "id": 56,
@@ -633,7 +633,7 @@
     "title": "Arrow Escape",
     "category": "action",
     "thumbnail": "https://gamezipper.com/og-images/arrow-escape.png",
-    "game_url": "https://games.ottsol.cloud/arrow-escape/",
+    "game_url": "/play/arrow-escape",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -643,7 +643,7 @@
     "plays_count": 18609,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/arrow-escape/"
+    "url": "/play/arrow-escape"
   },
   {
     "id": 57,
@@ -651,7 +651,7 @@
     "title": "Block Stacker",
     "category": "action",
     "thumbnail": "https://gamezipper.com/og-images/stacker.png",
-    "game_url": "https://games.ottsol.cloud/stacker/",
+    "game_url": "/play/block-stacker",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -661,7 +661,7 @@
     "plays_count": 8114,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/stacker/"
+    "url": "/play/block-stacker"
   },
   {
     "id": 58,
@@ -669,7 +669,7 @@
     "title": "Memory Master",
     "category": "action",
     "thumbnail": "https://gamezipper.com/og-images/memory-match.png",
-    "game_url": "https://games.ottsol.cloud/memory-match/",
+    "game_url": "/play/memory-master",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -679,7 +679,7 @@
     "plays_count": 6643,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/memory-match/"
+    "url": "/play/memory-master"
   },
   {
     "id": 59,
@@ -687,7 +687,7 @@
     "title": "Typing Speed Test",
     "category": "action",
     "thumbnail": "https://gamezipper.com/og-images/typing-speed.png",
-    "game_url": "https://games.ottsol.cloud/typing-speed/",
+    "game_url": "/play/typing-speed-test",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -697,7 +697,7 @@
     "plays_count": 14185,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/typing-speed/"
+    "url": "/play/typing-speed-test"
   },
   {
     "id": 60,
@@ -705,7 +705,7 @@
     "title": "Basketball Shoot",
     "category": "action",
     "thumbnail": "https://gamezipper.com/og-images/basketball-shoot.png",
-    "game_url": "https://games.ottsol.cloud/basketball-shoot/",
+    "game_url": "/play/basketball-shoot",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -715,7 +715,7 @@
     "plays_count": 7537,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/basketball-shoot/"
+    "url": "/play/basketball-shoot"
   },
   {
     "id": 62,
@@ -723,7 +723,7 @@
     "title": "Paint Splash",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/paint-splash.png",
-    "game_url": "https://games.ottsol.cloud/paint-splash/",
+    "game_url": "/play/paint-splash",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -733,7 +733,7 @@
     "plays_count": 6817,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/paint-splash/"
+    "url": "/play/paint-splash"
   },
   {
     "id": 67,
@@ -741,7 +741,7 @@
     "title": "Cloud & Sheep",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/cloud-sheep.png",
-    "game_url": "https://games.ottsol.cloud/cloud-sheep/",
+    "game_url": "/play/cloud-amp-sheep",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -751,7 +751,7 @@
     "plays_count": 8746,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/cloud-sheep/"
+    "url": "/play/cloud-amp-sheep"
   },
   {
     "id": 68,
@@ -759,7 +759,7 @@
     "title": "Magic Sort",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/magic-sort.png",
-    "game_url": "https://games.ottsol.cloud/magic-sort/",
+    "game_url": "/play/magic-sort",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -769,7 +769,7 @@
     "plays_count": 9977,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/magic-sort/"
+    "url": "/play/magic-sort"
   },
   {
     "id": 69,
@@ -777,7 +777,7 @@
     "title": "Watermelon Merge",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/watermelon-merge.png",
-    "game_url": "https://games.ottsol.cloud/watermelon-merge/",
+    "game_url": "/play/watermelon-merge",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -787,7 +787,7 @@
     "plays_count": 7017,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/watermelon-merge/"
+    "url": "/play/watermelon-merge"
   },
   {
     "id": 70,
@@ -795,7 +795,7 @@
     "title": "Wood Block Puzzle",
     "category": "arcade",
     "thumbnail": "https://gamezipper.com/og-images/wood-block-puzzle.png",
-    "game_url": "https://games.ottsol.cloud/wood-block-puzzle/",
+    "game_url": "/play/wood-block-puzzle",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -805,7 +805,7 @@
     "plays_count": 6366,
     "is_featured": false,
     "is_premium": false,
-    "url": "https://games.ottsol.cloud/wood-block-puzzle/"
+    "url": "/play/wood-block-puzzle"
   },
   {
     "id": 73,
@@ -1059,7 +1059,7 @@
     "title": "OTT Low-Poly Speedster",
     "category": "action",
     "thumbnail": "/assets/posters/low-poly-speedster.svg",
-    "game_url": "https://games.ottsol.cloud/low-poly-speedster/",
+    "game_url": "/play/low-poly-speedster",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -1076,7 +1076,7 @@
     "title": "OTT Turbo Drift Unleashed",
     "category": "action",
     "thumbnail": "/assets/posters/turbo-drift-unleashed.svg",
-    "game_url": "https://games.ottsol.cloud/turbo-drift-unleashed/",
+    "game_url": "/play/turbo-drift-unleashed",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -1093,7 +1093,7 @@
     "title": "OTT Striker King 3D",
     "category": "sports",
     "thumbnail": "/assets/posters/striker-king-3d.svg",
-    "game_url": "https://games.ottsol.cloud/striker-king-3d/",
+    "game_url": "/play/striker-king-3d",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -1110,7 +1110,7 @@
     "title": "OTT Power Puck Hockey",
     "category": "sports",
     "thumbnail": "/assets/posters/power-puck-hockey.svg",
-    "game_url": "https://games.ottsol.cloud/power-puck-hockey/",
+    "game_url": "/play/power-puck-hockey",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -1127,7 +1127,7 @@
     "title": "OTT Vector Arena Shooter",
     "category": "action",
     "thumbnail": "/assets/posters/vector-arena-shooter.svg",
-    "game_url": "https://games.ottsol.cloud/vector-arena-shooter/",
+    "game_url": "/play/vector-arena-shooter",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -1144,7 +1144,7 @@
     "title": "OTT Lost Tomb Runner",
     "category": "action",
     "thumbnail": "/assets/posters/lost-tomb-runner.svg",
-    "game_url": "https://games.ottsol.cloud/lost-tomb-runner/",
+    "game_url": "/play/lost-tomb-runner",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -1161,7 +1161,7 @@
     "title": "OTT Pond Rescue IO",
     "category": "arcade",
     "thumbnail": "/assets/posters/pond-rescue-io.svg",
-    "game_url": "https://games.ottsol.cloud/pond-rescue-io/",
+    "game_url": "/play/pond-rescue-io",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -1178,7 +1178,7 @@
     "title": "OTT ZigZag Drift King",
     "category": "action",
     "thumbnail": "/assets/posters/zigzag-drift-king.svg",
-    "game_url": "https://games.ottsol.cloud/zigzag-drift-king/",
+    "game_url": "/play/zigzag-drift-king",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -1195,7 +1195,7 @@
     "title": "OTT Pro Billiards 3D",
     "category": "sports",
     "thumbnail": "/assets/posters/pro-billiards-3d.svg",
-    "game_url": "https://games.ottsol.cloud/pro-billiards-3d/",
+    "game_url": "/play/pro-billiards-3d",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -1212,7 +1212,7 @@
     "title": "OTT Stack Smash 3D",
     "category": "arcade",
     "thumbnail": "/assets/posters/stack-smash-3d.svg",
-    "game_url": "https://games.ottsol.cloud/stack-smash-3d/",
+    "game_url": "/play/stack-smash-3d",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -1229,7 +1229,7 @@
     "title": "OTT Cannon Target Smash",
     "category": "arcade",
     "thumbnail": "/assets/posters/cannon-target-smash.svg",
-    "game_url": "https://games.ottsol.cloud/cannon-target-smash/",
+    "game_url": "/play/cannon-target-smash",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -1246,7 +1246,7 @@
     "title": "OTT Wipeout Dash 3D",
     "category": "action",
     "thumbnail": "/assets/posters/wipeout-dash-3d.svg",
-    "game_url": "https://games.ottsol.cloud/wipeout-dash-3d/",
+    "game_url": "/play/wipeout-dash-3d",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -1263,7 +1263,7 @@
     "title": "OTT Garden Tile Match",
     "category": "puzzle",
     "thumbnail": "/assets/posters/garden-tile-match.svg",
-    "game_url": "https://games.ottsol.cloud/garden-tile-match/",
+    "game_url": "/play/garden-tile-match",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -1280,7 +1280,7 @@
     "title": "OTT Bubble Column Match",
     "category": "puzzle",
     "thumbnail": "/assets/posters/bubble-column-match.svg",
-    "game_url": "https://games.ottsol.cloud/bubble-column-match/",
+    "game_url": "/play/bubble-column-match",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,
@@ -1297,7 +1297,7 @@
     "title": "OTT TNT Demolition",
     "category": "action",
     "thumbnail": "/assets/posters/tnt-demolition.svg",
-    "game_url": "https://games.ottsol.cloud/tnt-demolition/",
+    "game_url": "/play/tnt-demolition",
     "is_multiplayer": false,
     "min_players": 1,
     "max_players": 1,

@@ -18,6 +18,8 @@ try {
 }
 
 const db = require('./db');
+// Automatically clean legacy URLs from database so zero external domains are exposed in voltixz.com
+db.query(`UPDATE games SET game_url = '/play/' || slug WHERE game_url LIKE '%games.ottsol.cloud%'`).catch(() => {});
 const { generateToken, authMiddleware, verifyToken } = require('./middleware/auth');
 const { setupMultiplayer } = require('./services/multiplayer');
 
@@ -869,7 +871,7 @@ app.get('/api/games', async (req, res) => {
 
     const gamesRes = await db.query(query, params);
     
-    // Deduplicate to guarantee absolute uniqueness by slug
+    // Deduplicate to guarantee absolute uniqueness by slug & scrub backend URLs
     const seenSlugs = new Set();
     const uniqueGames = gamesRes.rows.filter(g => {
       if (!g || !g.slug) return false;
@@ -877,6 +879,14 @@ app.get('/api/games', async (req, res) => {
       if (seenSlugs.has(key)) return false;
       seenSlugs.add(key);
       return true;
+    }).map(g => {
+      if (g.game_url && g.game_url.includes('games.ottsol.cloud')) {
+        g.game_url = '/play/' + g.slug;
+      }
+      if (g.url && g.url.includes('games.ottsol.cloud')) {
+        g.url = '/play/' + g.slug;
+      }
+      return g;
     });
 
     res.json({ success: true, games: uniqueGames });
@@ -899,6 +909,14 @@ app.get('/api/games', async (req, res) => {
         if (seenSlugs.has(key)) return false;
         seenSlugs.add(key);
         return true;
+      }).map(g => {
+        if (g.game_url && g.game_url.includes('games.ottsol.cloud')) {
+          g.game_url = '/play/' + g.slug;
+        }
+        if (g.url && g.url.includes('games.ottsol.cloud')) {
+          g.url = '/play/' + g.slug;
+        }
+        return g;
       });
 
       res.json({ success: true, games: uniqueGames });
@@ -967,14 +985,114 @@ app.get('/api/game-asset', async (req, res) => {
   }
 });
 
+// Internal server-side sources mapping (strictly kept on backend, never exposed to client)
+const INTERNAL_GAME_SOURCES = {
+  'classic-snake': 'https://games.ottsol.cloud/snake/',
+  'tetris': 'https://games.ottsol.cloud/tetris/',
+  'pong': 'https://games.ottsol.cloud/pong/',
+  'brick-breaker': 'https://games.ottsol.cloud/brick-breaker/',
+  't-rex-dino-runner': 'https://games.ottsol.cloud/t-rex/',
+  'cyberpunk-flappy': 'https://games.ottsol.cloud/flappy-wings/',
+  'fruit-slash': 'https://games.ottsol.cloud/fruit-slash/',
+  'bubble-shooter': 'https://games.ottsol.cloud/bubble-shooter/',
+  'steam-whacker': 'https://games.ottsol.cloud/whack-a-mole/',
+  'classic-sudoku': 'https://games.ottsol.cloud/sudoku/',
+  'crossword-puzzle': 'https://games.ottsol.cloud/crossword/',
+  'nonogram-puzzle': 'https://games.ottsol.cloud/nonogram/',
+  'classic-minesweeper': 'https://games.ottsol.cloud/minesweeper/',
+  'jigsaw-puzzle': 'https://games.ottsol.cloud/jigsaw-puzzle/',
+  'unblock-me': 'https://games.ottsol.cloud/unblock-me/',
+  'flow-connect': 'https://games.ottsol.cloud/flow-connect/',
+  'word-connections': 'https://games.ottsol.cloud/word-connections/',
+  'little-alchemy': 'https://games.ottsol.cloud/little-alchemy/',
+  'the-impossible-quiz': 'https://games.ottsol.cloud/impossible-quiz/',
+  'solitaire': 'https://games.ottsol.cloud/solitaire/',
+  'reversi': 'https://games.ottsol.cloud/reversi/',
+  'dots-and-boxes': 'https://games.ottsol.cloud/dots-and-boxes/',
+  'queens-puzzle': 'https://games.ottsol.cloud/queens/',
+  'mahjong-solitaire': 'https://games.ottsol.cloud/mahjong-solitaire/',
+  'sliding-puzzle': 'https://games.ottsol.cloud/sliding-puzzle/',
+  'trivia-crack': 'https://games.ottsol.cloud/trivia-crack/',
+  'cut-the-rope': 'https://games.ottsol.cloud/cut-the-rope/',
+  'drive-fury': 'https://games.ottsol.cloud/drive-fury/',
+  'escape-manor': 'https://games.ottsol.cloud/escape-manor/',
+  'sand-balls': 'https://games.ottsol.cloud/sand-balls/',
+  'arrow-escape': 'https://games.ottsol.cloud/arrow-escape/',
+  'block-stacker': 'https://games.ottsol.cloud/stacker/',
+  'memory-master': 'https://games.ottsol.cloud/memory-match/',
+  'typing-speed-test': 'https://games.ottsol.cloud/typing-speed/',
+  'basketball-shoot': 'https://games.ottsol.cloud/basketball-shoot/',
+  'paint-splash': 'https://games.ottsol.cloud/paint-splash/',
+  'cloud-amp-sheep': 'https://games.ottsol.cloud/cloud-sheep/',
+  'magic-sort': 'https://games.ottsol.cloud/magic-sort/',
+  'watermelon-merge': 'https://games.ottsol.cloud/watermelon-merge/',
+  'wood-block-puzzle': 'https://games.ottsol.cloud/wood-block-puzzle/',
+  'low-poly-speedster': 'https://games.ottsol.cloud/low-poly-speedster/',
+  'turbo-drift-unleashed': 'https://games.ottsol.cloud/turbo-drift-unleashed/',
+  'striker-king-3d': 'https://games.ottsol.cloud/striker-king-3d/',
+  'power-puck-hockey': 'https://games.ottsol.cloud/power-puck-hockey/',
+  'vector-arena-shooter': 'https://games.ottsol.cloud/vector-arena-shooter/',
+  'lost-tomb-runner': 'https://games.ottsol.cloud/lost-tomb-runner/',
+  'pond-rescue-io': 'https://games.ottsol.cloud/pond-rescue-io/',
+  'zigzag-drift-king': 'https://games.ottsol.cloud/zigzag-drift-king/',
+  'pro-billiards-3d': 'https://games.ottsol.cloud/pro-billiards-3d/',
+  'stack-smash-3d': 'https://games.ottsol.cloud/stack-smash-3d/',
+  'cannon-target-smash': 'https://games.ottsol.cloud/cannon-target-smash/',
+  'wipeout-dash-3d': 'https://games.ottsol.cloud/wipeout-dash-3d/',
+  'garden-tile-match': 'https://games.ottsol.cloud/garden-tile-match/',
+  'bubble-column-match': 'https://games.ottsol.cloud/bubble-column-match/',
+  'tnt-demolition': 'https://games.ottsol.cloud/tnt-demolition/'
+};
+
+// Internal Voltixz Player Endpoint: Zero external domain leakage
+app.get('/play/:slug', async (req, res, next) => {
+  const { slug } = req.params;
+  const target = INTERNAL_GAME_SOURCES[slug];
+  if (!target) return res.redirect('/');
+  req.targetUrl = target;
+  req.internalSlug = slug;
+  return handleGameFrame(req, res, next);
+});
+
+// Voltixz Game Asset Streamer: Proxies audio, scripts, wasm, textures under voltixz.com
+app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
+  const slug = req.params[0];
+  const assetPath = req.params[1];
+  const baseUrl = INTERNAL_GAME_SOURCES[slug];
+  if (!baseUrl) return res.status(404).send('Asset not found');
+
+  try {
+    const fullAssetUrl = new URL(assetPath, baseUrl).href;
+    const resp = await fetch(fullAssetUrl, {
+      headers: {
+        'User-Agent': req.headers['user-agent'] || 'Mozilla/5.0'
+      }
+    });
+    if (!resp.ok) return res.status(resp.status).send('Asset fetch failed');
+
+    const cType = resp.headers.get('content-type');
+    if (cType) res.setHeader('Content-Type', cType);
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+
+    const buffer = Buffer.from(await resp.arrayBuffer());
+    res.send(buffer);
+  } catch (e) {
+    res.status(404).send('Asset not found');
+  }
+});
+
 // Clean Game Embed Streamer (Eliminates blur, ads, banners, redirects & UI overlapping)
-app.get('/api/game-frame', async (req, res) => {
-  let targetUrl = req.query.url;
+const handleGameFrame = async (req, res) => {
+  let targetUrl = req.targetUrl || req.query.url;
   if (!targetUrl) return res.status(400).send('Missing url');
 
-  // If games.ottsol.cloud, redirect directly UNLESS it needs clean iframe framing (like jigsaw-puzzle scrollbar elimination)
-  if (targetUrl.includes('games.ottsol.cloud') && !targetUrl.includes('jigsaw-puzzle')) {
-    return res.redirect(targetUrl);
+  // Prevent external backend URLs from leaking: redirect to internal /play/:slug
+  if (targetUrl.includes('games.ottsol.cloud') && !req.internalSlug) {
+    for (const [slug, u] of Object.entries(INTERNAL_GAME_SOURCES)) {
+      if (targetUrl.includes(u) || u.includes(targetUrl.replace(/\/$/, ''))) {
+        return res.redirect(`/play/${slug}`);
+      }
+    }
   }
 
   // Fast redirect alias for color-sort to magic-sort
@@ -1028,7 +1146,7 @@ app.get('/api/game-frame', async (req, res) => {
       }
     }
 
-    const baseUrl = new URL(finalUrl).href;
+    const baseUrl = req.internalSlug ? `/play-asset/${req.internalSlug}/` : new URL(finalUrl).href;
 
     const cleanInjection = `
       <base href="${baseUrl}">
@@ -1061,7 +1179,7 @@ app.get('/api/game-frame', async (req, res) => {
             // Never block game assets, audio, json level data, wasm or textures
             if (/\\.(png|jpe?g|webp|gif|svg|mp3|ogg|wav|m4a|json|wasm|data|bin)(\\?.*)?$/i.test(u)) return false;
             // Never block the game's actual CDN host
-            if (u.includes('html5.gamedistribution.com') || u.includes('gamezipper.com') || u.includes('games.cdn.famobi.com') || u.includes('games.ottsol.cloud')) return false;
+            if (u.includes('html5.gamedistribution.com') || u.includes('gamezipper.com') || u.includes('games.cdn.famobi.com') || u.includes('/play-asset/') || u.includes('/play/')) return false;
             return AD_FILTER.test(u);
           }
 
@@ -2638,6 +2756,14 @@ app.get('/api/game-frame', async (req, res) => {
     // Strip GameZipper unclosed AdSense comment text bleed
     html = html.replace(/\+\s*standalone[\s\S]*?(?=<div|<style|<script)/gi, '');
 
+    // Completely scrub any backend host, third-party brand strings, or URLs
+    html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*>/gi, '');
+    html = html.replace(/https?:\/\/games\.ottsol\.cloud[^\s"'<>]*/gi, '#');
+    html = html.replace(/https?:\/\/ottsol\.cloud[^\s"'<>]*/gi, '#');
+    html = html.replace(/games\.ottsol\.cloud/gi, 'voltixz.com');
+    html = html.replace(/ottsol\.cloud/gi, 'voltixz.com');
+    html = html.replace(/OTT Arabia Games|OTT Arabia|OTT Jigsaw Puzzle|OTT /gi, 'Voltixz ');
+
     html = html.replace(/<head[^>]*>/i, `$&${cleanInjection}`);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -2646,7 +2772,9 @@ app.get('/api/game-frame', async (req, res) => {
     console.error('Failed to proxy game:', err);
     res.redirect(targetUrl);
   }
-});
+};
+
+app.get('/api/game-frame', handleGameFrame);
 
 // StreamingAssets proxy fallback for WebGL games
 app.get(/^\/(?:api\/)?StreamingAssets\/(.*)/, async (req, res) => {
