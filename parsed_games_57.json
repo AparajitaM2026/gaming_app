@@ -1313,7 +1313,7 @@
     "slug": "slice-master",
     "title": "Slice Master 3D",
     "category": "arcade",
-    "thumbnail": "https://gamezipper.com/og-images/fruit-slash.png",
+    "thumbnail": "/assets/posters/slice-master.svg",
     "game_url": "https://gamezipper.com/slice-master/?utm_source=embed",
     "is_multiplayer": false,
     "min_players": 1,
