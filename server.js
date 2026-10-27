@@ -972,8 +972,8 @@ app.get('/api/game-frame', async (req, res) => {
   let targetUrl = req.query.url;
   if (!targetUrl) return res.status(400).send('Missing url');
 
-  // If games.ottsol.cloud, redirect directly (it is 100% ad-free and needs native same-origin assets)
-  if (targetUrl.includes('games.ottsol.cloud')) {
+  // If games.ottsol.cloud, redirect directly UNLESS it needs clean iframe framing (like jigsaw-puzzle scrollbar elimination)
+  if (targetUrl.includes('games.ottsol.cloud') && !targetUrl.includes('jigsaw-puzzle')) {
     return res.redirect(targetUrl);
   }
 
@@ -2175,17 +2175,40 @@ app.get('/api/game-frame', async (req, res) => {
           aspect-ratio: 1 / 1 !important;
           margin: 0 auto !important;
         }
-        /* Clean modern slim scrollbar */
+        /* Completely eliminate all scrollbars across all game containers, trays & viewports */
+        *::-webkit-scrollbar,
         ::-webkit-scrollbar {
-          width: 4px;
-          height: 4px;
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
         }
-        ::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.2);
-          border-radius: 4px;
+        * {
+          scrollbar-width: none !important;
+          -ms-overflow-style: none !important;
         }
-        ::-webkit-scrollbar-track {
-          background: transparent;
+        .tray-area,
+        #tray-area,
+        .board-area,
+        #board-area,
+        #app,
+        .game-body {
+          scrollbar-width: none !important;
+          -ms-overflow-style: none !important;
+        }
+        .tray-area::-webkit-scrollbar,
+        #tray-area::-webkit-scrollbar {
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
+        }
+        body:has(#app) {
+          display: block !important;
+        }
+        #app {
+          width: 100% !important;
+          height: 100% !important;
+          max-width: 100vw !important;
+          max-height: 100vh !important;
         }
         canvas {
           display: block !important;

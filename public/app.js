@@ -874,6 +874,9 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
     playUrl = '/games/tictactoe_ai.html' + gameModeParam;
   } else if (slug === 'neon-runner') {
     playUrl = '/games/runner.html?title=' + encodeURIComponent(title);
+  } else if (slug === 'jigsaw-puzzle') {
+    // Route through clean game-frame proxy to eliminate middle scrollbar while preserving exact games.ottsol.cloud build
+    playUrl = `/api/game-frame?url=${encodeURIComponent('https://games.ottsol.cloud/jigsaw-puzzle/')}`;
   } else if (playUrl && playUrl.startsWith('https://games.ottsol.cloud')) {
     // Direct zero-latency embedding for OTT games (100% ad-free & ultra-smooth performance)
     playUrl = playUrl;
