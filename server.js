@@ -1735,9 +1735,14 @@ const handleGameFrame = async (req, res) => {
               gameParams: {}
             },
             hasFeature: function(f) { 
+              if (!f || typeof f !== 'string') return false;
               if (f === 'visibilitychange' || f === 'external_start' || f === 'external_pause' || f === 'external_mute') return false;
-              if (f === 'ads' || f === 'rewarded_ads' || f === 'highscores' || f === 'leaderboard' || f === 'branding' || f === 'iap') return false;
-              return true;
+              if (f === 'ads' || f === 'rewarded_ads' || f === 'highscores' || f === 'leaderboard' || f === 'branding' || f === 'iap' || f === 'copyright') return false;
+              if (f === 'forced_mode' || f === 'skip_title' || f === 'skip_menu' || f === 'standalone') return false;
+              return false;
+            },
+            getForcedModeProperties: function() {
+              return { state: { level: 0, coins: 0, character: 'om_nom' } };
             },
             iap: {
               onEvent: function(cb) {},
@@ -1839,6 +1844,7 @@ const handleGameFrame = async (req, res) => {
               if (prop === 'storage' || prop === 'localStorage' || prop === 'sessionStorage') return mockStorage;
               if (prop === 'iap') return mockGameInterfaceBase.iap;
               if (prop === 'config') return target.config;
+              if (prop === 'getForcedModeProperties') return function() { return { state: { level: 0, coins: 0, character: 'om_nom' } }; };
               if (prop === 'then') return undefined;
               if (typeof prop === 'string' && prop.startsWith('get') && prop.includes('Image')) {
                 return function() { return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; };
@@ -1901,9 +1907,14 @@ const handleGameFrame = async (req, res) => {
             sessionStorage: mockStorage,
             getStorage: function() { return mockStorage; },
             hasFeature: function(f) { 
+              if (!f || typeof f !== 'string') return false;
               if (f === 'visibilitychange' || f === 'external_start' || f === 'external_pause' || f === 'external_mute') return false;
               if (f === 'ads' || f === 'rewarded_ads' || f === 'highscores' || f === 'leaderboard' || f === 'branding' || f === 'iap' || f === 'copyright') return false;
-              return true;
+              if (f === 'forced_mode' || f === 'skip_title' || f === 'skip_menu' || f === 'standalone') return false;
+              return false;
+            },
+            getForcedModeProperties: function() {
+              return { state: { level: 0, coins: 0, character: 'om_nom' } };
             },
             getOffsets: function() { return { top: 0, bottom: 0, left: 0, right: 0 }; },
             iap: {
@@ -1940,6 +1951,7 @@ const handleGameFrame = async (req, res) => {
               if (prop === 'iap') return mockGameInterfaceBase.iap;
               if (prop === 'getOffsets') return function() { return { top: 0, bottom: 0, left: 0, right: 0 }; };
               if (prop === 'getCopyrightLogoURL') return function() { return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; };
+              if (prop === 'getForcedModeProperties') return function() { return { state: { level: 0, coins: 0, character: 'om_nom' } }; };
               if (prop === 'then') return undefined;
               if (typeof prop === 'string' && prop.startsWith('get') && prop.includes('Image')) {
                 return function() { return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; };
