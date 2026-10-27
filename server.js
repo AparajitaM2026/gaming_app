@@ -2033,8 +2033,7 @@ app.get('/api/game-frame', async (req, res) => {
         #content,
         .ms-canvas-wrap,
         .canvas-wrap,
-        #game-container,
-        #game {
+        #game-container {
           width: 100% !important;
           height: 100% !important;
           flex-shrink: 0 !important;
@@ -2044,6 +2043,25 @@ app.get('/api/game-frame', async (req, res) => {
           margin: 0 auto !important;
           padding: 0 !important;
           background: #000000 !important;
+        }
+        /* Level Devil & Fixed Canvas Perfect Centering */
+        canvas#game {
+          width: auto !important;
+          height: auto !important;
+          max-width: 100vw !important;
+          max-height: 100vh !important;
+          position: fixed !important;
+          top: 50% !important;
+          left: 50% !important;
+          transform: translate(-50%, -50%) !important;
+          margin: 0 !important;
+          z-index: 10 !important;
+          box-shadow: 0 0 50px rgba(0, 0, 0, 0.9) !important;
+        }
+        nav, .nav, a[href*="gamezipper.com"] {
+          display: none !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
         }
         /* Responsive arcade and puzzle wrap centering */
         #wrap {
