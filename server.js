@@ -868,7 +868,18 @@ app.get('/api/games', async (req, res) => {
     }
 
     const gamesRes = await db.query(query, params);
-    res.json({ success: true, games: gamesRes.rows });
+    
+    // Deduplicate to guarantee absolute uniqueness by slug
+    const seenSlugs = new Set();
+    const uniqueGames = gamesRes.rows.filter(g => {
+      if (!g || !g.slug) return false;
+      const key = g.slug.toLowerCase().trim();
+      if (seenSlugs.has(key)) return false;
+      seenSlugs.add(key);
+      return true;
+    });
+
+    res.json({ success: true, games: uniqueGames });
   } catch (err) {
     console.error('Failed to load games from DB, falling back to local catalog:', err.message);
     try {
@@ -880,7 +891,17 @@ app.get('/api/games', async (req, res) => {
       } else if (category && category !== 'all') {
         filtered = localGames.filter(g => g.category === category);
       }
-      res.json({ success: true, games: filtered });
+      
+      const seenSlugs = new Set();
+      const uniqueGames = filtered.filter(g => {
+        if (!g || !g.slug) return false;
+        const key = g.slug.toLowerCase().trim();
+        if (seenSlugs.has(key)) return false;
+        seenSlugs.add(key);
+        return true;
+      });
+
+      res.json({ success: true, games: uniqueGames });
     } catch (e) {
       res.status(500).json({ success: false, message: 'Failed to load games', error: err.message });
     }

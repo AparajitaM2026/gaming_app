@@ -329,19 +329,32 @@ async function loadFreeGamesCatalog() {
 
   if (loadedGames.length > 0) {
     const aiSlugs = new Set(['ludo-hero-ai', 'carrom-clash-ai', 'chess-master-ai', 'checkers-classic-ai', 'connect4-arena-ai', 'tictactoe-neon-ai', 'ludo', 'carrom-pool', 'chess', 'checkers', 'tic-tac-toe']);
+    
+    // Strict deduplication by slug and title
+    const seenSlugs = new Set();
+    const seenTitles = new Set();
     allFreeGames = loadedGames.map(g => {
       if (!g.thumbnail || g.is_premium || g.thumbnail.includes('gamezipper.com') || g.thumbnail.includes('puzzle.png') || g.thumbnail.includes('ottsol.cloud')) {
         g.thumbnail = `/assets/posters/${g.slug}.svg`;
       }
       return g;
-    }).filter(g => !aiSlugs.has(g.slug) && !g.is_multiplayer);
+    }).filter(g => {
+      if (aiSlugs.has(g.slug) || g.is_multiplayer) return false;
+      const slugKey = (g.slug || '').toLowerCase().trim();
+      const titleKey = (g.title || '').toLowerCase().trim();
+      if (!slugKey || seenSlugs.has(slugKey) || seenTitles.has(titleKey)) return false;
+      seenSlugs.add(slugKey);
+      seenTitles.add(titleKey);
+      return true;
+    });
+
     allFreeGames.forEach(g => { window.gameMap[g.slug] = g; });
     populateCarouselZones(allFreeGames);
     filterAllCategory('all');
   }
 }
 
-// Populate the Prime, Rapid Fire, and Puzzle Carousels
+// Populate the Prime, Rapid Fire, and Puzzle Carousels with 100% mutually exclusive games
 function populateCarouselZones(games) {
   // Curate and populate OTT Exclusive VIP Arena Row
   const vipContainer = document.getElementById('vipRow');
@@ -377,29 +390,81 @@ function populateCarouselZones(games) {
   const rapidContainer = document.getElementById('rapidRow');
   const puzzleContainer = document.getElementById('puzzleRow');
 
-  // Curate Prime Zone Hits (exclude VIP games to keep rows distinct)
   const nonVipGames = games.filter(g => !g.is_premium);
-  const primeKeywords = ['carrom', 'drive', 'watermelon', 'bubble', 'fruit', 'moto', 'penalty', 'arena', '2048', 'brick', 'snake', 'basketball', 'flappy', 'run'];
-  const primeGames = nonVipGames.filter(g => primeKeywords.some(k => g.title.toLowerCase().includes(k)));
-  const remainingPrime = nonVipGames.filter(g => !primeGames.includes(g));
-  const fullPrimeList = [...primeGames, ...remainingPrime.slice(0, 5)];
+  const usedCarouselSlugs = new Set();
+
+  // 1. Curate Prime Zone Hits (Hand-picked top 15 flagship & trending hits)
+  const primeKeywords = [
+    'moto-x3m', 'penalty-shooters', 'cars-arena', 'drive-fury', 
+    'fruit-slash', 'watermelon-merge', 'basketball-shoot', 'classic-snake', 
+    '2048-galaxy', 'brick-breaker', 'cyberpunk-flappy', 'om-nom-run',
+    'bubble-shooter', 't-rex-dino-runner'
+  ];
+  const primeGames = [];
+  nonVipGames.forEach(g => {
+    if (primeGames.length < 15 && primeKeywords.some(k => g.slug.includes(k) || g.title.toLowerCase().includes(k))) {
+      primeGames.push(g);
+      usedCarouselSlugs.add(g.slug);
+    }
+  });
+  // Fill prime slots up to 15 if needed from nonVipGames
+  nonVipGames.forEach(g => {
+    if (primeGames.length < 15 && !usedCarouselSlugs.has(g.slug)) {
+      primeGames.push(g);
+      usedCarouselSlugs.add(g.slug);
+    }
+  });
 
   if (primeContainer) {
-    primeContainer.innerHTML = fullPrimeList.slice(0, 15).map(g => renderPosterCard(g, false)).join('');
+    primeContainer.innerHTML = primeGames.map(g => renderPosterCard(g, false)).join('');
   }
 
-  // Curate Rapid Fire Action & Fast Hits
-  const rapidKeywords = ['devil', 'dino', 'arrow', 'sand', 'stack', 'steam', 'kitchen', 'typing', 'paint', 'escape', 'pong', 'speed', 'rush', 'fury'];
-  const rapidGames = nonVipGames.filter(g => rapidKeywords.some(k => g.title.toLowerCase().includes(k)) || g.category === 'action');
-  if (rapidContainer) {
-    rapidContainer.innerHTML = (rapidGames.length > 0 ? rapidGames : nonVipGames).slice(0, 15).map(g => renderPosterCard(g, false)).join('');
-  }
+  // 2. Curate Brain & Puzzle Arena (Mind, puzzle, logic & board hits - strictly mutually exclusive)
+  const puzzleKeywords = [
+    'rope', 'sudoku', 'crossword', 'nonogram', 'minesweeper', 'jigsaw', 
+    'unblock', 'flow', 'word', 'alchemy', 'quiz', 'puzzle', 'solitaire', 
+    'reversi', 'go', 'dots', 'mahjong', 'sort'
+  ];
+  const puzzleGames = [];
+  nonVipGames.forEach(g => {
+    if (puzzleGames.length < 15 && !usedCarouselSlugs.has(g.slug)) {
+      if (puzzleKeywords.some(k => g.slug.includes(k) || g.title.toLowerCase().includes(k)) || g.category === 'puzzle') {
+        puzzleGames.push(g);
+        usedCarouselSlugs.add(g.slug);
+      }
+    }
+  });
 
-  // Curate Brain & Puzzle Arena
-  const puzzleKeywords = ['rope', 'wood', 'sudoku', 'unblock', 'nonogram', 'jigsaw', 'alchemy', 'mahjong', 'solitaire', 'minesweeper', 'trivia', 'flow', 'crystal', 'word', 'dots', 'reversi', 'go'];
-  const puzzleGames = nonVipGames.filter(g => puzzleKeywords.some(k => g.title.toLowerCase().includes(k)) || g.category === 'puzzle');
   if (puzzleContainer) {
-    puzzleContainer.innerHTML = (puzzleGames.length > 0 ? puzzleGames : nonVipGames).slice(0, 15).map(g => renderPosterCard(g, false)).join('');
+    puzzleContainer.innerHTML = puzzleGames.map(g => renderPosterCard(g, false)).join('');
+  }
+
+  // 3. Curate Rapid Fire Action & Fast Hits (Fast action, sports, racing & arcade - strictly mutually exclusive)
+  const rapidKeywords = [
+    'devil', 'arrow', 'sand', 'stack', 'steam', 'typing', 'paint', 
+    'escape', 'pong', 'speed', 'rush', 'fury', 'slice', 'smash', 
+    'race', 'racing', 'drift', 'tennis', 'archery', 'billiards', 
+    'tower', 'cannon', 'tetris', 'bomb', 'neon'
+  ];
+  const rapidGames = [];
+  nonVipGames.forEach(g => {
+    if (rapidGames.length < 15 && !usedCarouselSlugs.has(g.slug)) {
+      if (rapidKeywords.some(k => g.slug.includes(k) || g.title.toLowerCase().includes(k)) || g.category === 'action' || g.category === 'sports' || g.category === 'arcade') {
+        rapidGames.push(g);
+        usedCarouselSlugs.add(g.slug);
+      }
+    }
+  });
+  // Fill remaining slots up to 15 if needed from any unused games
+  nonVipGames.forEach(g => {
+    if (rapidGames.length < 15 && !usedCarouselSlugs.has(g.slug)) {
+      rapidGames.push(g);
+      usedCarouselSlugs.add(g.slug);
+    }
+  });
+
+  if (rapidContainer) {
+    rapidContainer.innerHTML = rapidGames.map(g => renderPosterCard(g, false)).join('');
   }
 }
 
@@ -408,7 +473,17 @@ function renderAllGamesGrid(games) {
   const grid = document.getElementById('allGamesGrid');
   if (!grid) return;
 
-  if (games.length === 0) {
+  // Deduplicate before rendering to guarantee each card appears strictly once
+  const seenSlugs = new Set();
+  const uniqueGames = games.filter(g => {
+    if (!g || !g.slug) return false;
+    const key = g.slug.toLowerCase().trim();
+    if (seenSlugs.has(key)) return false;
+    seenSlugs.add(key);
+    return true;
+  });
+
+  if (uniqueGames.length === 0) {
     grid.innerHTML = `
       <div class="col-span-full py-16 text-center text-gray-500">
         <i class="fa-solid fa-gamepad text-4xl mb-3 block text-gray-600"></i>
@@ -418,7 +493,7 @@ function renderAllGamesGrid(games) {
     return;
   }
 
-  grid.innerHTML = games.map(g => renderPosterCard(g, false)).join('');
+  grid.innerHTML = uniqueGames.map(g => renderPosterCard(g, false)).join('');
 }
 
 // Category filter tabs controller
