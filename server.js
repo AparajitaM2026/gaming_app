@@ -951,6 +951,11 @@ app.get('/api/game-frame', async (req, res) => {
   let targetUrl = req.query.url;
   if (!targetUrl) return res.status(400).send('Missing url');
 
+  // If games.ottsol.cloud, redirect directly (it is 100% ad-free and needs native same-origin assets)
+  if (targetUrl.includes('games.ottsol.cloud')) {
+    return res.redirect(targetUrl);
+  }
+
   // Fast redirect alias for color-sort to magic-sort
   if (targetUrl.includes('color-sort')) {
     targetUrl = targetUrl.replace('color-sort', 'magic-sort');

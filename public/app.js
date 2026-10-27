@@ -799,6 +799,9 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
     playUrl = '/games/tictactoe_ai.html' + gameModeParam;
   } else if (slug === 'neon-runner') {
     playUrl = '/games/runner.html?title=' + encodeURIComponent(title);
+  } else if (playUrl && playUrl.startsWith('https://games.ottsol.cloud')) {
+    // Direct zero-latency embedding for OTT games (100% ad-free & ultra-smooth performance)
+    playUrl = playUrl;
   } else if (playUrl && playUrl.startsWith('http')) {
     // Route all external games through our clean, ad-free, responsive game proxy
     playUrl = `/api/game-frame?url=${encodeURIComponent(playUrl)}`;
