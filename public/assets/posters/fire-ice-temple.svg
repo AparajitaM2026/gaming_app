@@ -54,9 +54,4 @@
     <!-- Central Magic Gem -->
     <polygon points="150,110 162,125 150,140 138,125" fill="#a855f7" stroke="#e9d5ff" stroke-width="2" filter="url(#brightGlow)"/>
   </g>
-
-  <!-- Title Bottom Ribbon -->
-  <rect x="15" y="246" width="270" height="42" rx="10" fill="#030712" fill-opacity="0.8" stroke="#8b5cf6" stroke-width="1" stroke-opacity="0.4" />
-  <text x="150" y="268" font-family="'Orbitron', -apple-system, sans-serif" font-weight="900" font-size="14" fill="#ffffff" text-anchor="middle" letter-spacing="1">FIRE &amp; ICE TEMPLE</text>
-  <text x="150" y="282" font-family="-apple-system, sans-serif" font-weight="700" font-size="10" fill="#8b5cf6" text-anchor="middle" letter-spacing="2">CO-OP PLATFORMER</text>
 </svg>

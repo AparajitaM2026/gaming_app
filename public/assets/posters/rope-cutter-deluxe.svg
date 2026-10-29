@@ -50,9 +50,4 @@
       <polygon points="0,-15 4,-4 15,-4 7,3 10,14 0,7 -10,14 -7,3 -15,-4 -4,-4" fill="#eab308" filter="url(#brightGlow)" transform="translate(40, 0)"/>
     </g>
   </g>
-
-  <!-- Title Bottom Ribbon -->
-  <rect x="15" y="246" width="270" height="42" rx="10" fill="#030712" fill-opacity="0.8" stroke="#14b8a6" stroke-width="1" stroke-opacity="0.4" />
-  <text x="150" y="268" font-family="'Orbitron', -apple-system, sans-serif" font-weight="900" font-size="14" fill="#ffffff" text-anchor="middle" letter-spacing="1">ROPE CUTTER DELUXE</text>
-  <text x="150" y="282" font-family="-apple-system, sans-serif" font-weight="700" font-size="10" fill="#14b8a6" text-anchor="middle" letter-spacing="2">PHYSICS PUZZLE</text>
 </svg>
