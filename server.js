@@ -1080,6 +1080,25 @@ app.get(/^\/play\/scripts\/(.*)/, (req, res) => {
   res.status(404).send('Not found');
 });
 
+// Resolve Web Worker and dynamic loader bundle & asset requests for Subway Surfers / Rail Surfer Express
+app.get(/^\/(?:play\/)?bundles\/(.*)/, (req, res) => {
+  const referer = req.headers['referer'] || '';
+  const match = referer.match(/\/play\/([a-z0-9-]+)/i);
+  const slug = (match && match[1] && INTERNAL_GAME_SOURCES[match[1]]) ? match[1] : 'rail-surfer-express';
+  return res.redirect(`/play-asset/${slug}/bundles/${req.params[0]}`);
+});
+
+app.get(/^\/(?:play\/)?assets\/(game-idle|game-basic|game-full|boards|characters-idle|characters-basic|preload|ui|data|audio-basic|audio-full|font|images)\/(.*)/, (req, res) => {
+  const referer = req.headers['referer'] || '';
+  const match = referer.match(/\/play\/([a-z0-9-]+)/i);
+  const slug = (match && match[1] && INTERNAL_GAME_SOURCES[match[1]]) ? match[1] : 'rail-surfer-express';
+  return res.redirect(`/play-asset/${slug}/assets/${req.params[0]}/${req.params[1]}`);
+});
+
+app.get(/^\/(?:play\/)?js\/workers\/(.*)/, (req, res) => {
+  return res.redirect(`/play-asset/rail-surfer-express/js/workers/${req.params[0]}`);
+});
+
 app.get(/^\/play\/([^/]+)\/(.+)/, (req, res, next) => {
   const slug = req.params[0];
   const assetPath = req.params[1];
@@ -1642,18 +1661,29 @@ const handleGameFrame = async (req, res) => {
             configurable: true
           });
 
-          // Stub Poki & CrazyGames SDK
-          window.PokiSDK = {
-            init: function() { return Promise.resolve(); },
-            gameLoadingFinished: function() {},
-            gameLoadingProgress: function() {},
-            gameplayStart: function() {},
-            gameplayStop: function() {},
-            commercialBreak: function() { return Promise.resolve(); },
-            rewardedBreak: function() { return Promise.resolve(true); },
-            displayAd: function(container) { if (container) container.style.display = 'none'; },
-            destroyAd: function() {}
-          };
+          // Stub Poki & CrazyGames SDK (skip for games with custom poki patches like rail-surfer-express)
+          if (!window.location.pathname.includes('rail-surfer-express')) {
+            const rawPokiSdk = {
+              init: function() { return Promise.resolve(); },
+              gameLoadingStart: function() {},
+              gameLoadingFinished: function() {},
+              gameLoadingProgress: function() {},
+              gameplayStart: function() {},
+              gameplayStop: function() {},
+              commercialBreak: function() { return Promise.resolve(); },
+              rewardedBreak: function() { return Promise.resolve(true); },
+              displayAd: function(container) { if (container) container.style.display = 'none'; },
+              destroyAd: function() {},
+              setDebug: function() {},
+              adBlockerOn: false
+            };
+            window.PokiSDK = typeof Proxy !== 'undefined' ? new Proxy(rawPokiSdk, {
+              get(target, prop) {
+                if (prop in target) return target[prop];
+                return function() { return Promise.resolve(true); };
+              }
+            }) : rawPokiSdk;
+          }
           window.CrazyGames = {
             SDK: {
               init: function() { return Promise.resolve(); },
