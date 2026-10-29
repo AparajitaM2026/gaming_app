@@ -1094,21 +1094,44 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
   const baseUrl = RESOLVED_CDN_SOURCES[slug] || INTERNAL_GAME_SOURCES[slug];
   if (!baseUrl) return res.status(404).send('Asset not found');
 
-  // Remap data.js to data.json for Construct 3 games if data.js doesn't exist
-  if (assetPath === 'data.js') {
-    assetPath = 'data.json';
-  }
-
   try {
-    const fullAssetUrl = new URL(assetPath, baseUrl).href;
-    const resp = await fetch(fullAssetUrl, {
+    let fullAssetUrl = new URL(assetPath, baseUrl).href;
+    let resp = await fetch(fullAssetUrl, {
       headers: {
         'User-Agent': req.headers['user-agent'] || 'Mozilla/5.0'
       }
     });
-    if (!resp.ok) return res.status(resp.status).send('Asset fetch failed');
 
-    const cType = resp.headers.get('content-type');
+    let cType = resp.headers.get('content-type') || '';
+
+    // Smart fallback: If data.js returned nginx 404 HTML fallback, check if data.json exists (Construct 3)
+    if (assetPath === 'data.js' && (!resp.ok || cType.includes('text/html'))) {
+      const altUrl = new URL('data.json', baseUrl).href;
+      const altResp = await fetch(altUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+      const altCType = altResp.headers.get('content-type') || '';
+      if (altResp.ok && !altCType.includes('text/html')) {
+        resp = altResp;
+        cType = altCType;
+        assetPath = 'data.json';
+      }
+    }
+    // Vice-versa: If data.json returned nginx 404 HTML fallback, check if data.js exists (Construct 2)
+    else if (assetPath === 'data.json' && (!resp.ok || cType.includes('text/html'))) {
+      const altUrl = new URL('data.js', baseUrl).href;
+      const altResp = await fetch(altUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+      const altCType = altResp.headers.get('content-type') || '';
+      if (altResp.ok && !altCType.includes('text/html')) {
+        resp = altResp;
+        cType = altCType;
+        assetPath = 'data.js';
+      }
+    }
+
+    if (!resp.ok) return res.status(resp.status).send('Asset fetch failed');
+    if (cType.includes('text/html') && (assetPath.endsWith('.js') || assetPath.endsWith('.json') || assetPath.endsWith('.wasm') || assetPath.endsWith('.png') || assetPath.endsWith('.jpg'))) {
+      return res.status(404).send('Asset not found');
+    }
+
     if (cType) res.setHeader('Content-Type', cType);
     res.setHeader('Cache-Control', 'public, max-age=3600');
 
@@ -1398,11 +1421,7 @@ const handleGameFrame = async (req, res) => {
                 return Promise.resolve(new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } }));
               }
               if (typeof u === 'string') {
-                if (u.includes('data.json')) {
-                  u = u.replace('data.json', 'data.js');
-                  if (typeof input === 'string') input = u;
-                  else if (input && input.url) input = new Request(u, input);
-                } else if (u.includes('StreamingAssets/') || u.startsWith('StreamingAssets/') || u.startsWith('Build/')) {
+                if (u.includes('StreamingAssets/') || u.startsWith('StreamingAssets/') || u.startsWith('Build/')) {
                   try {
                     var sub = u.includes('StreamingAssets/') ? u.substring(u.indexOf('StreamingAssets/')) : u;
                     u = new URL(sub, document.baseURI || window.location.href).href;
@@ -1424,9 +1443,7 @@ const handleGameFrame = async (req, res) => {
             if (isAdUrl(url)) {
               url = 'data:application/json,{}';
             } else if (typeof url === 'string') {
-              if (url.includes('data.json')) {
-                url = url.replace('data.json', 'data.js');
-              } else if (url.includes('StreamingAssets/') || url.startsWith('StreamingAssets/') || url.startsWith('Build/')) {
+              if (url.includes('StreamingAssets/') || url.startsWith('StreamingAssets/') || url.startsWith('Build/')) {
                 try {
                   var sub = url.includes('StreamingAssets/') ? url.substring(url.indexOf('StreamingAssets/')) : url;
                   url = new URL(sub, document.baseURI || window.location.href).href;
