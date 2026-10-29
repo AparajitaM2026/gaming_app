@@ -1560,6 +1560,71 @@ const handleGameFrame = async (req, res) => {
             }
           };
 
+          // Stub Yandex Games SDK (fixes Gummy Rush / Rabbit Samurai)
+          const mockYaPlayer = {
+            getName: function() { return 'Player'; },
+            getPhoto: function() { return ''; },
+            getUniqueID: function() { return 'voltixz_user'; },
+            getData: function() { return Promise.resolve({}); },
+            setData: function() { return Promise.resolve(); },
+            getStats: function() { return Promise.resolve({}); },
+            setStats: function() { return Promise.resolve(); }
+          };
+          window.YaGames = {
+            init: function(config) {
+              return Promise.resolve({
+                environment: {
+                  app: { id: 'voltixz' },
+                  browser: { lang: 'en' },
+                  i18n: { lang: 'en', t: function(k) { return k; } }
+                },
+                getPlayer: function() { return Promise.resolve(mockYaPlayer); },
+                auth: {
+                  openAuthDialog: function() { return Promise.resolve(); }
+                },
+                getPayments: function() {
+                  return Promise.resolve({
+                    getCatalog: function() { return Promise.resolve([]); },
+                    getPurchases: function() { return Promise.resolve([]); },
+                    consumePurchase: function() { return Promise.resolve(); }
+                  });
+                },
+                getLeaderboards: function() {
+                  return Promise.resolve({
+                    getLeaderboardDescription: function() { return Promise.resolve({}); },
+                    setLeaderboardScore: function() { return Promise.resolve(); },
+                    getLeaderboardPlayerEntry: function() { return Promise.resolve({}); }
+                  });
+                },
+                adv: {
+                  showFullscreenAdv: function(opts) {
+                    if (opts && opts.callbacks && typeof opts.callbacks.onOpen === 'function') {
+                      try { opts.callbacks.onOpen(); } catch(e) {}
+                    }
+                    setTimeout(function() {
+                      if (opts && opts.callbacks && typeof opts.callbacks.onClose === 'function') {
+                        try { opts.callbacks.onClose(true); } catch(e) {}
+                      }
+                    }, 50);
+                  },
+                  showRewardedVideo: function(opts) {
+                    if (opts && opts.callbacks && typeof opts.callbacks.onOpen === 'function') {
+                      try { opts.callbacks.onOpen(); } catch(e) {}
+                    }
+                    setTimeout(function() {
+                      if (opts && opts.callbacks && typeof opts.callbacks.onRewarded === 'function') {
+                        try { opts.callbacks.onRewarded(); } catch(e) {}
+                      }
+                      if (opts && opts.callbacks && typeof opts.callbacks.onClose === 'function') {
+                        try { opts.callbacks.onClose(true); } catch(e) {}
+                      }
+                    }, 50);
+                  }
+                }
+              });
+            }
+          };
+
           // Auto-trigger GD_OPTIONS onEvent so games waiting for ad finish start immediately
           let _gdOptions = { onEvent: function() {} };
           Object.defineProperty(window, 'GD_OPTIONS', {
