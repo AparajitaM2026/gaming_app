@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a042e" />
+      <stop offset="100%" stop-color="#090112" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="brightGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="10" result="blur" />
+      <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 2 0" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <pattern id="gridPattern" width="25" height="25" patternUnits="userSpaceOnUse">
+      <path d="M 25 0 L 0 0 0 25" fill="none" stroke="#a855f7" stroke-width="1" stroke-opacity="0.12" />
+    </pattern>
+  </defs>
+
+  <!-- Background Layer -->
+  <rect width="300" height="300" fill="url(#bgGrad)" />
+  <rect width="300" height="300" fill="url(#gridPattern)" />
+  <circle cx="150" cy="140" r="105" fill="#a855f7" opacity="0.18" filter="url(#brightGlow)" />
+
+  <!-- VIP Crown Badge Accent -->
+  <g transform="translate(242, 18) scale(0.7)">
+    <polygon points="12,0 16,10 24,4 20,20 4,20 0,4 8,10" fill="#eab308" filter="url(#brightGlow)"/>
+  </g>
+
+  <!-- High-Def Custom 3D Vector Art -->
+  <g id="artwork">
+    <!-- Isometric 3D Blocks Grid -->
+    <!-- Center Cyan Block -->
+    <g transform="translate(150, 100)">
+      <polygon points="0,-25 25,-12 0,0 -25,-12" fill="#38bdf8" stroke="#bae6fd" stroke-width="1.5" filter="url(#brightGlow)"/>
+      <polygon points="-25,-12 0,0 0,28 -25,16" fill="#0284c7" stroke="#bae6fd" stroke-width="1.5"/>
+      <polygon points="0,0 25,-12 25,16 0,28" fill="#0369a1" stroke="#bae6fd" stroke-width="1.5"/>
+    </g>
+    <!-- Left Magenta Block -->
+    <g transform="translate(115, 125)">
+      <polygon points="0,-25 25,-12 0,0 -25,-12" fill="#ec4899" stroke="#fbcfe8" stroke-width="1.5" filter="url(#brightGlow)"/>
+      <polygon points="-25,-12 0,0 0,28 -25,16" fill="#be185d" stroke="#fbcfe8" stroke-width="1.5"/>
+      <polygon points="0,0 25,-12 25,16 0,28" fill="#9d174d" stroke="#fbcfe8" stroke-width="1.5"/>
+    </g>
+    <!-- Right Amber Block -->
+    <g transform="translate(185, 125)">
+      <polygon points="0,-25 25,-12 0,0 -25,-12" fill="#f59e0b" stroke="#fef3c7" stroke-width="1.5" filter="url(#brightGlow)"/>
+      <polygon points="-25,-12 0,0 0,28 -25,16" fill="#d97706" stroke="#fef3c7" stroke-width="1.5"/>
+      <polygon points="0,0 25,-12 25,16 0,28" fill="#b45309" stroke="#fef3c7" stroke-width="1.5"/>
+    </g>
+    <!-- Bottom Purple Block -->
+    <g transform="translate(150, 150)">
+      <polygon points="0,-25 25,-12 0,0 -25,-12" fill="#a855f7" stroke="#f3e8ff" stroke-width="1.5" filter="url(#brightGlow)"/>
+      <polygon points="-25,-12 0,0 0,28 -25,16" fill="#7e22ce" stroke="#f3e8ff" stroke-width="1.5"/>
+      <polygon points="0,0 25,-12 25,16 0,28" fill="#6b21a8" stroke="#f3e8ff" stroke-width="1.5"/>
+    </g>
+    <!-- Floating Sparkles -->
+    <polygon points="90,75 92,80 97,82 92,84 90,89 88,84 83,82 88,80" fill="#facc15" filter="url(#brightGlow)"/>
+    <polygon points="215,80 217,85 222,87 217,89 215,94 213,89 208,87 213,85" fill="#38bdf8" filter="url(#brightGlow)"/>
+  </g>
+
+  <!-- Title Bottom Ribbon -->
+  <rect x="15" y="246" width="270" height="42" rx="10" fill="#030712" fill-opacity="0.8" stroke="#a855f7" stroke-width="1" stroke-opacity="0.4" />
+  <text x="150" y="268" font-family="'Orbitron', -apple-system, sans-serif" font-weight="900" font-size="14" fill="#ffffff" text-anchor="middle" letter-spacing="1">SPATIAL BLOCK MASTER</text>
+  <text x="150" y="282" font-family="-apple-system, sans-serif" font-weight="700" font-size="10" fill="#a855f7" text-anchor="middle" letter-spacing="2">CASUAL PUZZLE</text>
+</svg>

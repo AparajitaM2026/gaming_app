@@ -1043,6 +1043,16 @@ const INTERNAL_GAME_SOURCES = {
   'garden-tile-match': 'https://games.ottsol.cloud/garden-tile-match/',
   'bubble-column-match': 'https://games.ottsol.cloud/bubble-column-match/',
   'tnt-demolition': 'https://games.ottsol.cloud/tnt-demolition/',
+  'stunt-bike-mania': 'https://games.ottsol.cloud/stunt-bike-mania/',
+  'precision-darts-3d': 'https://games.ottsol.cloud/precision-darts-3d/',
+  'rail-surfer-express': 'https://games.ottsol.cloud/rail-surfer-express/',
+  'gummy-rush': 'https://games.ottsol.cloud/gummy-rush/',
+  'rope-cutter-deluxe': 'https://games.ottsol.cloud/rope-cutter-deluxe/',
+  'stickman-run-hardcore': 'https://games.ottsol.cloud/stickman-run-hardcore/',
+  'fire-ice-temple': 'https://games.ottsol.cloud/fire-ice-temple/',
+  'surf-and-shoot': 'https://games.ottsol.cloud/surf-and-shoot/',
+  'spatial-block-master': 'https://games.ottsol.cloud/spatial-block-master/',
+  'safari-block-pop': 'https://games.ottsol.cloud/safari-block-pop/',
   'callbreak': 'https://callbreak.app/online/callbreak-online.html'
 };
 

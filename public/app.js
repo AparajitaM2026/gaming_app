@@ -581,7 +581,9 @@ const PORTRAIT_GAMES = new Set([
   'block-stacker', 'cyberpunk-flappy', 'bubble-shooter',
   'cloud-amp-sheep', 'paint-splash',
   'cut-the-rope-experiments', 'cut-the-rope-magic',
-  'om-nom-run', 'om-nom-bubbles', 'tower-crash-3d'
+  'om-nom-run', 'om-nom-bubbles', 'tower-crash-3d',
+  'precision-darts-3d', 'rail-surfer-express', 'gummy-rush', 'rope-cutter-deluxe',
+  'spatial-block-master', 'safari-block-pop'
 ]);
 
 const STANDARD_GAMES = new Set([
