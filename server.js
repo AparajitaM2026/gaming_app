@@ -1509,6 +1509,29 @@ const handleGameFrame = async (req, res) => {
             showAd: function() { return Promise.resolve(); },
             init: function() { return Promise.resolve(); }
           };
+          window.JumpGame = {
+            startup: function() { return Promise.resolve(); },
+            showInterstitial: function(opts) {
+              if (opts && typeof opts.beforeShowAd === 'function') {
+                try { opts.beforeShowAd(); } catch(e) {}
+              }
+              setTimeout(function() {
+                if (opts && typeof opts.afterShowAd === 'function') {
+                  try { opts.afterShowAd(); } catch(e) {}
+                }
+              }, 50);
+            },
+            showReward: function(opts) {
+              if (opts && typeof opts.beforeShowAd === 'function') {
+                try { opts.beforeShowAd(); } catch(e) {}
+              }
+              setTimeout(function() {
+                if (opts && typeof opts.afterShowAd === 'function') {
+                  try { opts.afterShowAd(); } catch(e) {}
+                }
+              }, 50);
+            }
+          };
 
           // Auto-trigger GD_OPTIONS onEvent so games waiting for ad finish start immediately
           let _gdOptions = { onEvent: function() {} };
