@@ -1056,7 +1056,7 @@
   {
     "id": 88,
     "slug": "low-poly-speedster",
-    "title": "OTT Low-Poly Speedster",
+    "title": "Low-Poly Speedster",
     "category": "action",
     "thumbnail": "/assets/posters/low-poly-speedster.svg",
     "game_url": "/play/low-poly-speedster",
@@ -1073,7 +1073,7 @@
   {
     "id": 89,
     "slug": "turbo-drift-unleashed",
-    "title": "OTT Turbo Drift Unleashed",
+    "title": "Turbo Drift Unleashed",
     "category": "action",
     "thumbnail": "/assets/posters/turbo-drift-unleashed.svg",
     "game_url": "/play/turbo-drift-unleashed",
@@ -1090,7 +1090,7 @@
   {
     "id": 90,
     "slug": "striker-king-3d",
-    "title": "OTT Striker King 3D",
+    "title": "Striker King 3D",
     "category": "sports",
     "thumbnail": "/assets/posters/striker-king-3d.svg",
     "game_url": "/play/striker-king-3d",
@@ -1107,7 +1107,7 @@
   {
     "id": 91,
     "slug": "power-puck-hockey",
-    "title": "OTT Power Puck Hockey",
+    "title": "Power Puck Hockey",
     "category": "sports",
     "thumbnail": "/assets/posters/power-puck-hockey.svg",
     "game_url": "/play/power-puck-hockey",
@@ -1124,7 +1124,7 @@
   {
     "id": 92,
     "slug": "vector-arena-shooter",
-    "title": "OTT Vector Arena Shooter",
+    "title": "Vector Arena Shooter",
     "category": "action",
     "thumbnail": "/assets/posters/vector-arena-shooter.svg",
     "game_url": "/play/vector-arena-shooter",
@@ -1141,7 +1141,7 @@
   {
     "id": 93,
     "slug": "lost-tomb-runner",
-    "title": "OTT Lost Tomb Runner",
+    "title": "Lost Tomb Runner",
     "category": "action",
     "thumbnail": "/assets/posters/lost-tomb-runner.svg",
     "game_url": "/play/lost-tomb-runner",
@@ -1158,7 +1158,7 @@
   {
     "id": 94,
     "slug": "pond-rescue-io",
-    "title": "OTT Pond Rescue IO",
+    "title": "Pond Rescue IO",
     "category": "arcade",
     "thumbnail": "/assets/posters/pond-rescue-io.svg",
     "game_url": "/play/pond-rescue-io",
@@ -1175,7 +1175,7 @@
   {
     "id": 95,
     "slug": "zigzag-drift-king",
-    "title": "OTT ZigZag Drift King",
+    "title": "ZigZag Drift King",
     "category": "action",
     "thumbnail": "/assets/posters/zigzag-drift-king.svg",
     "game_url": "/play/zigzag-drift-king",
@@ -1192,7 +1192,7 @@
   {
     "id": 96,
     "slug": "pro-billiards-3d",
-    "title": "OTT Pro Billiards 3D",
+    "title": "Pro Billiards 3D",
     "category": "sports",
     "thumbnail": "/assets/posters/pro-billiards-3d.svg",
     "game_url": "/play/pro-billiards-3d",
@@ -1209,7 +1209,7 @@
   {
     "id": 97,
     "slug": "stack-smash-3d",
-    "title": "OTT Stack Smash 3D",
+    "title": "Stack Smash 3D",
     "category": "arcade",
     "thumbnail": "/assets/posters/stack-smash-3d.svg",
     "game_url": "/play/stack-smash-3d",
@@ -1226,7 +1226,7 @@
   {
     "id": 98,
     "slug": "cannon-target-smash",
-    "title": "OTT Cannon Target Smash",
+    "title": "Cannon Target Smash",
     "category": "arcade",
     "thumbnail": "/assets/posters/cannon-target-smash.svg",
     "game_url": "/play/cannon-target-smash",
@@ -1243,7 +1243,7 @@
   {
     "id": 99,
     "slug": "wipeout-dash-3d",
-    "title": "OTT Wipeout Dash 3D",
+    "title": "Wipeout Dash 3D",
     "category": "action",
     "thumbnail": "/assets/posters/wipeout-dash-3d.svg",
     "game_url": "/play/wipeout-dash-3d",
@@ -1260,7 +1260,7 @@
   {
     "id": 100,
     "slug": "garden-tile-match",
-    "title": "OTT Garden Tile Match",
+    "title": "Garden Tile Match",
     "category": "puzzle",
     "thumbnail": "/assets/posters/garden-tile-match.svg",
     "game_url": "/play/garden-tile-match",
@@ -1277,7 +1277,7 @@
   {
     "id": 101,
     "slug": "bubble-column-match",
-    "title": "OTT Bubble Column Match",
+    "title": "Bubble Column Match",
     "category": "puzzle",
     "thumbnail": "/assets/posters/bubble-column-match.svg",
     "game_url": "/play/bubble-column-match",
@@ -1294,7 +1294,7 @@
   {
     "id": 102,
     "slug": "tnt-demolition",
-    "title": "OTT TNT Demolition",
+    "title": "TNT Demolition",
     "category": "action",
     "thumbnail": "/assets/posters/tnt-demolition.svg",
     "game_url": "/play/tnt-demolition",
@@ -1345,7 +1345,7 @@
   {
     "id": 103,
     "slug": "stunt-bike-mania",
-    "title": "OTT Stunt Bike Mania",
+    "title": "Stunt Bike Mania",
     "category": "action",
     "thumbnail": "/assets/posters/stunt-bike-mania.svg",
     "game_url": "/play/stunt-bike-mania",
@@ -1362,7 +1362,7 @@
   {
     "id": 104,
     "slug": "precision-darts-3d",
-    "title": "OTT Precision Darts 3D",
+    "title": "Precision Darts 3D",
     "category": "sports",
     "thumbnail": "/assets/posters/precision-darts-3d.svg",
     "game_url": "/play/precision-darts-3d",
@@ -1379,7 +1379,7 @@
   {
     "id": 105,
     "slug": "rail-surfer-express",
-    "title": "OTT Rail Surfer Express",
+    "title": "Rail Surfer Express",
     "category": "action",
     "thumbnail": "/assets/posters/rail-surfer-express.svg",
     "game_url": "/play/rail-surfer-express",
@@ -1396,7 +1396,7 @@
   {
     "id": 106,
     "slug": "gummy-rush",
-    "title": "OTT Gummy Rush",
+    "title": "Gummy Rush",
     "category": "action",
     "thumbnail": "/assets/posters/gummy-rush.svg",
     "game_url": "/play/gummy-rush",
@@ -1413,7 +1413,7 @@
   {
     "id": 107,
     "slug": "rope-cutter-deluxe",
-    "title": "OTT Rope Cutter Deluxe",
+    "title": "Rope Cutter Deluxe",
     "category": "puzzle",
     "thumbnail": "/assets/posters/rope-cutter-deluxe.svg",
     "game_url": "/play/rope-cutter-deluxe",
@@ -1430,7 +1430,7 @@
   {
     "id": 108,
     "slug": "stickman-run-hardcore",
-    "title": "OTT Stickman Run: Hardcore",
+    "title": "Stickman Run: Hardcore",
     "category": "action",
     "thumbnail": "/assets/posters/stickman-run-hardcore.svg",
     "game_url": "/play/stickman-run-hardcore",
@@ -1447,7 +1447,7 @@
   {
     "id": 109,
     "slug": "fire-ice-temple",
-    "title": "OTT Fire & Ice Temple",
+    "title": "Fire & Ice Temple",
     "category": "puzzle",
     "thumbnail": "/assets/posters/fire-ice-temple.svg",
     "game_url": "/play/fire-ice-temple",
@@ -1464,7 +1464,7 @@
   {
     "id": 110,
     "slug": "surf-and-shoot",
-    "title": "OTT Surf & Shoot",
+    "title": "Surf & Shoot",
     "category": "action",
     "thumbnail": "/assets/posters/surf-and-shoot.svg",
     "game_url": "/play/surf-and-shoot",
@@ -1481,7 +1481,7 @@
   {
     "id": 111,
     "slug": "spatial-block-master",
-    "title": "OTT Spatial Block Master",
+    "title": "Spatial Block Master",
     "category": "puzzle",
     "thumbnail": "/assets/posters/spatial-block-master.svg",
     "game_url": "/play/spatial-block-master",
@@ -1498,7 +1498,7 @@
   {
     "id": 112,
     "slug": "safari-block-pop",
-    "title": "OTT Safari Block Pop",
+    "title": "Safari Block Pop",
     "category": "puzzle",
     "thumbnail": "/assets/posters/safari-block-pop.svg",
     "game_url": "/play/safari-block-pop",
