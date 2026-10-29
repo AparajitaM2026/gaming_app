@@ -1042,7 +1042,8 @@ const INTERNAL_GAME_SOURCES = {
   'wipeout-dash-3d': 'https://games.ottsol.cloud/wipeout-dash-3d/',
   'garden-tile-match': 'https://games.ottsol.cloud/garden-tile-match/',
   'bubble-column-match': 'https://games.ottsol.cloud/bubble-column-match/',
-  'tnt-demolition': 'https://games.ottsol.cloud/tnt-demolition/'
+  'tnt-demolition': 'https://games.ottsol.cloud/tnt-demolition/',
+  'callbreak': 'https://callbreak.app/online/callbreak-online.html'
 };
 
 // Internal Voltixz Player Endpoint: Zero external domain leakage

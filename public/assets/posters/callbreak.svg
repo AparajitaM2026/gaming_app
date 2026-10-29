@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a192f" />
+      <stop offset="50%" stop-color="#062534" />
+      <stop offset="100%" stop-color="#023a4a" />
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="brightGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="blur1" />
+      <feGaussianBlur stdDeviation="3" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur1" />
+        <feMergeNode in="blur2" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <linearGradient id="goldRibbon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffe066" />
+      <stop offset="50%" stop-color="#f59f00" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <radialGradient id="tableGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00f5d4" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#00f5d4" stop-opacity="0" />
+    </radialGradient>
+    <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 20 M 0 0 L 20 20" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.04" />
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="300" height="300" fill="url(#bgGrad)" />
+  <rect width="300" height="300" fill="url(#gridPattern)" />
+  <circle cx="150" cy="140" r="110" fill="url(#tableGlow)" />
+
+  <!-- Cards Behind Spade -->
+  <g transform="translate(150, 115)">
+    <!-- Left Card -->
+    <g transform="rotate(-18) translate(-65, -60)">
+      <rect x="0" y="0" width="45" height="65" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" filter="url(#glow)" />
+      <text x="6" y="16" font-family="'Orbitron', sans-serif" font-weight="900" font-size="12" fill="#ef4444">A</text>
+      <text x="6" y="27" font-size="10" fill="#ef4444">♥</text>
+    </g>
+    <!-- Center Card -->
+    <g transform="translate(-22, -68)">
+      <rect x="0" y="0" width="45" height="65" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" filter="url(#brightGlow)" />
+      <text x="6" y="16" font-family="'Orbitron', sans-serif" font-weight="900" font-size="12" fill="#0f172a">A</text>
+      <text x="6" y="27" font-size="10" fill="#0f172a">♠</text>
+    </g>
+    <!-- Right Card -->
+    <g transform="rotate(18) translate(20, -60)">
+      <rect x="0" y="0" width="45" height="65" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" filter="url(#glow)" />
+      <text x="6" y="16" font-family="'Orbitron', sans-serif" font-weight="900" font-size="12" fill="#ef4444">K</text>
+      <text x="6" y="27" font-size="10" fill="#ef4444">♦</text>
+    </g>
+  </g>
+
+  <!-- Big Glowing Spade Emblem -->
+  <g transform="translate(150, 140) scale(1.15)">
+    <!-- Spade Shape -->
+    <path d="M 0 -55 C -25 -25 -50 -10 -50 15 C -50 35 -30 45 -10 38 C -18 48 -22 60 -25 65 L 25 65 C 22 60 18 48 10 38 C 30 45 50 35 50 15 C 50 -10 25 -25 0 -55 Z" 
+          fill="#0a101d" stroke="#f59f00" stroke-width="3" filter="url(#brightGlow)" />
+    <!-- Spade Core Accent -->
+    <path d="M 0 -42 C -18 -18 -36 -6 -36 12 C -36 26 -22 34 -8 28 C -14 36 -17 48 -19 53 L 19 53 C 17 48 14 36 8 28 C 22 34 36 26 36 12 C 36 -6 18 -18 0 -42 Z" 
+          fill="#111c30" stroke="#00f5d4" stroke-width="1.5" opacity="0.9" />
+  </g>
+
+  <!-- Gold Title Ribbon / Banner -->
+  <g transform="translate(150, 240)">
+    <rect x="-105" y="-18" width="210" height="36" rx="10" fill="url(#goldRibbon)" filter="url(#brightGlow)" />
+    <rect x="-100" y="-14" width="200" height="28" rx="8" fill="#1e1b4b" opacity="0.9" />
+    <text x="0" y="6" text-anchor="middle" font-family="'Orbitron', sans-serif" font-weight="900" font-size="15" fill="#fef08a" letter-spacing="2">CALLBREAK</text>
+  </g>
+</svg>

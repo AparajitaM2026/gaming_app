@@ -1324,5 +1324,22 @@
     "plays_count": 18450,
     "is_featured": false,
     "is_premium": false
+  },
+  {
+    "id": 104,
+    "slug": "callbreak",
+    "title": "Callbreak Card Game",
+    "category": "arcade",
+    "thumbnail": "/assets/posters/callbreak.svg",
+    "game_url": "/play/callbreak",
+    "is_multiplayer": false,
+    "min_players": 1,
+    "max_players": 4,
+    "entry_fee_coins": 0,
+    "orientation": "landscape",
+    "rating": "4.9",
+    "plays_count": 28500,
+    "is_featured": true,
+    "is_premium": false
   }
 ]
