@@ -1163,6 +1163,27 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
         buffer = Buffer.from(text, 'utf8');
       }
     }
+    if (assetPath.endsWith('moonbird.js')) {
+      let text = buffer.toString('utf8');
+      if (text.includes('function _emscripten_run_script(ptr){eval(UTF8ToString(ptr))}')) {
+        text = text.replace('function _emscripten_run_script(ptr){eval(UTF8ToString(ptr))}', `function _emscripten_run_script(ptr){
+          var s = UTF8ToString(ptr);
+          if (s.includes('checkInit') || s.includes('aHR0cHM6Ly9wb2tpLmNvbS9zaXRlbG9jaw==') || s.includes('sitelock')) {
+            console.log('[EMSCRIPTEN_RUN_SCRIPT] Neutralizing Poki sitelock check in script...');
+            s = s.replace(/checkInit\\(\\)\\s*\\{/g, 'checkInit() { return; ');
+            s = s.replace(/aHR0cHM6Ly9wb2tpLmNvbS9zaXRlbG9jaw==/g, 'I3ViZzIzNQ==');
+            s = s.replace(/\\]\\s*=\\s*_0x3296f7;/g, ']==_0x3296f7;');
+            s = s.replace(/\\]\\s*=\\s*window\\[_0xcdc9\\(/g, ']==window[_0xcdc9(');
+          }
+          try {
+            (0, eval)(s);
+          } catch(e) {
+            console.warn('[EMSCRIPTEN_RUN_SCRIPT ERR]', e);
+          }
+        }`);
+        buffer = Buffer.from(text, 'utf8');
+      }
+    }
     res.send(buffer);
   } catch (e) {
     res.status(404).send('Asset not found');
@@ -1757,6 +1778,8 @@ const handleGameFrame = async (req, res) => {
 
           // Continuously scrub injected toolbars, fixed banners, and footer elements so canvas receives all clicks
           const scrubInterval = setInterval(function() {
+            var bl = document.getElementById('backlinksPlace');
+            if (bl) bl.remove();
             var el = document.getElementById('game-footer');
             if (el) el.remove();
             var tap = document.getElementById('gz-tap-start');
@@ -2307,6 +2330,10 @@ const handleGameFrame = async (req, res) => {
       <style>
         #fg-overlay,
         #fg-clip,
+        #backlinksPlace,
+        [id*="backlinksPlace"],
+        #display728x90,
+        #display320x50,
         .fg-spinner,
         .fg-spinner-outline,
         #cssload-pgloading,
