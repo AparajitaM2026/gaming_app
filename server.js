@@ -1056,12 +1056,34 @@ app.get('/play/:slug', async (req, res, next) => {
   return handleGameFrame(req, res, next);
 });
 
+// Resolve relative sub-resource requests for Construct 3, Godot, or HTML5 engines
+app.get(/^\/play\/scripts\/(.*)/, (req, res) => {
+  const referer = req.headers['referer'] || '';
+  const match = referer.match(/\/play\/([a-z0-9-]+)/i);
+  if (match && match[1] && INTERNAL_GAME_SOURCES[match[1]]) {
+    return res.redirect(`/play-asset/${match[1]}/scripts/${req.params[0]}`);
+  }
+  res.status(404).send('Not found');
+});
+
+app.get(/^\/play\/([^/]+)\/(.+)/, (req, res, next) => {
+  const slug = req.params[0];
+  const assetPath = req.params[1];
+  if (!assetPath || !INTERNAL_GAME_SOURCES[slug]) return next();
+  return res.redirect(`/play-asset/${slug}/${assetPath}`);
+});
+
 // Voltixz Game Asset Streamer: Proxies audio, scripts, wasm, textures under voltixz.com
 app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
   const slug = req.params[0];
-  const assetPath = req.params[1];
+  let assetPath = req.params[1];
   const baseUrl = INTERNAL_GAME_SOURCES[slug];
   if (!baseUrl) return res.status(404).send('Asset not found');
+
+  // Remap data.js to data.json for Construct 3 games if data.js doesn't exist
+  if (assetPath === 'data.js') {
+    assetPath = 'data.json';
+  }
 
   try {
     const fullAssetUrl = new URL(assetPath, baseUrl).href;
@@ -1076,7 +1098,15 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
     if (cType) res.setHeader('Content-Type', cType);
     res.setHeader('Cache-Control', 'public, max-age=3600');
 
-    const buffer = Buffer.from(await resp.arrayBuffer());
+    let buffer = Buffer.from(await resp.arrayBuffer());
+    // Auto-patch Construct 3 main.js to pass valid absolute baseUrl to RuntimeInterface
+    if (assetPath.endsWith('main.js')) {
+      let text = buffer.toString('utf8');
+      if (text.includes('new RuntimeInterface({')) {
+        text = text.replace('new RuntimeInterface({', `new RuntimeInterface({baseUrl:window.location.origin+"/play-asset/${slug}/",`);
+        buffer = Buffer.from(text, 'utf8');
+      }
+    }
     res.send(buffer);
   } catch (e) {
     res.status(404).send('Asset not found');

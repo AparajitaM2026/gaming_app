@@ -18,6 +18,7 @@ window.gameMap = {};
 function cleanGameTitle(rawTitle) {
   if (!rawTitle) return '';
   return rawTitle
+    .replace(/^OTT\s+/i, '')
     .replace(/&apos;/g, "'")
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
