@@ -1037,7 +1037,7 @@ const INTERNAL_GAME_SOURCES = {
   'pond-rescue-io': 'https://games.ottsol.cloud/pond-rescue-io/',
   'zigzag-drift-king': 'https://games.ottsol.cloud/zigzag-drift-king/',
   'pro-billiards-3d': 'https://play.famobi.com/8-ball-billiards-classic',
-  'stack-smash-3d': 'https://games.ottsol.cloud/stack-smash-3d/',
+  'stack-smash-3d': 'https://play.famobi.com/stack-smash',
   'cannon-target-smash': 'https://games.ottsol.cloud/cannon-target-smash/',
   'wipeout-dash-3d': 'https://games.ottsol.cloud/wipeout-dash-3d/',
   'garden-tile-match': 'https://games.ottsol.cloud/garden-tile-match/',
@@ -1047,7 +1047,8 @@ const INTERNAL_GAME_SOURCES = {
 };
 
 const RESOLVED_CDN_SOURCES = {
-  'pro-billiards-3d': 'https://games.cdn.famobi.com/html5games/0/8-ball-billiards-classic/f6589445/'
+  'pro-billiards-3d': 'https://games.cdn.famobi.com/html5games/0/8-ball-billiards-classic/f6589445/',
+  'stack-smash-3d': 'https://games.cdn.famobi.com/html5games/s/stack-smash/v050/'
 };
 
 // Internal Voltixz Player Endpoint: Zero external domain leakage
