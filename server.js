@@ -2852,6 +2852,24 @@ const handleGameFrame = async (req, res) => {
       html = html.replace(/<script>[\s\S]*?const canvas\s*=\s*document\.getElementById\('gameCanvas'\);[\s\S]*?<\/script>/i, `<script>${cachedPatchedBubble}</script>`);
     }
 
+    // Fix Watermelon Merge: ensure touching fruits of the same level merge reliably and clean UI
+    if (finalUrl.includes('watermelon-merge') || targetUrl.includes('watermelon-merge')) {
+      html = html.replace(
+        /if\s*\(\s*dist\s*<\s*\(a\.r\s*\+\s*b\.r\)\s*\*\s*0\.95\s*\)/g,
+        'if (dist <= (a.r + b.r) * 1.06)'
+      );
+      html += `
+        <style>
+          .gz-related-games, .gz-blog-links, .gz-related-grid, [id*="gz-ad"], a[aria-label="Home"], a[href*="ottsol"], a[href="/"], header, footer {
+            display: none !important;
+          }
+          body, html {
+            overflow: hidden !important;
+          }
+        </style>
+      `;
+    }
+
     // Auto-start Brick Breaker level 1 and clean canvas loop
     if (finalUrl.includes('brick-breaker') || targetUrl.includes('brick-breaker')) {
       html = html.replace(
