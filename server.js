@@ -1036,7 +1036,7 @@ const INTERNAL_GAME_SOURCES = {
   'lost-tomb-runner': 'https://games.ottsol.cloud/lost-tomb-runner/',
   'pond-rescue-io': 'https://games.ottsol.cloud/pond-rescue-io/',
   'zigzag-drift-king': 'https://games.ottsol.cloud/zigzag-drift-king/',
-  'pro-billiards-3d': 'https://play.famobi.com/8-ball-billiards-classic',
+  'pro-billiards-3d': 'https://games.ottsol.cloud/pro-billiards-3d/',
   'stack-smash-3d': 'https://play.famobi.com/stack-smash',
   'cannon-target-smash': 'https://games.ottsol.cloud/cannon-target-smash/',
   'wipeout-dash-3d': 'https://games.ottsol.cloud/wipeout-dash-3d/',
@@ -1047,7 +1047,6 @@ const INTERNAL_GAME_SOURCES = {
 };
 
 const RESOLVED_CDN_SOURCES = {
-  'pro-billiards-3d': 'https://games.cdn.famobi.com/html5games/0/8-ball-billiards-classic/f6589445/',
   'stack-smash-3d': 'https://games.cdn.famobi.com/html5games/s/stack-smash/v050/'
 };
 
@@ -2107,6 +2106,24 @@ const handleGameFrame = async (req, res) => {
             } catch(e) {}
           }, 1500);
 
+          // GameMaker HTML5 initialization watchdog (fixes Cannon Target Smash)
+          let gmChecked = false;
+          function checkGameMaker() {
+            if (gmChecked) return;
+            if (typeof window.GameMaker_Init === 'function') {
+              const c = document.getElementById('canvas');
+              if (c && c.width <= 1) {
+                gmChecked = true;
+                try {
+                  if (!window.AudioContext && !window.webkitAudioContext) window.g_WebAudioContext = {};
+                  window.GameMaker_Init();
+                  if (!window.AudioContext && !window.webkitAudioContext) window.g_WebAudioContext = null;
+                } catch(e) {}
+              }
+            }
+          }
+          [200, 600, 1500, 3000].forEach(d => setTimeout(checkGameMaker, d));
+
           // Auto-clear white cover overlay (#x_ovl) for WebGL games
           setTimeout(function() {
             try {
@@ -2143,6 +2160,12 @@ const handleGameFrame = async (req, res) => {
         })();
       </script>
       <style>
+        #fg-overlay,
+        #fg-clip,
+        .fg-spinner,
+        .fg-spinner-outline,
+        #cssload-pgloading,
+        .cssload-loadingwrap,
         #gz-tap-start,
         div#gz-tap-start,
         [id*="gz-tap-start"],
@@ -2261,12 +2284,29 @@ const handleGameFrame = async (req, res) => {
           justify-content: center !important;
           align-items: center !important;
         }
-        /* When body has fixed/absolute wrappers (e.g. Katana Fruits, Phaser, Unity), don't flex-squeeze */
+        /* When body has fixed/absolute wrappers (e.g. Katana Fruits, Phaser, Unity, GameMaker), don't flex-squeeze */
         body:has(> div[style*="position: fixed"]),
         body:has(> div[style*="position:fixed"]),
         body:has(> #unity-container),
-        body:has(> #c2canvasdiv) {
+        body:has(> #c2canvasdiv),
+        body:has(> .gm4html5_div_class) {
           display: block !important;
+        }
+        div.gm4html5_div_class {
+          width: 100vw !important;
+          height: 100vh !important;
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+        }
+        div.gm4html5_div_class canvas {
+          position: absolute !important;
+          top: 50% !important;
+          left: 50% !important;
+          transform: translate(-50%, -50%) !important;
         }
         /* Compact game headers so board gets maximum screen height */
         .ms-header {
