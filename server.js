@@ -1036,7 +1036,7 @@ const INTERNAL_GAME_SOURCES = {
   'lost-tomb-runner': 'https://games.ottsol.cloud/lost-tomb-runner/',
   'pond-rescue-io': 'https://games.ottsol.cloud/pond-rescue-io/',
   'zigzag-drift-king': 'https://games.ottsol.cloud/zigzag-drift-king/',
-  'pro-billiards-3d': 'https://games.ottsol.cloud/pro-billiards-3d/',
+  'pro-billiards-3d': 'https://play.famobi.com/8-ball-billiards-classic',
   'stack-smash-3d': 'https://games.ottsol.cloud/stack-smash-3d/',
   'cannon-target-smash': 'https://games.ottsol.cloud/cannon-target-smash/',
   'wipeout-dash-3d': 'https://games.ottsol.cloud/wipeout-dash-3d/',
@@ -1044,6 +1044,10 @@ const INTERNAL_GAME_SOURCES = {
   'bubble-column-match': 'https://games.ottsol.cloud/bubble-column-match/',
   'tnt-demolition': 'https://games.ottsol.cloud/tnt-demolition/',
   'callbreak': 'https://callbreak.app/online/callbreak-online.html'
+};
+
+const RESOLVED_CDN_SOURCES = {
+  'pro-billiards-3d': 'https://games.cdn.famobi.com/html5games/0/8-ball-billiards-classic/f6589445/'
 };
 
 // Internal Voltixz Player Endpoint: Zero external domain leakage
@@ -1077,7 +1081,7 @@ app.get(/^\/play\/([^/]+)\/(.+)/, (req, res, next) => {
 app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
   const slug = req.params[0];
   let assetPath = req.params[1];
-  const baseUrl = INTERNAL_GAME_SOURCES[slug];
+  const baseUrl = RESOLVED_CDN_SOURCES[slug] || INTERNAL_GAME_SOURCES[slug];
   if (!baseUrl) return res.status(404).send('Asset not found');
 
   // Remap data.js to data.json for Construct 3 games if data.js doesn't exist
@@ -1210,6 +1214,9 @@ const handleGameFrame = async (req, res) => {
           });
           html = await secondResponse.text();
           finalUrl = secondResponse.url || cdnUrl;
+          if (req.internalSlug) {
+            RESOLVED_CDN_SOURCES[req.internalSlug] = finalUrl;
+          }
         } catch(e) {}
       }
     }
