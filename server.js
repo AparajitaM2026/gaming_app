@@ -994,7 +994,7 @@ const INTERNAL_GAME_SOURCES = {
   'brick-breaker': 'https://games.ottsol.cloud/brick-breaker/',
   't-rex-dino-runner': 'https://games.ottsol.cloud/t-rex/',
   'cyberpunk-flappy': 'https://games.ottsol.cloud/flappy-wings/',
-  'fruit-slash': 'https://games.ottsol.cloud/fruit-slash/',
+  'fruit-slash': 'https://play.famobi.com/katana-fruits',
   'bubble-shooter': 'https://games.ottsol.cloud/bubble-shooter/',
   'steam-whacker': 'https://games.ottsol.cloud/whack-a-mole/',
   'classic-sudoku': 'https://games.ottsol.cloud/sudoku/',
@@ -1011,19 +1011,19 @@ const INTERNAL_GAME_SOURCES = {
   'reversi': 'https://games.ottsol.cloud/reversi/',
   'dots-and-boxes': 'https://games.ottsol.cloud/dots-and-boxes/',
   'queens-puzzle': 'https://games.ottsol.cloud/queens/',
-  'mahjong-solitaire': 'https://games.ottsol.cloud/mahjong-solitaire/',
+  'mahjong-solitaire': 'https://play.famobi.com/mahjong-classic',
   'sliding-puzzle': 'https://games.ottsol.cloud/sliding-puzzle/',
   'trivia-crack': 'https://games.ottsol.cloud/trivia-crack/',
   'cut-the-rope': 'https://games.ottsol.cloud/cut-the-rope/',
   'drive-fury': 'https://games.ottsol.cloud/drive-fury/',
   'escape-manor': 'https://games.ottsol.cloud/escape-manor/',
   'sand-balls': 'https://games.ottsol.cloud/sand-balls/',
-  'arrow-escape': 'https://games.ottsol.cloud/arrow-escape/',
-  'block-stacker': 'https://games.ottsol.cloud/stacker/',
+  'arrow-escape': 'https://gamezipper.com/tap-away/?utm_source=embed',
+  'block-stacker': 'https://gamezipper.com/tower-stacker-3d/?utm_source=embed',
   'memory-master': 'https://games.ottsol.cloud/memory-match/',
   'typing-speed-test': 'https://games.ottsol.cloud/typing-speed/',
   'basketball-shoot': 'https://games.ottsol.cloud/basketball-shoot/',
-  'paint-splash': 'https://games.ottsol.cloud/paint-splash/',
+  'paint-splash': 'https://gamezipper.com/color-by-number/?utm_source=embed',
   'cloud-amp-sheep': 'https://games.ottsol.cloud/cloud-sheep/',
   'magic-sort': 'https://games.ottsol.cloud/magic-sort/',
   'watermelon-merge': 'https://games.ottsol.cloud/watermelon-merge/',
@@ -1113,10 +1113,20 @@ const handleGameFrame = async (req, res) => {
     let finalUrl = response.url || targetUrl;
 
     // Automatically follow client-side redirect stubs on the server
-    if (html.length < 3000 && (html.includes('location.replace') || html.includes('http-equiv="refresh"') || html.includes('is now'))) {
-      const match = html.match(/https:\/\/gamezipper\.com\/([a-z0-9-]+)\/?/i);
+    if (html.length < 4000 && (html.includes('location.replace') || html.includes('http-equiv="refresh"') || html.includes('is now'))) {
+      const match = html.match(/(?:gamezipper\.com|games\.ottsol\.cloud)\/([a-z0-9-]+)\/?/i);
       if (match && match[1]) {
-        const realTargetUrl = `https://gamezipper.com/${match[1]}/?utm_source=embed`;
+        const slug = match[1];
+        const aliasMap = {
+          'tap-away': 'https://gamezipper.com/tap-away/?utm_source=embed',
+          'color-by-number': 'https://gamezipper.com/color-by-number/?utm_source=embed',
+          'tower-stacker-3d': 'https://gamezipper.com/tower-stacker-3d/?utm_source=embed',
+          'slice-master': 'https://gamezipper.com/slice-master/?utm_source=embed',
+          'katana-fruits': 'https://play.famobi.com/katana-fruits',
+          'mahjong-classic': 'https://play.famobi.com/mahjong-classic',
+          'tile-dynasty': 'https://play.famobi.com/mahjong-classic'
+        };
+        const realTargetUrl = aliasMap[slug] || `https://gamezipper.com/${slug}/?utm_source=embed`;
         try {
           const secondResponse = await fetch(realTargetUrl, {
             headers: {
@@ -1124,8 +1134,34 @@ const handleGameFrame = async (req, res) => {
             },
             redirect: 'follow'
           });
-          html = await secondResponse.text();
-          finalUrl = secondResponse.url || realTargetUrl;
+          if (secondResponse.ok) {
+            html = await secondResponse.text();
+            finalUrl = secondResponse.url || realTargetUrl;
+          }
+        } catch(e) {}
+      }
+    }
+
+    // Safety shield: If a destination ever returns the generic OTT portfolio directory, intercept & redirect to real game engine
+    if (html.includes('Exclusive Games Portfolio') || html.includes('Official High-Performance HTML5 Games Portfolio')) {
+      const slugFallbackMap = {
+        'arrow-escape': 'https://gamezipper.com/tap-away/?utm_source=embed',
+        'paint-splash': 'https://gamezipper.com/color-by-number/?utm_source=embed',
+        'block-stacker': 'https://gamezipper.com/tower-stacker-3d/?utm_source=embed',
+        'fruit-slash': 'https://play.famobi.com/katana-fruits',
+        'mahjong-solitaire': 'https://play.famobi.com/mahjong-classic'
+      };
+      const fallbackUrl = (req.internalSlug && slugFallbackMap[req.internalSlug]);
+      if (fallbackUrl) {
+        try {
+          const fbResp = await fetch(fallbackUrl, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
+            redirect: 'follow'
+          });
+          if (fbResp.ok) {
+            html = await fbResp.text();
+            finalUrl = fbResp.url || fallbackUrl;
+          }
         } catch(e) {}
       }
     }
@@ -1734,11 +1770,14 @@ const handleGameFrame = async (req, res) => {
               },
               gameParams: {}
             },
+            pointerLockHelper: {
+              mousePos: { x: 400, y: 300 }
+            },
             hasFeature: function(f) { 
               if (!f || typeof f !== 'string') return false;
               if (f === 'visibilitychange' || f === 'external_start' || f === 'external_pause' || f === 'external_mute') return false;
               if (f === 'ads' || f === 'rewarded_ads' || f === 'highscores' || f === 'leaderboard' || f === 'branding' || f === 'iap' || f === 'copyright') return false;
-              if (f === 'forced_mode' || f === 'skip_title' || f === 'skip_menu' || f === 'standalone') return false;
+              if (f === 'forced_mode' || f === 'skip_title' || f === 'skip_menu' || f === 'standalone' || f === 'lockPointer') return false;
               return false;
             },
             getForcedModeProperties: function() {
@@ -1844,6 +1883,7 @@ const handleGameFrame = async (req, res) => {
               if (prop === 'storage' || prop === 'localStorage' || prop === 'sessionStorage') return mockStorage;
               if (prop === 'iap') return mockGameInterfaceBase.iap;
               if (prop === 'config') return target.config;
+              if (prop === 'pointerLockHelper') return target.pointerLockHelper;
               if (prop === 'getForcedModeProperties') return function() { return { state: { level: 0, coins: 0, character: 'om_nom' } }; };
               if (prop === 'then') return undefined;
               if (typeof prop === 'string' && prop.startsWith('get') && prop.includes('Image')) {
@@ -1910,8 +1950,11 @@ const handleGameFrame = async (req, res) => {
               if (!f || typeof f !== 'string') return false;
               if (f === 'visibilitychange' || f === 'external_start' || f === 'external_pause' || f === 'external_mute') return false;
               if (f === 'ads' || f === 'rewarded_ads' || f === 'highscores' || f === 'leaderboard' || f === 'branding' || f === 'iap' || f === 'copyright') return false;
-              if (f === 'forced_mode' || f === 'skip_title' || f === 'skip_menu' || f === 'standalone') return false;
+              if (f === 'forced_mode' || f === 'skip_title' || f === 'skip_menu' || f === 'standalone' || f === 'lockPointer') return false;
               return false;
+            },
+            pointerLockHelper: {
+              mousePos: { x: 400, y: 300 }
             },
             getForcedModeProperties: function() {
               return { state: { level: 0, coins: 0, character: 'om_nom' } };
@@ -1952,6 +1995,7 @@ const handleGameFrame = async (req, res) => {
               if (prop === 'getOffsets') return function() { return { top: 0, bottom: 0, left: 0, right: 0 }; };
               if (prop === 'getCopyrightLogoURL') return function() { return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; };
               if (prop === 'getForcedModeProperties') return function() { return { state: { level: 0, coins: 0, character: 'om_nom' } }; };
+              if (prop === 'pointerLockHelper') return target.pointerLockHelper;
               if (prop === 'then') return undefined;
               if (typeof prop === 'string' && prop.startsWith('get') && prop.includes('Image')) {
                 return function() { return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; };
@@ -2775,9 +2819,27 @@ const handleGameFrame = async (req, res) => {
       );
     }
 
-    // Inlined patched script for Pong (smoothens paddle speed and enables mouse tracking)
+    // Inlined patched script for Pong (smoothens paddle speed, enables mouse tracking & eliminates external leaks)
     if ((finalUrl.includes('/pong/') || targetUrl.includes('/pong')) && cachedPatchedPong) {
-      html = html.replace(/<script[^>]*src=["'][^"']*game\.js[^"']*["'][^>]*><\/script>/i, `<script>${cachedPatchedPong}</script>`);
+      if (html.includes('<script src="game.js">') || html.includes("<script src='game.js'>")) {
+        html = html.replace(/<script[^>]*src=["'][^"']*game\.js[^"']*["'][^>]*><\/script>/i, `<script>${cachedPatchedPong}</script>`);
+      } else {
+        html = html.replace('</body>', `<script>${cachedPatchedPong}</script></body>`);
+      }
+      // Clean Pong UI: eliminate extra scrollbars, external links and tap start hint
+      html += `
+        <style>
+          #gz-tap-start, .gz-seo-section, .gz-sr-only, [class*="gz-seo"], a[href*="ottsol"], a[href*="Try More Games"], #controls a, .hud-brand, header {
+            display: none !important;
+          }
+          body, html {
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #05050f !important;
+          }
+        </style>
+      `;
     }
 
     // Inlined patched script for T-Rex Dino Runner (fixes dino.y jump calculation and instant jump response)
