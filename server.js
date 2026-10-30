@@ -1768,6 +1768,44 @@ const handleGameFrame = async (req, res) => {
             }
           };
 
+          // Universal Yandex SDK Stub (fixes Gummy Rush and Construct games)
+          window.YaGames = {
+            init: function() {
+              return Promise.resolve({
+                adv: {
+                  showFullscreenAdv: function(o) { if (o && o.callbacks && o.callbacks.onClose) o.callbacks.onClose(true); },
+                  showRewardedVideo: function(o) { if (o && o.callbacks && o.callbacks.onRewarded) o.callbacks.onRewarded(); if (o && o.callbacks && o.callbacks.onClose) o.callbacks.onClose(); }
+                },
+                auth: {
+                  isAuthorized: function() { return false; },
+                  openAuthDialog: function() { return Promise.reject(); }
+                },
+                getPlayer: function() {
+                  return Promise.resolve({
+                    getName: function() { return 'Player'; },
+                    getPhoto: function() { return ''; },
+                    getUniqueID: function() { return 'voltixz-1'; },
+                    getData: function() { return Promise.resolve({}); },
+                    setData: function() { return Promise.resolve(); },
+                    getStats: function() { return Promise.resolve({}); },
+                    setStats: function() { return Promise.resolve(); }
+                  });
+                },
+                getPayments: function() {
+                  return Promise.resolve({
+                    getCatalog: function() { return Promise.resolve([]); },
+                    getPurchases: function() { return Promise.resolve([]); }
+                  });
+                },
+                features: {
+                  LoadingAPI: {
+                    ready: function() {}
+                  }
+                }
+              });
+            }
+          };
+
           // Real-time MutationObserver to eradicate ad banners from DOM
           try {
             const adObserver = new MutationObserver(function(mutations) {

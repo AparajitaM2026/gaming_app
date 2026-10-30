@@ -582,7 +582,7 @@ const PORTRAIT_GAMES = new Set([
   'cloud-amp-sheep', 'paint-splash',
   'cut-the-rope-experiments', 'cut-the-rope-magic',
   'om-nom-run', 'om-nom-bubbles', 'tower-crash-3d',
-  'precision-darts-3d', 'rail-surfer-express', 'gummy-rush', 'rope-cutter-deluxe',
+  'precision-darts-3d', 'rail-surfer-express', 'rope-cutter-deluxe',
   'spatial-block-master', 'safari-block-pop'
 ]);
 
