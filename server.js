@@ -3184,6 +3184,178 @@ const handleGameFrame = async (req, res) => {
     // Strip GameZipper unclosed AdSense comment text bleed
     html = html.replace(/\+\s*standalone[\s\S]*?(?=<div|<style|<script)/gi, '');
 
+    // Low-Poly Speedster (Run 3) mobile responsiveness & virtual touch controls
+    if (req.internalSlug === 'low-poly-speedster' || (req.targetUrl && req.targetUrl.includes('low-poly-speedster'))) {
+      const run3MobileEnhancer = `
+        <style>
+          html, body {
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            background: #000 !important;
+            touch-action: none !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+          }
+          #openfl-content {
+            width: 100vw !important;
+            height: 100vh !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: #000 !important;
+            position: fixed !important;
+            inset: 0 !important;
+          }
+          #openfl-content canvas {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            object-fit: contain !important;
+            display: block !important;
+            margin: auto !important;
+          }
+          /* Virtual Touch Controls HUD */
+          #run3TouchHud {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 999999;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 16px 20px 24px 20px;
+            box-sizing: border-box;
+          }
+          .run3-btn {
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 15, 30, 0.75);
+            border: 2px solid rgba(0, 240, 255, 0.6);
+            color: #00f0ff;
+            border-radius: 9999px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 240, 255, 0.3);
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: transform 0.1s, background 0.1s;
+          }
+          .run3-btn:active, .run3-btn.active {
+            background: rgba(0, 240, 255, 0.45);
+            color: #ffffff;
+            border-color: #00f0ff;
+            transform: scale(0.92);
+          }
+          .run3-dpad-btn {
+            width: 62px;
+            height: 62px;
+            font-size: 26px;
+          }
+          .run3-jump-btn {
+            width: 76px;
+            height: 76px;
+            font-size: 14px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            background: rgba(245, 158, 11, 0.25);
+            border: 2px solid rgba(245, 158, 11, 0.8);
+            color: #fbbf24;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6), 0 0 15px rgba(245, 158, 11, 0.4);
+          }
+          .run3-jump-btn:active, .run3-jump-btn.active {
+            background: rgba(245, 158, 11, 0.6);
+            color: #ffffff;
+            border-color: #f59e0b;
+            transform: scale(0.92);
+          }
+        </style>
+
+        <div id="run3TouchHud">
+          <!-- Left/Right Directional Steering -->
+          <div style="display:flex; gap:14px; align-items:center;">
+            <div id="run3BtnLeft" class="run3-btn run3-dpad-btn" title="Steer Left">◀</div>
+            <div id="run3BtnRight" class="run3-btn run3-dpad-btn" title="Steer Right">▶</div>
+          </div>
+          <!-- Jump Button -->
+          <div>
+            <div id="run3BtnJump" class="run3-btn run3-jump-btn" title="Jump">JUMP</div>
+          </div>
+        </div>
+
+        <script>
+          (function() {
+            function sendKey(action, key, code, keyCode) {
+              try {
+                var evt = new KeyboardEvent(action, {
+                  key: key,
+                  code: code,
+                  bubbles: true,
+                  cancelable: true
+                });
+                Object.defineProperty(evt, 'keyCode', { get: function() { return keyCode; } });
+                Object.defineProperty(evt, 'which', { get: function() { return keyCode; } });
+                window.dispatchEvent(evt);
+                document.dispatchEvent(evt);
+                var canvases = document.querySelectorAll('canvas');
+                canvases.forEach(function(c) { c.dispatchEvent(evt); });
+              } catch(e) {}
+            }
+
+            function setupTouchBtn(el, key, code, keyCode) {
+              if (!el) return;
+              var isDown = false;
+              function onStart(e) {
+                if (e) e.preventDefault();
+                if (!isDown) {
+                  isDown = true;
+                  el.classList.add('active');
+                  sendKey('keydown', key, code, keyCode);
+                }
+              }
+              function onEnd(e) {
+                if (e) e.preventDefault();
+                if (isDown) {
+                  isDown = false;
+                  el.classList.remove('active');
+                  sendKey('keyup', key, code, keyCode);
+                }
+              }
+              el.addEventListener('pointerdown', onStart);
+              el.addEventListener('pointerup', onEnd);
+              el.addEventListener('pointercancel', onEnd);
+              el.addEventListener('touchstart', onStart, { passive: false });
+              el.addEventListener('touchend', onEnd, { passive: false });
+              el.addEventListener('touchcancel', onEnd, { passive: false });
+            }
+
+            setupTouchBtn(document.getElementById('run3BtnLeft'), 'ArrowLeft', 'ArrowLeft', 37);
+            setupTouchBtn(document.getElementById('run3BtnRight'), 'ArrowRight', 'ArrowRight', 39);
+            setupTouchBtn(document.getElementById('run3BtnJump'), ' ', 'Space', 32);
+
+            // Unlock WebAudio on touch
+            window.addEventListener('touchstart', function(e) {
+              try {
+                var AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx && window.__audioCtx && window.__audioCtx.state === 'suspended') {
+                  window.__audioCtx.resume();
+                }
+              } catch(err) {}
+            }, { passive: true });
+          })();
+        </script>
+      `;
+      // Replace bad scaling line in Run 3
+      html = html.replace(/meta\.setAttribute\s*\(\s*['"]content['"]\s*,\s*['"]width=device-width[\s\S]*?\);/g, '// auto-scale handled');
+      html = html.replace('</body>', `${run3MobileEnhancer}</body>`);
+    }
+
     // Completely scrub any backend host, third-party brand strings, or URLs
     html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*>/gi, '');
     html = html.replace(/https?:\/\/games\.ottsol\.cloud[^\s"'<>]*/gi, '#');
