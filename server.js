@@ -1099,6 +1099,14 @@ app.get(/^\/(?:play\/)?js\/workers\/(.*)/, (req, res) => {
   return res.redirect(`/play-asset/rail-surfer-express/js/workers/${req.params[0]}`);
 });
 
+// Resolve Defold engine archive data requests (/archive/*)
+app.get(/^\/(?:play\/)?archive\/(.*)/, (req, res) => {
+  const referer = req.headers['referer'] || '';
+  const match = referer.match(/\/play\/([a-z0-9-]+)/i);
+  const slug = (match && match[1] && INTERNAL_GAME_SOURCES[match[1]]) ? match[1] : 'safari-block-pop';
+  return res.redirect(`/play-asset/${slug}/archive/${req.params[0]}`);
+});
+
 app.get(/^\/play\/([^/]+)\/(.+)/, (req, res, next) => {
   const slug = req.params[0];
   const assetPath = req.params[1];
