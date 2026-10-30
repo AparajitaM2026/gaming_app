@@ -1055,11 +1055,42 @@ const INTERNAL_GAME_SOURCES = {
   'surf-and-shoot': 'https://games.ottsol.cloud/surf-and-shoot/',
   'spatial-block-master': 'https://games.ottsol.cloud/spatial-block-master/',
   'safari-block-pop': 'https://games.ottsol.cloud/safari-block-pop/',
-  'callbreak': 'https://callbreak.app/online/callbreak-online.html'
+  'callbreak': 'https://callbreak.app/online/callbreak-online.html',
+  'level-devil': 'https://games.ottsol.cloud/level-devil/',
+  'slice-master': 'https://gamezipper.com/slice-master/?utm_source=embed',
+  '2048-galaxy': 'https://gamezipper.com/2048/?utm_source=embed',
+  'go': 'https://gamezipper.com/go/?utm_source=embed',
+  'neon-run': 'https://gamezipper.com/neon-dash/?utm_source=embed',
+  'ludo-hero-ai': 'https://cdn.htmlgames.com/Ludo/index.html?npa=1',
+  'cars-arena': 'https://games.cdn.famobi.com/html5games/c/cars-arena/v010/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=bfca421b-0e9a-491b-8840-da277bda1aa4&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=471',
+  'moto-x3m': 'https://html5.gamedistribution.com/rvvASMiM/5b0abd4c0faa4f5eb190a9a16d5a1b4c/index.html',
+  'moto-x3m-pool-party': 'https://html5.gamedistribution.com/rvvASMiM/f804d079d19f44d3b951ead4588e974a/index.html',
+  'penalty-shooters-2': 'https://games.cdn.famobi.com/html5games/p/penalty-shooters-2/v350/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8e8bdb8b-f420-48ed-ad68-dd5721a807c8&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
+  'cut-the-rope-experiments': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-experiments/v030/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=e73ceee2-0c50-4254-b0b8-656d7a69aca4&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
+  'cut-the-rope-magic': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-magic/v040/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=35c37758-52d5-4802-86a9-d6110c41198b&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
+  'om-nom-run': 'https://games.cdn.famobi.com/html5games/o/om-nom-run/v1240/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=abe80572-560a-444d-baf7-2fa4a7b2c02f&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
+  'om-nom-bubbles': 'https://games.cdn.famobi.com/html5games/o/om-nom-bubbles/v040/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=04a8baa6-e3ad-43e7-8b35-b274552d5890&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
+  'tnt-bomb': 'https://games.cdn.famobi.com/html5games/t/tnt-bomb/v250/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=fa946169-bde2-4b3b-8552-08a85d7ae0e7&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
+  'cannon-balls-3d': 'https://games.cdn.famobi.com/html5games/c/cannon-balls-3d/v320/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=3ffa11c2-61da-4974-892b-473582253371&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
+  'tower-crash-3d': 'https://games.cdn.famobi.com/html5games/t/tower-crash-3d/v290/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=68a7c06e-ec27-4fa4-99a5-a5e9702ac4ef&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
+  'drift-cup-racing': 'https://games.cdn.famobi.com/html5games/d/drift-cup-racing/v620/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=e8ca54ee-cfbe-417c-b69e-e4f4858a9957&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
+  'table-tennis-world-tour': 'https://games.cdn.famobi.com/html5games/t/table-tennis-world-tour/v310/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8c8e5fc6-7e38-47ab-96eb-150276e79ef8&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
+  'archery-world-tour': 'https://html5.gamedistribution.com/rvvASMiM/0ccd52f987014bb49708e6afa2e3a8f7/index.html'
 };
 
 const RESOLVED_CDN_SOURCES = {
-  'stack-smash-3d': 'https://games.cdn.famobi.com/html5games/s/stack-smash/v050/'
+  'stack-smash-3d': 'https://games.cdn.famobi.com/html5games/s/stack-smash/v050/',
+  'cars-arena': 'https://games.cdn.famobi.com/html5games/c/cars-arena/v010/',
+  'penalty-shooters-2': 'https://games.cdn.famobi.com/html5games/p/penalty-shooters-2/v350/',
+  'cut-the-rope-experiments': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-experiments/v030/',
+  'cut-the-rope-magic': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-magic/v040/',
+  'om-nom-run': 'https://games.cdn.famobi.com/html5games/o/om-nom-run/v1240/',
+  'om-nom-bubbles': 'https://games.cdn.famobi.com/html5games/o/om-nom-bubbles/v040/',
+  'tnt-bomb': 'https://games.cdn.famobi.com/html5games/t/tnt-bomb/v250/',
+  'cannon-balls-3d': 'https://games.cdn.famobi.com/html5games/c/cannon-balls-3d/v320/',
+  'tower-crash-3d': 'https://games.cdn.famobi.com/html5games/t/tower-crash-3d/v290/',
+  'drift-cup-racing': 'https://games.cdn.famobi.com/html5games/d/drift-cup-racing/v620/',
+  'table-tennis-world-tour': 'https://games.cdn.famobi.com/html5games/t/table-tennis-world-tour/v310/'
 };
 
 // Internal Voltixz Player Endpoint: Zero external domain leakage
@@ -3127,32 +3158,177 @@ const handleGameFrame = async (req, res) => {
       );
     }
 
-    // Fix Level Devil: direct start on play, accurate canvas coordinate scaling, responsive 10x5 level select grid, and tap-to-play button
+    // Fix Level Devil: true 640x384 canvas scaling (no clipped levels on mobile), responsive multi-touch arcade controls, tap-to-start
     if (html.includes('LEVEL DEVIL') || finalUrl.includes('level-devil') || targetUrl.includes('level-devil')) {
+      // 1. Lock internal canvas resolution to full level dimensions (20x12 tiles @ 32px = 640x384)
       html = html.replace(
-        "function handleClick(e){initAudio();var rect=canvas.getBoundingClientRect();var x=e.clientX-rect.left;var y=e.clientY-rect.top;if(gameState==='title'){playSound('click');gameState='levelselect'}else if(gameState==='levelselect'){var cols=5,rows=10,startX=(W-cols*60)/2,startY=80;for(var i=0;i<LEVELS.length;i++){var lx=startX+(i%cols)*60;var ly=startY+Math.floor(i/cols)*55;if(x>=lx&&x<=lx+50&&y>=ly&&y<=ly+40){var unlocked=savedData.levels[i]&&(savedData.levels[i].completed||savedData.levels[i].unlocked);if(i===0||unlocked){playSound('click');loadLevel(i);return}}}}",
-        `function handleClick(e){initAudio();var rect=canvas.getBoundingClientRect();var sx=canvas.width/(rect.width||1),sy=canvas.height/(rect.height||1);var x=(e.clientX-rect.left)*sx;var y=(e.clientY-rect.top)*sy;if(gameState==='title'){playSound('click');var sl=0;for(var li=0;li<LEVELS.length;li++){if(savedData.levels[li]&&(savedData.levels[li].completed||savedData.levels[li].unlocked))sl=li;}loadLevel(sl);return;}else if(gameState==='levelselect'){var cols=10,colW=W>700?60:52,rowH=W>700?48:42;var boxW=colW-10,boxH=rowH-8;var startX=(W-cols*colW)/2,startY=55;var btnY=startY+5*rowH+15;if((x>=W/2-130&&x<=W/2+130&&y>=btnY&&y<=btnY+48)||y>=btnY){playSound('click');var sl=0;for(var li=0;li<LEVELS.length;li++){if(savedData.levels[li]&&(savedData.levels[li].completed||savedData.levels[li].unlocked))sl=li;}loadLevel(sl);return;}for(var i=0;i<LEVELS.length;i++){var lx=startX+(i%cols)*colW;var ly=startY+Math.floor(i/cols)*rowH;if(x>=lx&&x<=lx+boxW&&y>=ly&&y<=ly+boxH){var unlocked=savedData.levels[i]&&(savedData.levels[i].completed||savedData.levels[i].unlocked);if(i===0||unlocked){playSound('click');loadLevel(i);return;}}}}`
+        /function resize\(\)\{W=Math\.min\(window\.innerWidth,800\);H=Math\.min\(window\.innerHeight,600\);canvas\.width=W;canvas\.height=H;if\(isMobile\)\{document\.getElementById\('touch-controls'\)\.classList\.add\('active'\)\}\}/,
+        "function resize(){W=640;H=384;canvas.width=W;canvas.height=H;var tc=document.getElementById('touch-controls');if(tc)tc.classList.add('active');}"
       );
 
+      // 2. Direct tap anywhere on Title, Win, or Level Select to play
       html = html.replace(
-        "function handleTouchStart(e){e.preventDefault();initAudio();if(gameState==='title'){gameState='levelselect';return}var rect=canvas.getBoundingClientRect();for(var i=0;i<e.touches.length;i++){var t=e.touches[i];var x=t.clientX-rect.left;var y=t.clientY-rect.top;if(gameState==='levelselect'){var cols=5,startX=(W-cols*60)/2,startY=80;for(var j=0;j<LEVELS.length;j++){var lx=startX+(j%cols)*60;var ly=startY+Math.floor(j/cols)*55;if(x>=lx&&x<=lx+50&&y>=ly&&y<=ly+40){var unlocked=savedData.levels[j]&&(savedData.levels[j].completed||savedData.levels[j].unlocked);if(j===0||unlocked){loadLevel(j);return}}}}",
-        `function handleTouchStart(e){e.preventDefault();initAudio();if(gameState==='title'){var sl=0;for(var li=0;li<LEVELS.length;li++){if(savedData.levels[li]&&(savedData.levels[li].completed||savedData.levels[li].unlocked))sl=li;}loadLevel(sl);return;}var rect=canvas.getBoundingClientRect();var sx=canvas.width/(rect.width||1),sy=canvas.height/(rect.height||1);for(var i=0;i<e.touches.length;i++){var t=e.touches[i];var x=(t.clientX-rect.left)*sx;var y=(t.clientY-rect.top)*sy;if(gameState==='levelselect'){var cols=10,colW=W>700?60:52,rowH=W>700?48:42;var boxW=colW-10,boxH=rowH-8;var startX=(W-cols*colW)/2,startY=55;var btnY=startY+5*rowH+15;if((x>=W/2-130&&x<=W/2+130&&y>=btnY&&y<=btnY+48)||y>=btnY){var sl=0;for(var li=0;li<LEVELS.length;li++){if(savedData.levels[li]&&(savedData.levels[li].completed||savedData.levels[li].unlocked))sl=li;}loadLevel(sl);return;}for(var j=0;j<LEVELS.length;j++){var lx=startX+(j%cols)*colW;var ly=startY+Math.floor(j/cols)*rowH;if(x>=lx&&x<=lx+boxW&&y>=ly&&y<=ly+boxH){var unlocked=savedData.levels[j]&&(savedData.levels[j].completed||savedData.levels[j].unlocked);if(j===0||unlocked){loadLevel(j);return;}}}}`
+        /function handleClick\(e\)\{[\s\S]*?loadLevel\(i\);return\}\}\}\}/,
+        `function handleClick(e){
+          initAudio();
+          if(gameState==='title'||gameState==='levelselect'||gameState==='win'){
+            var sl=0;
+            for(var li=0;li<LEVELS.length;li++){if(savedData.levels[li]&&(savedData.levels[li].completed||savedData.levels[li].unlocked))sl=li;}
+            if(gameState==='win'&&currentLevel+1<LEVELS.length) sl=currentLevel+1;
+            loadLevel(sl);
+          }
+        }`
       );
 
+      // 3. Isolated multi-touch on-screen HUD buttons (holding Left/Right while tapping Jump works smoothly)
       html = html.replace(
-        "function drawLevelSelect(){drawBackground();ctx.fillStyle='#fff';ctx.font='bold 32px Segoe UI,sans-serif';ctx.textAlign='center';ctx.fillText('Select Level',W/2,40);var cols=5,rows=10,startX=(W-cols*60)/2,startY=80;for(var i=0;i<LEVELS.length;i++){var x=startX+(i%cols)*60;var y=startY+Math.floor(i/cols)*55;var unlocked=savedData.levels[i]&&(savedData.levels[i].completed||savedData.levels[i].unlocked);if(i===0||unlocked){ctx.fillStyle='#2a2a3e';ctx.fillRect(x,y,50,40);ctx.strokeStyle='#4ecdc4';ctx.strokeRect(x,y,50,40);ctx.fillStyle='#fff';ctx.font='14px Segoe UI,sans-serif';ctx.fillText(i+1,x+25,y+25);if(savedData.levels[i]&&savedData.levels[i].completed){ctx.fillStyle='#ffcc00';ctx.font='10px Segoe UI,sans-serif';var stars='*'.repeat(savedData.levels[i].stars||1);ctx.fillText(stars,x+25,y+38)}}else{ctx.fillStyle='#1a1a2e';ctx.fillRect(x,y,50,40);ctx.strokeStyle='#3a3a5e';ctx.strokeRect(x,y,50,40);ctx.fillStyle='#555';ctx.font='14px Segoe UI,sans-serif';ctx.fillText('?',x+25,y+25)}}ctx.fillStyle='#888';ctx.font='14px Segoe UI,sans-serif';ctx.fillText('Total Deaths: '+savedData.totalDeaths,W/2,H-30);ctx.textAlign='left'}",
-        `function drawLevelSelect(){drawBackground();ctx.fillStyle='#fff';ctx.font='bold 28px Segoe UI,sans-serif';ctx.textAlign='center';ctx.fillText('Select Level',W/2,36);var cols=10,rows=5;var colW=W>700?60:52,rowH=W>700?48:42;var boxW=colW-10,boxH=rowH-8;var startX=(W-cols*colW)/2,startY=50;for(var i=0;i<LEVELS.length;i++){var x=startX+(i%cols)*colW;var y=startY+Math.floor(i/cols)*rowH;var unlocked=savedData.levels[i]&&(savedData.levels[i].completed||savedData.levels[i].unlocked);if(i===0||unlocked){ctx.fillStyle='#2a2a3e';ctx.fillRect(x,y,boxW,boxH);ctx.strokeStyle='#4ecdc4';ctx.lineWidth=2;ctx.strokeRect(x,y,boxW,boxH);ctx.fillStyle='#fff';ctx.font='bold 14px Segoe UI,sans-serif';ctx.fillText(i+1,x+boxW/2,y+boxH/2+5);if(savedData.levels[i]&&savedData.levels[i].completed){ctx.fillStyle='#ffcc00';ctx.font='10px Segoe UI,sans-serif';var stars='*'.repeat(savedData.levels[i].stars||1);ctx.fillText(stars,x+boxW/2,y+boxH-3);}}else{ctx.fillStyle='#1a1a2e';ctx.fillRect(x,y,boxW,boxH);ctx.strokeStyle='#3a3a5e';ctx.lineWidth=1;ctx.strokeRect(x,y,boxW,boxH);ctx.fillStyle='#555';ctx.font='13px Segoe UI,sans-serif';ctx.fillText('?',x+boxW/2,y+boxH/2+4);}}var btnY=startY+rows*rowH+12;ctx.fillStyle='#4ecdc4';ctx.beginPath();if(ctx.roundRect)ctx.roundRect(W/2-130,btnY,260,42,[8]);else ctx.rect(W/2-130,btnY,260,42);ctx.fill();ctx.fillStyle='#0a0a1a';ctx.font='bold 16px Segoe UI,sans-serif';ctx.fillText('▶ PLAY NOW (TAP HERE)',W/2,btnY+26);ctx.fillStyle='#aaa';ctx.font='13px Segoe UI,sans-serif';ctx.fillText('Total Deaths: '+savedData.totalDeaths,W/2,btnY+68);ctx.textAlign='left'}`
+        /function pressBtn\(btn,\s*key\)[\s\S]*?pressBtn\(document\.getElementById\('btn-jump'\),\s*'jump'\);/,
+        `(function(){
+          function setupBtn(btn, key){
+            if(!btn) return;
+            function press(e){ if(e.cancelable) e.preventDefault(); e.stopPropagation(); initAudio(); keys[key]=true; btn.classList.add('pressed'); }
+            function release(e){ if(e.cancelable) e.preventDefault(); e.stopPropagation(); keys[key]=false; btn.classList.remove('pressed'); }
+            btn.addEventListener('touchstart', press, {passive:false});
+            btn.addEventListener('touchend', release, {passive:false});
+            btn.addEventListener('touchcancel', release, {passive:false});
+            btn.addEventListener('mousedown', press);
+            btn.addEventListener('mouseup', release);
+            btn.addEventListener('mouseleave', release);
+          }
+          setupBtn(document.getElementById('btn-left'),'left');
+          setupBtn(document.getElementById('btn-right'),'right');
+          setupBtn(document.getElementById('btn-jump'),'jump');
+        })();`
       );
 
+      // 4. Robust canvas touch handling: start on tap, jump on tapping right half of canvas
       html = html.replace(
-        "if(e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW'){e.preventDefault();if(gameState==='title'){initAudio();gameState='levelselect'}",
-        "if(e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW'){e.preventDefault();if(gameState==='title'){initAudio();var sl=0;for(var li=0;li<LEVELS.length;li++){if(savedData.levels[li]&&(savedData.levels[li].completed||savedData.levels[li].unlocked))sl=li;}loadLevel(sl);}"
+        /function handleTouchStart\(e\)[\s\S]*?function handleTouchEnd\(e\)\{[\s\S]*?function handleVisibility\(\)/,
+        `function handleTouchStart(e){
+          if(e.cancelable) e.preventDefault();
+          initAudio();
+          if(gameState==='title'||gameState==='levelselect'||gameState==='win'){
+            var sl=0;
+            for(var li=0;li<LEVELS.length;li++){if(savedData.levels[li]&&(savedData.levels[li].completed||savedData.levels[li].unlocked))sl=li;}
+            if(gameState==='win'&&currentLevel+1<LEVELS.length) sl=currentLevel+1;
+            loadLevel(sl);
+            return;
+          }
+          var rect=canvas.getBoundingClientRect();
+          var sx=canvas.width/(rect.width||1);
+          for(var i=0;i<e.touches.length;i++){
+            var t=e.touches[i];
+            var x=(t.clientX-rect.left)*sx;
+            if(x>W*0.6){ keys.jump=true; }
+          }
+        }
+        function handleTouchEnd(e){
+          if(e.cancelable) e.preventDefault();
+          var rect=canvas.getBoundingClientRect();
+          var sx=canvas.width/(rect.width||1);
+          var hasRightTouch=false;
+          for(var i=0;i<e.touches.length;i++){
+            var t=e.touches[i];
+            var x=(t.clientX-rect.left)*sx;
+            if(x>W*0.6) hasRightTouch=true;
+          }
+          var jBtn=document.getElementById('btn-jump');
+          if(!hasRightTouch && (!jBtn || !jBtn.classList.contains('pressed'))){
+            keys.jump=false;
+          }
+        }
+        function handleVisibility()`
       );
 
-      html = html.replace(
-        "if(isMobile){document.getElementById('touch-controls').classList.add('active')}",
-        "if(isMobile||window.innerWidth<=900||('ontouchstart' in window)){document.getElementById('touch-controls').classList.add('active')}"
-      );
+      // 5. Responsive mobile CSS: centered aspect-ratio canvas + floating touch d-pad & jump
+      html += `
+        <style>
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            overflow: hidden !important;
+            background: #0a0a1a !important;
+            touch-action: none !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+          }
+          #game {
+            position: absolute !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            width: 100vw !important;
+            height: calc(100vw * 384 / 640) !important;
+            max-width: calc(100vh * 640 / 384) !important;
+            max-height: 100vh !important;
+            object-fit: contain !important;
+            z-index: 10 !important;
+            touch-action: none !important;
+            background: #0a0a1a !important;
+          }
+          #touch-controls {
+            display: flex !important;
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: 140px !important;
+            pointer-events: none !important;
+            z-index: 999999 !important;
+            box-sizing: border-box !important;
+          }
+          .touch-btn {
+            pointer-events: auto !important;
+            position: absolute !important;
+            width: 72px !important;
+            height: 72px !important;
+            border-radius: 50% !important;
+            background: rgba(255, 255, 255, 0.18) !important;
+            border: 3px solid rgba(255, 255, 255, 0.45) !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+            color: #ffffff !important;
+            font-size: 26px !important;
+            font-weight: bold !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.5) !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            touch-action: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+          }
+          #btn-left {
+            left: 20px !important;
+            bottom: 24px !important;
+          }
+          #btn-right {
+            left: 108px !important;
+            bottom: 24px !important;
+          }
+          #btn-jump {
+            right: 20px !important;
+            bottom: 20px !important;
+            width: 82px !important;
+            height: 82px !important;
+            background: rgba(78, 205, 196, 0.35) !important;
+            border-color: rgba(78, 205, 196, 0.8) !important;
+            font-size: 32px !important;
+          }
+          .touch-btn:active, .touch-btn.pressed {
+            background: rgba(78, 205, 196, 0.6) !important;
+            border-color: #4ecdc4 !important;
+            transform: scale(0.92) !important;
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.9) !important;
+          }
+          #gz-tap-start, .gz-seo-section, .gz-sr-only, [class*="gz-seo"], a[href*="ottsol"], a[href*="gamezipper"], #gz-ad-below-canvas {
+            display: none !important;
+          }
+        </style>
+      `;
     }
 
     // Inlined patched script for Pong (smoothens paddle speed, enables mouse tracking & eliminates external leaks)
