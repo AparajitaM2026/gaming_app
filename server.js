@@ -222,10 +222,12 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
 // -------------------------------------------------------------
 
 const PROMO_COUPONS = {
-  'WELCOME100': { type: 'COINS', amount: 100, label: 'Welcome Starter Bonus' },
-  'BONUS500': { type: 'COINS', amount: 500, label: 'Mega 500 Coin Booster' },
-  'MEGA2026': { type: 'COINS', amount: 1000, label: '2026 Grand Jackpot (1,000 Coins)' },
-  'PROGAMER': { type: 'COINS', amount: 250, label: 'Pro Gamer Pack (250 Coins)' },
+  'WELCOME10': { type: 'COINS', amount: 10, label: 'Welcome Starter Bonus' },
+  'WELCOME100': { type: 'COINS', amount: 10, label: 'Welcome Starter Bonus' },
+  'BONUS10': { type: 'COINS', amount: 10, label: 'Bonus Coin Booster' },
+  'BONUS500': { type: 'COINS', amount: 10, label: 'Bonus Coin Booster' },
+  'MEGA2026': { type: 'COINS', amount: 10, label: '2026 Grand Jackpot (10 Coins)' },
+  'PROGAMER': { type: 'COINS', amount: 10, label: 'Pro Gamer Pack (10 Coins)' },
   'OTTVIP': { type: 'VIP', days: 30, label: '30-Day VIP Pass All-Access' },
   'VOLTIXVIP': { type: 'VIP', days: 30, label: '30-Day VIP Pass All-Access' }
 };
@@ -473,7 +475,7 @@ app.post('/api/wallet/redeem-coupon', async (req, res) => {
     if (!coupon) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Invalid or expired coupon! Try WELCOME100, BONUS500, or VOLTIXVIP' 
+        message: 'Invalid or expired coupon! Try WELCOME10, BONUS10, or VOLTIXVIP' 
       });
     }
 

@@ -2166,7 +2166,7 @@ async function refreshWalletModalData() {
       }
       // Update quick coupon chips status
       const redeemed = getRedeemedCoupons();
-      ['WELCOME100', 'BONUS500', 'OTTVIP', 'VOLTIXVIP'].forEach(code => {
+      ['WELCOME10', 'WELCOME100', 'BONUS10', 'BONUS500', 'OTTVIP', 'VOLTIXVIP'].forEach(code => {
         const btn = document.getElementById(`couponBtn_${code}`);
         if (btn) {
           if (redeemed.includes(code)) {
