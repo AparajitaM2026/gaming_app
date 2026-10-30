@@ -1039,7 +1039,7 @@ const INTERNAL_GAME_SOURCES = {
   'pond-rescue-io': 'https://games.ottsol.cloud/pond-rescue-io/',
   'zigzag-drift-king': 'https://games.ottsol.cloud/zigzag-drift-king/',
   'pro-billiards-3d': 'https://games.ottsol.cloud/pro-billiards-3d/',
-  'stack-smash-3d': 'https://play.famobi.com/stack-smash',
+  'stack-smash-3d': 'https://html5.gamedistribution.com/rvvASMiM/a81fd206711b48489fddfa7fd4aab621/index.html',
   'cannon-target-smash': 'https://games.ottsol.cloud/cannon-target-smash/',
   'wipeout-dash-3d': 'https://games.ottsol.cloud/wipeout-dash-3d/',
   'garden-tile-match': 'https://games.ottsol.cloud/garden-tile-match/',
@@ -1079,7 +1079,7 @@ const INTERNAL_GAME_SOURCES = {
 };
 
 const RESOLVED_CDN_SOURCES = {
-  'stack-smash-3d': 'https://games.cdn.famobi.com/html5games/s/stack-smash/v050/',
+  'stack-smash-3d': 'https://html5.gamedistribution.com/rvvASMiM/a81fd206711b48489fddfa7fd4aab621/',
   'cars-arena': 'https://games.cdn.famobi.com/html5games/c/cars-arena/v010/',
   'penalty-shooters-2': 'https://games.cdn.famobi.com/html5games/p/penalty-shooters-2/v350/',
   'cut-the-rope-experiments': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-experiments/v030/',
