@@ -1184,6 +1184,43 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
         buffer = Buffer.from(text, 'utf8');
       }
     }
+    // Auto-patch Defold engine wasm loader (e.g. Safari Block Pop / Zoo Boom) to neutralize sitelock
+    if (assetPath.endsWith('_wasm.js')) {
+      let text = buffer.toString('utf8');
+      if (text.includes('_emscripten_asm_const_int(code,sigPtr,argbuf)')) {
+        text = text.replace(
+          '_emscripten_asm_const_int(code,sigPtr,argbuf){var args=readAsmConstArgs(sigPtr,argbuf);return ASM_CONSTS[code].apply(null,args)}',
+          `_emscripten_asm_const_int(code,sigPtr,argbuf){
+            var args=readAsmConstArgs(sigPtr,argbuf);
+            if (code === 109281 && args && args[0]) {
+              try {
+                var s = UTF8ToString(args[0]);
+                if (s.includes('checkInit') || s.includes('aHR0cHM6Ly9wb2tpLmNvbS9zaXRlbG9jaw==') || s.includes('sitelock')) {
+                  console.log('[DEFOLD_ASM_CONST] Neutralizing Defold sitelock...');
+                  s = s.replace(/checkInit\\(\\)\\s*\\{/g, 'checkInit() { return; ');
+                  s = s.replace(/aHR0cHM6Ly9wb2tpLmNvbS9zaXRlbG9jaw==/g, 'I3ViZzIzNQ==');
+                  s = s.replace(/\\]\\s*=\\s*_0x3296f7;/g, ']==_0x3296f7;');
+                  s = s.replace(/\\]\\s*=\\s*window\\[_0xcdc9\\(/g, ']==window[_0xcdc9(');
+                  var isSuccess=1;
+                  var jsResult;
+                  try { jsResult = (0, eval)(s); } catch(err) { isSuccess=0; jsResult=err; }
+                  _dmScript_Html5ReportOperationSuccess(isSuccess);
+                  jsResult+="";
+                  var lengthBytes=lengthBytesUTF8(jsResult)+1;
+                  var stringOnWasmHeap=_malloc(lengthBytes);
+                  stringToUTF8(jsResult,stringOnWasmHeap,lengthBytes);
+                  return stringOnWasmHeap;
+                }
+              } catch(e) {
+                console.warn('[DEFOLD_ASM_CONST ERR]', e);
+              }
+            }
+            return ASM_CONSTS[code].apply(null,args);
+          }`
+        );
+        buffer = Buffer.from(text, 'utf8');
+      }
+    }
     res.send(buffer);
   } catch (e) {
     res.status(404).send('Asset not found');
