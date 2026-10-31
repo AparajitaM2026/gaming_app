@@ -3570,6 +3570,220 @@ const handleGameFrame = async (req, res) => {
       html = html.replace('</body>', `${run3MobileEnhancer}</body>`);
     }
 
+    // Pond Rescue IO (Eggy Car) mobile responsiveness & virtual driving pedals
+    if (req.internalSlug === 'pond-rescue-io' || (req.targetUrl && req.targetUrl.includes('pond-rescue-io'))) {
+      const pondMobileEnhancer = `
+        <style>
+          html, body {
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            background: #000 !important;
+            touch-action: none !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+          }
+          #c2canvasdiv {
+            width: 100vw !important;
+            height: 100vh !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            position: fixed !important;
+            inset: 0 !important;
+            background: #000 !important;
+          }
+          #c2canvas {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            aspect-ratio: 16 / 9 !important;
+            object-fit: contain !important;
+            display: block !important;
+            margin: auto !important;
+            touch-action: none !important;
+          }
+          /* Virtual Driving Pedals HUD */
+          #pondTouchHud {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 999999;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 16px 20px 24px 20px;
+            box-sizing: border-box;
+          }
+          .pond-pedal-btn {
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.7);
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: transform 0.08s ease, background 0.08s ease, border-color 0.08s ease;
+          }
+          /* Left Pedal: Brake / Reverse */
+          .pond-brake-btn {
+            width: 82px;
+            height: 82px;
+            background: rgba(239, 68, 68, 0.28);
+            border: 3px solid rgba(239, 68, 68, 0.85);
+            color: #fca5a5;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.7), 0 0 20px rgba(239, 68, 68, 0.4);
+          }
+          .pond-brake-btn:active, .pond-brake-btn.active {
+            background: rgba(239, 68, 68, 0.7);
+            color: #ffffff;
+            border-color: #ef4444;
+            transform: scale(0.92);
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.9);
+          }
+          /* Right Pedal: Gas / Accelerate */
+          .pond-gas-btn {
+            width: 96px;
+            height: 96px;
+            background: rgba(34, 197, 94, 0.28);
+            border: 3px solid rgba(34, 197, 94, 0.9);
+            color: #86efac;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.7), 0 0 24px rgba(34, 197, 94, 0.45);
+          }
+          .pond-gas-btn:active, .pond-gas-btn.active {
+            background: rgba(34, 197, 94, 0.7);
+            color: #ffffff;
+            border-color: #22c55e;
+            transform: scale(0.92);
+            box-shadow: 0 0 35px rgba(34, 197, 94, 0.95);
+          }
+          .pond-pedal-icon {
+            font-size: 32px;
+            line-height: 1;
+            font-weight: 900;
+          }
+          .pond-pedal-label {
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-top: 4px;
+            font-family: system-ui, -apple-system, sans-serif;
+          }
+        </style>
+
+        <div id="pondTouchHud">
+          <!-- Brake / Reverse (Left) -->
+          <div id="pondBtnBrake" class="pond-pedal-btn pond-brake-btn" title="Reverse / Brake">
+            <div class="pond-pedal-icon">◀</div>
+            <div class="pond-pedal-label">BRAKE</div>
+          </div>
+
+          <!-- Gas / Accelerate (Right) -->
+          <div id="pondBtnGas" class="pond-pedal-btn pond-gas-btn" title="Accelerate / Gas">
+            <div class="pond-pedal-icon">▶</div>
+            <div class="pond-pedal-label">GAS</div>
+          </div>
+        </div>
+
+        <script>
+          (function() {
+            function sendKey(type, keyCode, code, key) {
+              try {
+                var evt = new KeyboardEvent(type, {
+                  key: key,
+                  code: code,
+                  bubbles: true,
+                  cancelable: true
+                });
+                Object.defineProperty(evt, 'keyCode', { get: function() { return keyCode; } });
+                Object.defineProperty(evt, 'which', { get: function() { return keyCode; } });
+                window.dispatchEvent(evt);
+                document.dispatchEvent(evt);
+                if (window.jQuery) {
+                  var jqEvt = window.jQuery.Event(type, { which: keyCode, keyCode: keyCode });
+                  window.jQuery(document).trigger(jqEvt);
+                }
+                var c = document.getElementById('c2canvas');
+                if (c) c.dispatchEvent(evt);
+              } catch(err) {
+                console.warn('sendKey error:', err);
+              }
+            }
+
+            function setupPedal(el, keysList) {
+              if (!el) return;
+              var isDown = false;
+              function onStart(e) {
+                if (e && e.cancelable) e.preventDefault();
+                if (e && e.stopPropagation) e.stopPropagation();
+                if (!isDown) {
+                  isDown = true;
+                  el.classList.add('active');
+                  keysList.forEach(function(k) {
+                    sendKey('keydown', k.keyCode, k.code, k.key);
+                  });
+                }
+              }
+              function onEnd(e) {
+                if (e && e.cancelable) e.preventDefault();
+                if (e && e.stopPropagation) e.stopPropagation();
+                if (isDown) {
+                  isDown = false;
+                  el.classList.remove('active');
+                  keysList.forEach(function(k) {
+                    sendKey('keyup', k.keyCode, k.code, k.key);
+                  });
+                }
+              }
+              el.addEventListener('pointerdown', onStart);
+              el.addEventListener('pointerup', onEnd);
+              el.addEventListener('pointercancel', onEnd);
+              el.addEventListener('touchstart', onStart, { passive: false });
+              el.addEventListener('touchend', onEnd, { passive: false });
+              el.addEventListener('touchcancel', onEnd, { passive: false });
+              el.addEventListener('mousedown', onStart);
+              el.addEventListener('mouseup', onEnd);
+              el.addEventListener('mouseleave', onEnd);
+            }
+
+            setupPedal(document.getElementById('pondBtnGas'), [
+              { keyCode: 39, code: 'ArrowRight', key: 'ArrowRight' },
+              { keyCode: 68, code: 'KeyD', key: 'd' }
+            ]);
+            setupPedal(document.getElementById('pondBtnBrake'), [
+              { keyCode: 37, code: 'ArrowLeft', key: 'ArrowLeft' },
+              { keyCode: 65, code: 'KeyA', key: 'a' }
+            ]);
+
+            // Ensure audio resumes on touch
+            ['touchstart', 'mousedown'].forEach(function(evtName) {
+              window.addEventListener(evtName, function() {
+                try {
+                  if (typeof window.cr_setSuspended === 'function') {
+                    window.cr_setSuspended(false);
+                  }
+                  var AudioCtx = window.AudioContext || window.webkitAudioContext;
+                  if (AudioCtx && window.__audioCtx && window.__audioCtx.state === 'suspended') {
+                    window.__audioCtx.resume();
+                  }
+                } catch(err) {}
+              }, { passive: true, once: true });
+            });
+          })();
+        </script>
+      `;
+      html = html.replace('</body>', `${pondMobileEnhancer}</body>`);
+    }
+
     // Completely scrub any backend host, third-party brand strings, or URLs
     html = html.replace(/<link[^>]*rel=["']canonical["'][^>]*>/gi, '');
     html = html.replace(/https?:\/\/games\.ottsol\.cloud[^\s"'<>]*/gi, '#');
