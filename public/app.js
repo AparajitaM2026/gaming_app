@@ -879,6 +879,12 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
     playUrl = '/games/runner.html?title=' + encodeURIComponent(title);
   } else if (slug === 'jigsaw-puzzle') {
     playUrl = '/play/jigsaw-puzzle';
+  } else if (slug === 'penalty-shooters-2') {
+    playUrl = '/play/penalty-shooters-2';
+  } else if (slug === 'moto-x3m-pool-party') {
+    playUrl = '/play/moto-x3m-pool-party';
+  } else if (slug === 'moto-x3m' || slug === 'stunt-bike-mania') {
+    playUrl = '/play/moto-x3m';
   } else if (playUrl && (playUrl.startsWith('/play/') || playUrl.startsWith('/games/'))) {
     playUrl = playUrl;
   } else if (playUrl && playUrl.startsWith('http')) {

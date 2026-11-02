@@ -1206,6 +1206,20 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
         buffer = Buffer.from(text, 'utf8');
       }
     }
+    // Auto-patch Construct 2 c2runtime.js to prevent wrongOrientation lockout on mobile portrait
+    if (assetPath.endsWith('c2runtime.js')) {
+      let text = buffer.toString('utf8');
+      if (text.includes('Cnds.prototype.IsPortraitLandscape')) {
+        text = text.replace(/Cnds\.prototype\.IsPortraitLandscape\s*=\s*function\s*\([a-zA-Z0-9_]*\)\s*\{[\s\S]*?\};/, 'Cnds.prototype.IsPortraitLandscape = function(p) { return p === 1; };');
+        buffer = Buffer.from(text, 'utf8');
+      }
+    }
+    // Auto-patch Construct 2 data.js to bypass wrongOrientation layout
+    if (slug === 'penalty-shooters-2' && assetPath.endsWith('data.js')) {
+      let text = buffer.toString('utf8');
+      text = text.replace(/\[6,"wrongOrientation"\]/g, '[6,"pickLeague"]');
+      buffer = Buffer.from(text, 'utf8');
+    }
     if (assetPath.endsWith('moonbird.js')) {
       let text = buffer.toString('utf8');
       if (text.includes('function _emscripten_run_script(ptr){eval(UTF8ToString(ptr))}')) {
@@ -1932,6 +1946,24 @@ const handleGameFrame = async (req, res) => {
               });
             }
           };
+
+          // Neutralize Construct 2 wrongOrientation lockout (e.g. Penalty Shooters 2 on mobile)
+          var checkC2OrientInterval = setInterval(function() {
+            try {
+              if (window.cr && window.cr.plugins_ && window.cr.plugins_.Browser) {
+                window.cr.plugins_.Browser.prototype.cnds.IsPortraitLandscape = function(p) {
+                  return p === 1; // Always report landscape so mobile portrait doesn't lockout
+                };
+              }
+              if (window.cr_getC2Runtime) {
+                var rt = window.cr_getC2Runtime();
+                if (rt && rt.running_layout && rt.running_layout.name === 'wrongOrientation') {
+                  rt.changelayout = rt.layouts['pickLeague'] || rt.layouts['first'] || rt.layouts['mainMenu'] || rt.layouts[Object.keys(rt.layouts)[0]];
+                }
+              }
+            } catch(e) {}
+          }, 50);
+          setTimeout(function() { clearInterval(checkC2OrientInterval); }, 25000);
 
           // Real-time MutationObserver to eradicate ad banners from DOM
           try {
