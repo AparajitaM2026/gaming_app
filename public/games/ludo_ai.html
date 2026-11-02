@@ -97,10 +97,10 @@
     <!-- Rendered dynamically for connected players -->
   </div>
 
-  <!-- Real Authentic 15x15 Ludo Board -->
-  <div class="flex-1 min-h-0 w-full flex items-center justify-center py-1 overflow-hidden">
-    <div class="h-full aspect-square max-w-full p-1 sm:p-1.5 bg-slate-800 rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-slate-700 flex items-center justify-center">
-      <canvas id="ludoCanvas" class="w-full h-full rounded-lg sm:rounded-xl bg-white shadow-inner"></canvas>
+  <!-- Real Authentic 15x15 Ludo Board (Strict 1:1 Square on Mobile & Desktop) -->
+  <div id="ludoBoardContainer" class="flex-1 min-h-0 w-full flex items-center justify-center p-1 overflow-hidden">
+    <div id="ludoBoardFrame" class="p-1 sm:p-1.5 bg-slate-800 rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-slate-700 flex items-center justify-center box-border" style="aspect-ratio: 1 / 1; max-width: 100%; max-height: 100%;">
+      <canvas id="ludoCanvas" class="rounded-lg sm:rounded-xl bg-white shadow-inner" style="width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: contain; display: block;"></canvas>
     </div>
   </div>
 
@@ -263,6 +263,28 @@
     canvas.width = CANVAS_SIZE;
     canvas.height = CANVAS_SIZE;
     const CELL = CANVAS_SIZE / GRID_SIZE; // 40px
+
+    // Maintain strictly 1:1 square aspect ratio without vertical stretching on mobile viewports
+    function fitLudoBoard() {
+      const container = document.getElementById('ludoBoardContainer');
+      const frame = document.getElementById('ludoBoardFrame');
+      if (!container || !frame) return;
+      const pad = 6;
+      const availW = container.clientWidth - pad;
+      const availH = container.clientHeight - pad;
+      if (availW <= 0 || availH <= 0) return;
+      const size = Math.floor(Math.min(availW, availH));
+      frame.style.width = size + 'px';
+      frame.style.height = size + 'px';
+    }
+    window.addEventListener('resize', fitLudoBoard);
+    window.addEventListener('orientationchange', fitLudoBoard);
+    window.addEventListener('load', fitLudoBoard);
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      fitLudoBoard();
+    }
+    setTimeout(fitLudoBoard, 50);
+    setTimeout(fitLudoBoard, 200);
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSfx(type) {

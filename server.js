@@ -1262,6 +1262,56 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
         buffer = Buffer.from(text, 'utf8');
       }
     }
+    // Auto-patch Stunt Bike Mania (Moto X3M) start menu layout for mobile portrait mode
+    if (slug === 'stunt-bike-mania' && assetPath.endsWith('all.js')) {
+      let text = buffer.toString('utf8');
+      if (text.includes('this.background.alignIn(this.world.bounds, Phaser.BOTTOM_CENTER)')) {
+        const patchBlock = `(function(menu) {
+              var isPortrait = menu.game.height > menu.game.width;
+              if (isPortrait) {
+                var bgScale = Math.max(menu.game.width / 720, menu.game.height / 780);
+                menu.background.scale.set(bgScale);
+                menu.background.alignIn(menu.world.bounds, Phaser.BOTTOM_CENTER);
+                menu.logo.scale.set(Math.min(1.15, menu.game.width / 400));
+                menu.logo.x = menu.game.width / 2;
+                menu.logo.y = Math.max(80, Math.min(150, menu.game.height * 0.16));
+                menu.playBtn.scale.set(Math.min(1.1, menu.game.width / 420));
+                menu.playBtn.x = (menu.game.width - 260 * menu.playBtn.scale.x) / 2;
+                menu.playBtn.y = menu.logo.y + 115;
+                menu.garageBtn.x = menu.game.width - 115;
+                menu.musicBtn.x = menu.game.width - 35;
+                menu.bgTop.x = menu.game.width - 250;
+                menu._armatureDisplay.x = -menu.background.x - 50;
+                if (menu.blackRightBG) menu.blackRightBG.visible = false;
+                menu.textVersion.x = menu.game.width - 60;
+                menu.textVersion.y = menu.game.height - 20;
+                menu.brand_logo.x = menu.game.width - 60;
+                menu.brand_logo.y = menu.game.height - 180;
+              } else {
+                menu.garageBtn.x = menu.game.width - 120;
+                menu.musicBtn.x = menu.game.width - 35;
+                menu.bgTop.x = menu.game.width - 250;
+                menu.background.scale.set(e);
+                menu.background.alignIn(menu.world.bounds, Phaser.BOTTOM_CENTER);
+                menu.logo.scale.set(e);
+                menu.background2.scale.set(2.02 * Phaser.Math.max(menu.game.width / r.Constants.WIDTH, menu.game.height / r.Constants.HEIGHT));
+                menu.background2.alignIn(menu.world.bounds, Phaser.CENTER);
+                menu.background2.visible = false;
+                menu._armatureDisplay.x = -menu.background.x - 50;
+                menu.game.width > 820 ? menu.blackRightBG.x = 900 : menu.game.width - 110 > 450 ? menu.blackRightBG.x = menu.game.width - 110 : menu.blackRightBG.x = menu.game.width;
+                menu.playBtn.x = menu.game.width - 250;
+                menu.playBtn.y = 200;
+                menu.playBtn.scale.set(e);
+                menu.textVersion.x = menu.game.width - 60;
+                menu.textVersion.y = menu.game.height - 20;
+                menu.brand_logo.x = menu.game.width - 60;
+                menu.brand_logo.y = menu.game.height - 180;
+              }
+            })(this),`;
+        text = text.replace(/this\.garageBtn\.x\s*=\s*this\.game\.width\s*-\s*120[\s\S]*?this\.brand_logo\.y\s*=\s*this\.game\.height\s*-\s*180\s*,/, patchBlock);
+        buffer = Buffer.from(text, 'utf8');
+      }
+    }
     res.send(buffer);
   } catch (e) {
     res.status(404).send('Asset not found');
@@ -3782,6 +3832,50 @@ const handleGameFrame = async (req, res) => {
         </script>
       `;
       html = html.replace('</body>', `${pondMobileEnhancer}</body>`);
+    }
+
+    // Stunt Bike Mania mobile responsiveness & full-screen container
+    if (req.internalSlug === 'stunt-bike-mania' || (req.targetUrl && req.targetUrl.includes('stunt-bike-mania'))) {
+      const stuntMobileEnhancer = `
+        <style>
+          html, body {
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            background: #000 !important;
+            touch-action: manipulation !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+          }
+          #content {
+            width: 100vw !important;
+            height: 100vh !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: #000 !important;
+            overflow: hidden !important;
+          }
+          #content canvas {
+            display: block !important;
+            margin: auto !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+          }
+          #orientation {
+            display: none !important;
+          }
+        </style>
+      `;
+      if (html.includes('</body>')) {
+        html = html.replace('</body>', `${stuntMobileEnhancer}</body>`);
+      } else if (html.includes('</html>')) {
+        html = html.replace('</html>', `${stuntMobileEnhancer}</html>`);
+      } else {
+        html += stuntMobileEnhancer;
+      }
     }
 
     // Completely scrub any backend host, third-party brand strings, or URLs
