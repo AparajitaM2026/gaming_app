@@ -75,9 +75,9 @@
     </div>
   </div>
 
-  <!-- 8x8 Chess Board (Responsive Fit) -->
-  <div class="flex-1 min-h-0 w-full flex items-center justify-center py-1 overflow-hidden">
-    <div class="h-full aspect-square max-w-full p-1 sm:p-1.5 rounded-2xl bg-slate-900 border-2 sm:border-4 border-slate-700 shadow-2xl flex items-center justify-center">
+  <!-- 8x8 Chess Board (Strict 1:1 Square on Mobile & Desktop) -->
+  <div id="chessContainer" class="flex-1 min-h-0 w-full flex items-center justify-center p-1 overflow-hidden">
+    <div id="chessFrame" class="p-1 sm:p-1.5 rounded-2xl bg-slate-900 border-2 sm:border-4 border-slate-700 shadow-2xl flex items-center justify-center box-border" style="aspect-ratio: 1 / 1; max-width: 100%; max-height: 100%;">
       <div class="grid grid-cols-8 grid-rows-8 w-full h-full rounded-xl overflow-hidden border border-slate-600" id="board">
         <!-- 64 squares -->
       </div>
@@ -231,6 +231,28 @@
     if (flipBtn && isFlipped) {
       flipBtn.classList.add('border-cyan-400', 'text-cyan-300', 'bg-cyan-950/40');
     }
+
+    // Maintain strictly 1:1 square aspect ratio without vertical stretching on mobile viewports
+    function fitChessBoard() {
+      const container = document.getElementById('chessContainer');
+      const frame = document.getElementById('chessFrame');
+      if (!container || !frame) return;
+      const pad = 6;
+      const availW = container.clientWidth - pad;
+      const availH = container.clientHeight - pad;
+      if (availW <= 0 || availH <= 0) return;
+      const size = Math.floor(Math.min(availW, availH));
+      frame.style.width = size + 'px';
+      frame.style.height = size + 'px';
+    }
+    window.addEventListener('resize', fitChessBoard);
+    window.addEventListener('orientationchange', fitChessBoard);
+    window.addEventListener('load', fitChessBoard);
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      fitChessBoard();
+    }
+    setTimeout(fitChessBoard, 50);
+    setTimeout(fitChessBoard, 200);
 
     // Setup Header UI
     const modeBadge = document.getElementById('modeBadge');

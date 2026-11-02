@@ -68,9 +68,9 @@
     </div>
   </div>
 
-  <!-- 3x3 Grid (Responsive Fit) -->
-  <div class="flex-1 min-h-0 w-full flex items-center justify-center py-1 overflow-hidden">
-    <div class="h-full aspect-square max-w-[340px] grid grid-cols-3 gap-2 p-2 sm:p-2.5 rounded-2xl bg-slate-900/90 border-2 border-slate-700/80 shadow-2xl">
+  <!-- 3x3 Grid (Strict 1:1 Square on Mobile & Desktop) -->
+  <div id="tttContainer" class="flex-1 min-h-0 w-full flex items-center justify-center p-1 overflow-hidden">
+    <div id="tttFrame" class="aspect-square max-w-[340px] grid grid-cols-3 gap-2 p-2 sm:p-2.5 rounded-2xl bg-slate-900/90 border-2 border-slate-700/80 shadow-2xl box-border" style="aspect-ratio: 1 / 1; max-width: 340px; max-height: 100%;">
       <button onclick="handleCellClick(0)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-0"></button>
       <button onclick="handleCellClick(1)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-1"></button>
       <button onclick="handleCellClick(2)" class="cell-glow rounded-xl bg-slate-800/80 border border-slate-700 text-3xl sm:text-4xl font-black orbitron flex items-center justify-center transition-all h-full" id="cell-2"></button>
@@ -216,6 +216,28 @@
 
     document.getElementById('p1ScoreLabel').textContent = `${p1.username.toUpperCase()} (X)`;
     document.getElementById('p2ScoreLabel').textContent = `${p2.username.toUpperCase()} (O)`;
+
+    // Maintain strictly 1:1 square aspect ratio without vertical stretching on mobile viewports
+    function fitTTTBoard() {
+      const container = document.getElementById('tttContainer');
+      const frame = document.getElementById('tttFrame');
+      if (!container || !frame) return;
+      const pad = 8;
+      const availW = container.clientWidth - pad;
+      const availH = container.clientHeight - pad;
+      if (availW <= 0 || availH <= 0) return;
+      const size = Math.floor(Math.min(340, Math.min(availW, availH)));
+      frame.style.width = size + 'px';
+      frame.style.height = size + 'px';
+    }
+    window.addEventListener('resize', fitTTTBoard);
+    window.addEventListener('orientationchange', fitTTTBoard);
+    window.addEventListener('load', fitTTTBoard);
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      fitTTTBoard();
+    }
+    setTimeout(fitTTTBoard, 50);
+    setTimeout(fitTTTBoard, 200);
 
     // -------------------------------------------------------------
     // GAME STATE & MECHANICS

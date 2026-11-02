@@ -55,17 +55,19 @@
     </div>
   </div>
 
-  <!-- Middle Board Container -->
-  <div class="flex-1 min-h-0 w-full flex flex-col items-center justify-center my-1 overflow-hidden">
-    <!-- Column Drop Click Indicators -->
-    <div class="w-full shrink-0 grid grid-cols-7 gap-1 sm:gap-1.5 px-3 pb-1" id="colButtons">
-      <!-- 7 column drop arrows -->
-    </div>
+  <!-- Middle Board Container (Strict 7:6 Ratio on Mobile & Desktop) -->
+  <div id="connect4Container" class="flex-1 min-h-0 w-full flex flex-col items-center justify-center my-1 overflow-hidden">
+    <div id="connect4Frame" class="w-full flex flex-col items-center justify-center" style="max-width: 100%; max-height: 100%;">
+      <!-- Column Drop Click Indicators -->
+      <div class="w-full shrink-0 grid grid-cols-7 gap-1 sm:gap-1.5 px-3 pb-1" id="colButtons">
+        <!-- 7 column drop arrows -->
+      </div>
 
-    <!-- Connect 4 Vertical Blue Board (7 cols x 6 rows) -->
-    <div class="h-full aspect-[7/6] max-w-full p-2 sm:p-3 rounded-2xl bg-blue-700 border-2 sm:border-4 border-blue-900 shadow-2xl flex items-center justify-center">
-      <div class="grid grid-cols-7 gap-1 sm:gap-1.5 w-full h-full" id="boardGrid">
-        <!-- 42 slots -->
+      <!-- Connect 4 Vertical Blue Board (7 cols x 6 rows) -->
+      <div id="connect4BoardBox" class="aspect-[7/6] w-full p-2 sm:p-3 rounded-2xl bg-blue-700 border-2 sm:border-4 border-blue-900 shadow-2xl flex items-center justify-center box-border">
+        <div class="grid grid-cols-7 gap-1 sm:gap-1.5 w-full h-full" id="boardGrid">
+          <!-- 42 slots -->
+        </div>
       </div>
     </div>
   </div>
@@ -200,6 +202,33 @@
       const isBotLabel = (!isPartyMode && !isPassPlay);
       p2Label.innerHTML = `${p2.username} <span class="text-[9px] text-yellow-300">(${isBotLabel ? 'BOT' : 'YELLOW'})</span>${(isPartyMode && p2.isMe) ? ' <span class="text-cyan-300 text-[9px] font-bold bg-cyan-950/60 px-1 rounded border border-cyan-400/40">(You)</span>' : ''}`;
     }
+
+    // Maintain strictly 7:6 aspect ratio without vertical distortion on mobile viewports
+    function fitConnect4Board() {
+      const container = document.getElementById('connect4Container');
+      const frame = document.getElementById('connect4Frame');
+      if (!container || !frame) return;
+      const padW = 8;
+      const padH = 40; // reserve space for column drop indicators
+      const availW = container.clientWidth - padW;
+      const availH = container.clientHeight - padH;
+      if (availW <= 0 || availH <= 0) return;
+      let targetW = availW;
+      let targetH = Math.floor(targetW * 6 / 7);
+      if (targetH > availH) {
+        targetH = availH;
+        targetW = Math.floor(targetH * 7 / 6);
+      }
+      frame.style.width = targetW + 'px';
+    }
+    window.addEventListener('resize', fitConnect4Board);
+    window.addEventListener('orientationchange', fitConnect4Board);
+    window.addEventListener('load', fitConnect4Board);
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      fitConnect4Board();
+    }
+    setTimeout(fitConnect4Board, 50);
+    setTimeout(fitConnect4Board, 200);
 
     // -------------------------------------------------------------
     // BOARD LOGIC & RENDERING
