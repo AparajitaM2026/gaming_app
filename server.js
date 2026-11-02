@@ -1080,6 +1080,8 @@ const INTERNAL_GAME_SOURCES = {
 
 const RESOLVED_CDN_SOURCES = {
   'stack-smash-3d': 'https://html5.gamedistribution.com/rvvASMiM/a81fd206711b48489fddfa7fd4aab621/',
+  'moto-x3m': 'https://html5.gamedistribution.com/rvvASMiM/5b0abd4c0faa4f5eb190a9a16d5a1b4c/',
+  'moto-x3m-pool-party': 'https://html5.gamedistribution.com/rvvASMiM/f804d079d19f44d3b951ead4588e974a/',
   'cars-arena': 'https://games.cdn.famobi.com/html5games/c/cars-arena/v010/',
   'penalty-shooters-2': 'https://games.cdn.famobi.com/html5games/p/penalty-shooters-2/v350/',
   'cut-the-rope-experiments': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-experiments/v030/',
@@ -1266,37 +1268,58 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
     const isMotoGame = slug === 'stunt-bike-mania' || slug === 'moto-x3m' || slug === 'moto-x3m-pool-party' || slug.includes('moto-x3m');
     if (isMotoGame && assetPath.endsWith('.js')) {
       let text = buffer.toString('utf8');
+      // Neutralize external app store badges & version text from scene graph
+      text = text.replace(/this\.background\.addChild\(this\.google_btn\)/g, 'void 0');
+      text = text.replace(/this\.background\.addChild\(this\.apple_btn\)/g, 'void 0');
+      text = text.replace(/this\.background3\.addChild\(this\.textVersion\)/g, 'void 0');
+
       if (text.includes('Phaser.BOTTOM_CENTER') && text.includes('this.background.alignIn')) {
         const patchBlock = `(function(menu) {
               var isPortrait = menu.game.height > menu.game.width;
               if (isPortrait) {
-                var bgScale = Math.max(menu.game.width / 720, menu.game.height / 780);
+                // Seamlessly cover entire canvas with full background (no black split / bars)
+                var bgScale = Math.max(menu.game.width / 720, menu.game.height / 512) * 1.05;
                 menu.background.scale.set(bgScale);
-                menu.background.alignIn(menu.world.bounds, Phaser.BOTTOM_CENTER);
-                menu.logo.scale.set(Math.min(1.15, menu.game.width / 400));
+                menu.background.alignIn(menu.world.bounds, Phaser.CENTER);
+
+                // Hide ugly landscape-only black top tire overlay & side bars
+                if (menu.bgTop) { menu.bgTop.visible = false; menu.bgTop.x = -9999; }
+                if (menu.blackRightBG) { menu.blackRightBG.visible = false; menu.blackRightBG.x = -9999; }
+                if (menu.background2) { menu.background2.visible = false; menu.background2.x = -9999; }
+
+                // Center biker armature stunt in the sunny sky
+                if (menu._armatureDisplay) {
+                  var screenCenterInBgX = (menu.game.width / 2 - menu.background.x) / bgScale;
+                  menu._armatureDisplay.x = screenCenterInBgX;
+                  menu._armatureDisplay.y = 330;
+                }
+
+                // Perfectly centered and scaled logo & play button
+                var logoScale = Math.min(1.0, menu.game.width / 400);
+                menu.logo.scale.set(logoScale);
                 menu.logo.x = menu.game.width / 2;
-                menu.logo.y = Math.max(80, Math.min(150, menu.game.height * 0.16));
-                menu.playBtn.scale.set(Math.min(1.1, menu.game.width / 420));
-                menu.playBtn.x = (menu.game.width - 260 * menu.playBtn.scale.x) / 2;
-                menu.playBtn.y = menu.logo.y + 115;
-                menu.garageBtn.x = menu.game.width - 115;
-                menu.musicBtn.x = menu.game.width - 35;
-                menu.bgTop.x = menu.game.width - 250;
-                menu._armatureDisplay.x = -menu.background.x - 50;
-                if (menu.blackRightBG) menu.blackRightBG.visible = false;
-                if (menu.google_btn) menu.google_btn.visible = false;
-                if (menu.apple_btn) menu.apple_btn.visible = false;
-                if (menu.moregames) {
-                  menu.moregames.x = menu.game.width - 100;
-                  menu.moregames.y = menu.game.height - 180;
-                  menu.moregames.scale.set(e);
-                }
-                menu.textVersion.x = menu.game.width - 60;
-                menu.textVersion.y = menu.game.height - 20;
-                if (menu.brand_logo) {
-                  menu.brand_logo.x = menu.game.width - 60;
-                  menu.brand_logo.y = menu.game.height - 180;
-                }
+                menu.logo.y = Math.max(70, Math.min(130, menu.game.height * 0.15));
+
+                var playScale = Math.min(1.1, menu.game.width / 380);
+                menu.playBtn.scale.set(playScale);
+                menu.playBtn.x = (menu.game.width - 260 * playScale) / 2;
+                menu.playBtn.y = menu.logo.y + 115 * logoScale;
+
+                // Corner icons
+                menu.garageBtn.x = menu.game.width - 110;
+                menu.garageBtn.y = 35;
+                menu.musicBtn.x = menu.game.width - 40;
+                menu.musicBtn.y = 35;
+
+                // Completely eliminate all third-party store badges, ads & version markers
+                [menu.google_btn, menu.apple_btn, menu.moregames, menu.textVersion, menu.brand_logo].forEach(function(item) {
+                  if (item) {
+                    try { item.visible = false; } catch(e) {}
+                    try { item.x = -9999; item.y = -9999; } catch(e) {}
+                    try { if (item.destroy) item.destroy(); } catch(e) {}
+                    try { if (menu.background && menu.background.removeChild) menu.background.removeChild(item); } catch(e) {}
+                  }
+                });
               } else {
                 menu.garageBtn.x = menu.game.width - 120;
                 menu.musicBtn.x = menu.game.width - 35;

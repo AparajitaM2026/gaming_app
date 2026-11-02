@@ -1468,6 +1468,8 @@ function openGameTheater(title, url, game = null) {
     } catch(e) {}
   }
   overlay.classList.remove('hidden');
+  const mobBottomNav = document.getElementById('mobileBottomNav');
+  if (mobBottomNav) mobBottomNav.classList.add('hidden');
 
   // Update How to Play dock and modal
   updateTheaterHowToPlay(game, title);
@@ -1492,6 +1494,8 @@ function closeGameTheater() {
   if (overlay) overlay.classList.add('hidden');
   if (loader) loader.classList.add('hidden');
   if (errorFallback) errorFallback.classList.add('hidden');
+  const mobBottomNav = document.getElementById('mobileBottomNav');
+  if (mobBottomNav) mobBottomNav.classList.remove('hidden');
 
   // Restore page scroll
   document.body.classList.remove('overflow-hidden');
