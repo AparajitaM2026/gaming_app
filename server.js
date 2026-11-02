@@ -1262,10 +1262,11 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
         buffer = Buffer.from(text, 'utf8');
       }
     }
-    // Auto-patch Stunt Bike Mania (Moto X3M) start menu layout for mobile portrait mode
-    if (slug === 'stunt-bike-mania' && assetPath.endsWith('all.js')) {
+    // Auto-patch Moto X3M series (Stunt Bike Mania, Moto X3M, Moto X3M Pool Party) start menu for mobile portrait mode
+    const isMotoGame = slug === 'stunt-bike-mania' || slug === 'moto-x3m' || slug === 'moto-x3m-pool-party' || slug.includes('moto-x3m');
+    if (isMotoGame && assetPath.endsWith('.js')) {
       let text = buffer.toString('utf8');
-      if (text.includes('this.background.alignIn(this.world.bounds, Phaser.BOTTOM_CENTER)')) {
+      if (text.includes('Phaser.BOTTOM_CENTER') && text.includes('this.background.alignIn')) {
         const patchBlock = `(function(menu) {
               var isPortrait = menu.game.height > menu.game.width;
               if (isPortrait) {
@@ -1283,10 +1284,19 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
                 menu.bgTop.x = menu.game.width - 250;
                 menu._armatureDisplay.x = -menu.background.x - 50;
                 if (menu.blackRightBG) menu.blackRightBG.visible = false;
+                if (menu.google_btn) menu.google_btn.visible = false;
+                if (menu.apple_btn) menu.apple_btn.visible = false;
+                if (menu.moregames) {
+                  menu.moregames.x = menu.game.width - 100;
+                  menu.moregames.y = menu.game.height - 180;
+                  menu.moregames.scale.set(e);
+                }
                 menu.textVersion.x = menu.game.width - 60;
                 menu.textVersion.y = menu.game.height - 20;
-                menu.brand_logo.x = menu.game.width - 60;
-                menu.brand_logo.y = menu.game.height - 180;
+                if (menu.brand_logo) {
+                  menu.brand_logo.x = menu.game.width - 60;
+                  menu.brand_logo.y = menu.game.height - 180;
+                }
               } else {
                 menu.garageBtn.x = menu.game.width - 120;
                 menu.musicBtn.x = menu.game.width - 35;
@@ -1294,21 +1304,34 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
                 menu.background.scale.set(e);
                 menu.background.alignIn(menu.world.bounds, Phaser.BOTTOM_CENTER);
                 menu.logo.scale.set(e);
-                menu.background2.scale.set(2.02 * Phaser.Math.max(menu.game.width / r.Constants.WIDTH, menu.game.height / r.Constants.HEIGHT));
-                menu.background2.alignIn(menu.world.bounds, Phaser.CENTER);
-                menu.background2.visible = false;
+                if (menu.background2) {
+                  menu.background2.scale.set(2.02 * Phaser.Math.max(menu.game.width / r.Constants.WIDTH, menu.game.height / r.Constants.HEIGHT));
+                  menu.background2.alignIn(menu.world.bounds, Phaser.CENTER);
+                  menu.background2.visible = false;
+                }
                 menu._armatureDisplay.x = -menu.background.x - 50;
                 menu.game.width > 820 ? menu.blackRightBG.x = 900 : menu.game.width - 110 > 450 ? menu.blackRightBG.x = menu.game.width - 110 : menu.blackRightBG.x = menu.game.width;
+                if (menu.google_btn && menu.apple_btn && menu.game.width > r.Constants.WIDTH) {
+                  menu.google_btn.x = 110 - (menu.game.width - r.Constants.WIDTH) / 2;
+                  menu.apple_btn.x = menu.google_btn.x;
+                }
                 menu.playBtn.x = menu.game.width - 250;
                 menu.playBtn.y = 200;
                 menu.playBtn.scale.set(e);
+                if (menu.moregames) {
+                  menu.moregames.x = menu.game.width - 100;
+                  menu.moregames.y = menu.game.height - 180;
+                  menu.moregames.scale.set(e);
+                }
                 menu.textVersion.x = menu.game.width - 60;
                 menu.textVersion.y = menu.game.height - 20;
-                menu.brand_logo.x = menu.game.width - 60;
-                menu.brand_logo.y = menu.game.height - 180;
+                if (menu.brand_logo) {
+                  menu.brand_logo.x = menu.game.width - 60;
+                  menu.brand_logo.y = menu.game.height - 180;
+                }
               }
             })(this),`;
-        text = text.replace(/this\.garageBtn\.x\s*=\s*this\.game\.width\s*-\s*120[\s\S]*?this\.brand_logo\.y\s*=\s*this\.game\.height\s*-\s*180\s*,/, patchBlock);
+        text = text.replace(/this\.garageBtn\.x\s*=\s*this\.game\.width\s*-\s*120[\s\S]*?(?:this\.textVersion\.y\s*=\s*this\.game\.height\s*-\s*20|this\.brand_logo\.y\s*=\s*this\.game\.height\s*-\s*180)\s*,/, patchBlock);
         buffer = Buffer.from(text, 'utf8');
       }
     }
@@ -3834,8 +3857,8 @@ const handleGameFrame = async (req, res) => {
       html = html.replace('</body>', `${pondMobileEnhancer}</body>`);
     }
 
-    // Stunt Bike Mania mobile responsiveness & full-screen container
-    if (req.internalSlug === 'stunt-bike-mania' || (req.targetUrl && req.targetUrl.includes('stunt-bike-mania'))) {
+    // Moto X3M series (Stunt Bike Mania, Moto X3M, Moto X3M Pool Party) mobile responsiveness & container
+    if (req.internalSlug === 'stunt-bike-mania' || req.internalSlug === 'moto-x3m' || req.internalSlug === 'moto-x3m-pool-party' || (req.targetUrl && (req.targetUrl.includes('stunt-bike-mania') || req.targetUrl.includes('moto-x3m')))) {
       const stuntMobileEnhancer = `
         <style>
           html, body {
