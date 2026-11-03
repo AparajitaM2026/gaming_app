@@ -2095,6 +2095,9 @@ const handleGameFrame = async (req, res) => {
           // Pre-set howto flag so overlay tutorials don't block start screens
           try {
             localStorage.setItem('wm_howto', '1');
+            localStorage.setItem('tutorial_memory', '1');
+            localStorage.setItem('tutorial_shown', '1');
+            localStorage.setItem('tutorial_completed', '1');
           } catch(e) {}
 
           // Continuously scrub injected toolbars, fixed banners, and footer elements so canvas receives all clicks
@@ -2736,6 +2739,8 @@ const handleGameFrame = async (req, res) => {
         .gz-tips-guides,
         [class*="tips-guides"],
         #controls-hint,
+        #tutorial-overlay,
+        [id*="tutorial"],
         [itemtype*="FAQPage"],
         [itemtype*="Question"],
         [itemprop*="acceptedAnswer"],
@@ -2753,6 +2758,10 @@ const handleGameFrame = async (req, res) => {
           top: -99999px !important;
           left: -99999px !important;
           z-index: -9999 !important;
+        }
+        canvas, #c {
+          pointer-events: auto !important;
+          touch-action: manipulation !important;
         }
         * {
           filter: none !important;
@@ -4066,6 +4075,36 @@ const handleGameFrame = async (req, res) => {
         html = html.replace('</body>', `${gardenEnhancer}</body>`);
       } else {
         html += gardenEnhancer;
+      }
+    }
+
+    // Memory Master (Memory Match): Unlock start screen, remove blocking overlay, enable instant canvas touch
+    if (req.internalSlug === 'memory-master' || (req.targetUrl && req.targetUrl.includes('memory-match'))) {
+      html = html.replace(/<div[^>]*id=["']tutorial-overlay["'][\s\S]*?<\/div>\s*<\/div>/gi, '');
+      html = html.replace(/cvs\.style\.pointerEvents\s*=\s*['"]none['"]/g, "cvs.style.pointerEvents='auto'");
+      html = html.replace(
+        "canvas.addEventListener('click',e=>{",
+        "function onCanvasClick(clientX, clientY) { const rect = canvas.getBoundingClientRect(); const scaleX = canvas.width / (rect.width || 1); const scaleY = canvas.height / (rect.height || 1); handleClick((clientX - rect.left) * scaleX, (clientY - rect.top) * scaleY); }\ncanvas.addEventListener('pointerdown', e => onCanvasClick(e.clientX, e.clientY));\ncanvas.addEventListener('click',e=>{"
+      );
+      const mmFix = `
+        <style>
+          #tutorial-overlay, #splash-screen { display: none !important; pointer-events: none !important; }
+          #c, canvas { pointer-events: auto !important; touch-action: manipulation !important; }
+        </style>
+        <script>
+          try {
+            localStorage.setItem('tutorial_memory', '1');
+            var ov = document.getElementById('tutorial-overlay');
+            if (ov) ov.remove();
+            var c = document.getElementById('c') || document.querySelector('canvas');
+            if (c) c.style.pointerEvents = 'auto';
+          } catch(e) {}
+        </script>
+      `;
+      if (html.includes('</head>')) {
+        html = html.replace('</head>', `${mmFix}</head>`);
+      } else {
+        html = mmFix + html;
       }
     }
 
