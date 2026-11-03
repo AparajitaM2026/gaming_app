@@ -1017,7 +1017,7 @@ const INTERNAL_GAME_SOURCES = {
   'sliding-puzzle': 'https://games.ottsol.cloud/sliding-puzzle/',
   'trivia-crack': 'https://games.ottsol.cloud/trivia-crack/',
   'cut-the-rope': 'https://games.ottsol.cloud/cut-the-rope/',
-  'drive-fury': 'https://games.ottsol.cloud/drive-fury/',
+  'drive-fury': 'https://gamezipper.com/drive-fury/?utm_source=embed',
   'escape-manor': 'https://games.ottsol.cloud/escape-manor/',
   'sand-balls': 'https://games.ottsol.cloud/sand-balls/',
   'arrow-escape': 'https://gamezipper.com/tap-away/?utm_source=embed',
@@ -1096,6 +1096,10 @@ const RESOLVED_CDN_SOURCES = {
 };
 
 // Internal Voltixz Player Endpoint: Zero external domain leakage
+app.get(['/play/drive-fury', '/play/drive-fury/'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'games', 'drive_fury.html'));
+});
+
 app.get('/play/:slug', async (req, res, next) => {
   const { slug } = req.params;
   const target = INTERNAL_GAME_SOURCES[slug];
