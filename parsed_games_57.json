@@ -826,23 +826,6 @@
     "url": "https://games.cdn.famobi.com/html5games/c/cars-arena/v010/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=bfca421b-0e9a-491b-8840-da277bda1aa4&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=471"
   },
   {
-    "id": 74,
-    "slug": "moto-x3m",
-    "title": "Moto X3M Bike Race",
-    "category": "action",
-    "thumbnail": "/assets/posters/moto-x3m.svg",
-    "game_url": "https://html5.gamedistribution.com/rvvASMiM/5b0abd4c0faa4f5eb190a9a16d5a1b4c/index.html",
-    "is_multiplayer": false,
-    "min_players": 1,
-    "max_players": 1,
-    "entry_fee_coins": 0,
-    "orientation": "landscape",
-    "rating": "4.9",
-    "plays_count": 48920,
-    "is_featured": true,
-    "is_premium": false
-  },
-  {
     "id": 75,
     "slug": "moto-x3m-pool-party",
     "title": "Moto X3M Pool Party",

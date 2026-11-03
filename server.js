@@ -1063,7 +1063,6 @@ const INTERNAL_GAME_SOURCES = {
   'neon-run': 'https://gamezipper.com/neon-dash/?utm_source=embed',
   'ludo-hero-ai': 'https://cdn.htmlgames.com/Ludo/index.html?npa=1',
   'cars-arena': 'https://games.cdn.famobi.com/html5games/c/cars-arena/v010/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=bfca421b-0e9a-491b-8840-da277bda1aa4&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=471',
-  'moto-x3m': 'https://html5.gamedistribution.com/rvvASMiM/5b0abd4c0faa4f5eb190a9a16d5a1b4c/index.html',
   'moto-x3m-pool-party': 'https://html5.gamedistribution.com/rvvASMiM/f804d079d19f44d3b951ead4588e974a/index.html',
   'penalty-shooters-2': 'https://games.cdn.famobi.com/html5games/p/penalty-shooters-2/v350/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8e8bdb8b-f420-48ed-ad68-dd5721a807c8&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
   'cut-the-rope-experiments': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-experiments/v030/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=e73ceee2-0c50-4254-b0b8-656d7a69aca4&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
@@ -1080,7 +1079,6 @@ const INTERNAL_GAME_SOURCES = {
 
 const RESOLVED_CDN_SOURCES = {
   'stack-smash-3d': 'https://html5.gamedistribution.com/rvvASMiM/a81fd206711b48489fddfa7fd4aab621/',
-  'moto-x3m': 'https://html5.gamedistribution.com/rvvASMiM/5b0abd4c0faa4f5eb190a9a16d5a1b4c/',
   'moto-x3m-pool-party': 'https://html5.gamedistribution.com/rvvASMiM/f804d079d19f44d3b951ead4588e974a/',
   'cars-arena': 'https://games.cdn.famobi.com/html5games/c/cars-arena/v010/',
   'penalty-shooters-2': 'https://games.cdn.famobi.com/html5games/p/penalty-shooters-2/v350/',

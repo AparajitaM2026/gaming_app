@@ -396,7 +396,7 @@ function populateCarouselZones(games) {
 
   // 1. Curate Prime Zone Hits (Hand-picked top 15 flagship & trending hits)
   const primeKeywords = [
-    'moto-x3m', 'penalty-shooters', 'cars-arena', 'drive-fury', 
+    'penalty-shooters', 'cars-arena', 'drive-fury', 
     'fruit-slash', 'watermelon-merge', 'basketball-shoot', 'classic-snake', 
     '2048-galaxy', 'brick-breaker', 'cyberpunk-flappy', 'om-nom-run',
     'bubble-shooter', 't-rex-dino-runner'
@@ -885,8 +885,8 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
     playUrl = '/play/penalty-shooters-2';
   } else if (slug === 'moto-x3m-pool-party') {
     playUrl = '/play/moto-x3m-pool-party';
-  } else if (slug === 'moto-x3m' || slug === 'stunt-bike-mania') {
-    playUrl = '/play/moto-x3m';
+  } else if (slug === 'stunt-bike-mania') {
+    playUrl = '/play/stunt-bike-mania';
   } else if (slug === 'cut-the-rope-experiments' || slug === 'cut-the-rope-magic' || slug === 'om-nom-run' || slug === 'om-nom-bubbles' || slug === 'drift-cup-racing' || slug === 'table-tennis-world-tour' || slug === 'cannon-balls-3d' || slug === 'tower-crash-3d' || slug === 'tnt-bomb' || slug === 'archery-world-tour') {
     playUrl = `/play/${slug}`;
   } else if (playUrl && (playUrl.startsWith('/play/') || playUrl.startsWith('/games/'))) {
