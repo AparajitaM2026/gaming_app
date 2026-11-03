@@ -1391,6 +1391,22 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
         buffer = Buffer.from(text, 'utf8');
       }
     }
+    // Auto-patch Drift Cup Racing (Full interactive steering, WASD keys, Brake & Drift control, auto-skip stuck tutorial)
+    if (slug === 'drift-cup-racing' && assetPath.endsWith('all.js')) {
+      let text = buffer.toString('utf8');
+      text = text.replace(/firstRun\s*=\s*!0/g, 'firstRun=!1');
+      text = text.replace(
+        'this.steer=(rightSteer+leftSteer)/aCarData[curCar].steerRate',
+        `this.steer=((window.rightSteer||rightSteer)+(window.leftSteer||leftSteer))/aCarData[curCar].steerRate;
+        if(window.isBraking){this.maxSpeedMultiplier=0.45;this.groundFrictionMultiplier=0.55;this.driftInc+=delta*2}
+        else if(window.isBoosting){this.maxSpeedMultiplier=1.35}
+        else{this.maxSpeedMultiplier=1;this.groundFrictionMultiplier=1}`
+      );
+      const oldKeys = 'userInput.addKey("steerRight",butEventHandler,null,39),userInput.addKey("steerLeft",butEventHandler,null,37)';
+      const newKeys = 'userInput.addKey("steerRight",butEventHandler,null,39),userInput.addKey("steerLeft",butEventHandler,null,37),userInput.addKey("steerRight",butEventHandler,null,68),userInput.addKey("steerLeft",butEventHandler,null,65),userInput.addKey("brake",butEventHandler,null,83),userInput.addKey("brake",butEventHandler,null,40),userInput.addKey("brake",butEventHandler,null,32),userInput.addKey("boost",butEventHandler,null,87),userInput.addKey("boost",butEventHandler,null,38)';
+      text = text.replaceAll(oldKeys, newKeys);
+      buffer = Buffer.from(text, 'utf8');
+    }
     res.send(buffer);
   } catch (e) {
     res.status(404).send('Asset not found');
@@ -3990,6 +4006,238 @@ const handleGameFrame = async (req, res) => {
         html = html.replace('</html>', `${stuntMobileEnhancer}</html>`);
       } else {
         html += stuntMobileEnhancer;
+      }
+    }
+
+    // Drift Cup Racing: Inject high-performance steering HUD, touch buttons, and keyboard controls
+    if (req.internalSlug === 'drift-cup-racing' || (req.targetUrl && req.targetUrl.includes('drift-cup-racing'))) {
+      const driftCupEnhancer = `
+        <style>
+          #drift-touch-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 24px;
+            z-index: 999999;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-select: none;
+          }
+          .drift-btn {
+            pointer-events: auto;
+            width: 82px;
+            height: 82px;
+            border-radius: 50%;
+            background: rgba(10, 15, 30, 0.78);
+            border: 3px solid #00f0ff;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-weight: 900;
+            font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            box-shadow: 0 0 18px rgba(0, 240, 255, 0.4), inset 0 0 12px rgba(0, 240, 255, 0.2);
+            touch-action: none;
+            transition: transform 0.08s, background 0.08s, box-shadow 0.08s;
+            cursor: pointer;
+          }
+          .drift-btn:active, .drift-btn.active {
+            transform: scale(0.92);
+            background: rgba(0, 240, 255, 0.45);
+            box-shadow: 0 0 28px rgba(0, 240, 255, 0.9), inset 0 0 18px rgba(0, 240, 255, 0.6);
+            border-color: #ffffff;
+          }
+          .drift-btn-brake {
+            width: 70px;
+            height: 70px;
+            border-color: #ff3366;
+            box-shadow: 0 0 18px rgba(255, 51, 102, 0.4), inset 0 0 12px rgba(255, 51, 102, 0.2);
+            font-size: 11px;
+          }
+          .drift-btn-brake:active, .drift-btn-brake.active {
+            background: rgba(255, 51, 102, 0.45);
+            box-shadow: 0 0 28px rgba(255, 51, 102, 0.9), inset 0 0 18px rgba(255, 51, 102, 0.6);
+            border-color: #ffffff;
+          }
+          #drift-keyboard-helper {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(5, 10, 25, 0.88);
+            border: 1px solid rgba(0, 240, 255, 0.4);
+            border-radius: 20px;
+            padding: 6px 16px;
+            color: #00f0ff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            z-index: 999999;
+            pointer-events: none;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            white-space: nowrap;
+          }
+          @media (max-width: 640px) {
+            #drift-keyboard-helper {
+              display: none !important;
+            }
+          }
+        </style>
+
+        <div id="drift-keyboard-helper">
+          <span><b style="color:#fff">[A / ◀]</b> STEER LEFT</span>
+          <span style="opacity:0.4">|</span>
+          <span><b style="color:#ff3366">[S / SPACE]</b> BRAKE & DRIFT</span>
+          <span style="opacity:0.4">|</span>
+          <span><b style="color:#fff">[D / ▶]</b> STEER RIGHT</span>
+        </div>
+
+        <div id="drift-touch-controls">
+          <button id="drift-btn-left" class="drift-btn" aria-label="Steer Left">
+            <span style="font-size:22px;line-height:1">◀</span>
+            <span>LEFT</span>
+          </button>
+          
+          <button id="drift-btn-brake" class="drift-btn drift-btn-brake" aria-label="Brake and Drift">
+            <span style="font-size:16px;line-height:1">🛑</span>
+            <span>DRIFT</span>
+          </button>
+
+          <button id="drift-btn-right" class="drift-btn" aria-label="Steer Right">
+            <span style="font-size:22px;line-height:1">▶</span>
+            <span>RIGHT</span>
+          </button>
+        </div>
+
+        <script>
+          (function() {
+            function bindBtn(btnId, onDown, onUp) {
+              var btn = document.getElementById(btnId);
+              if (!btn) return;
+              var isPressed = false;
+              var down = function(e) {
+                if (e) { e.preventDefault(); e.stopPropagation(); }
+                if (!isPressed) {
+                  isPressed = true;
+                  btn.classList.add('active');
+                  onDown();
+                }
+              };
+              var up = function(e) {
+                if (e) { e.preventDefault(); e.stopPropagation(); }
+                if (isPressed) {
+                  isPressed = false;
+                  btn.classList.remove('active');
+                  onUp();
+                }
+              };
+              btn.addEventListener('touchstart', down, { passive: false });
+              btn.addEventListener('touchend', up, { passive: false });
+              btn.addEventListener('touchcancel', up, { passive: false });
+              btn.addEventListener('mousedown', down);
+              btn.addEventListener('mouseup', up);
+              btn.addEventListener('mouseleave', up);
+            }
+
+            // Left steering
+            bindBtn('drift-btn-left', function() {
+              window.leftSteer = 1;
+              window.rightSteer = 0;
+            }, function() {
+              window.leftSteer = 0;
+            });
+
+            // Right steering
+            bindBtn('drift-btn-right', function() {
+              window.rightSteer = -1;
+              window.leftSteer = 0;
+            }, function() {
+              window.rightSteer = 0;
+            });
+
+            // Handbrake / Drift
+            bindBtn('drift-btn-brake', function() {
+              window.isBraking = true;
+            }, function() {
+              window.isBraking = false;
+            });
+
+            // Global keyboard controller
+            window.addEventListener('keydown', function(e) {
+              if (e.keyCode === 65 || e.keyCode === 37) { // A or Left
+                window.leftSteer = 1;
+                window.rightSteer = 0;
+                var b = document.getElementById('drift-btn-left');
+                if (b) b.classList.add('active');
+              } else if (e.keyCode === 68 || e.keyCode === 39) { // D or Right
+                window.rightSteer = -1;
+                window.leftSteer = 0;
+                var b = document.getElementById('drift-btn-right');
+                if (b) b.classList.add('active');
+              } else if (e.keyCode === 83 || e.keyCode === 40 || e.keyCode === 32) { // S, Down, Space
+                window.isBraking = true;
+                var b = document.getElementById('drift-btn-brake');
+                if (b) b.classList.add('active');
+              } else if (e.keyCode === 87 || e.keyCode === 38) { // W, Up
+                window.isBoosting = true;
+              }
+            });
+
+            window.addEventListener('keyup', function(e) {
+              if (e.keyCode === 65 || e.keyCode === 37) {
+                window.leftSteer = 0;
+                var b = document.getElementById('drift-btn-left');
+                if (b) b.classList.remove('active');
+              } else if (e.keyCode === 68 || e.keyCode === 39) {
+                window.rightSteer = 0;
+                var b = document.getElementById('drift-btn-right');
+                if (b) b.classList.remove('active');
+              } else if (e.keyCode === 83 || e.keyCode === 40 || e.keyCode === 32) {
+                window.isBraking = false;
+                var b = document.getElementById('drift-btn-brake');
+                if (b) b.classList.remove('active');
+              } else if (e.keyCode === 87 || e.keyCode === 38) {
+                window.isBoosting = false;
+              }
+            });
+
+            // Show HUD during race and hide during menus
+            function updateHud() {
+              var tc = document.getElementById('drift-touch-controls');
+              var kh = document.getElementById('drift-keyboard-helper');
+              var isRacing = (window.gameState === 'game');
+              if (tc) tc.style.display = isRacing ? 'flex' : 'none';
+              if (kh) {
+                if (window.innerWidth > 640) {
+                  kh.style.display = isRacing ? 'flex' : 'none';
+                } else {
+                  kh.style.display = 'none';
+                }
+              }
+            }
+            updateHud();
+            setInterval(updateHud, 100);
+          })();
+        </script>
+      `;
+      if (html.includes('</body>')) {
+        html = html.replace('</body>', `${driftCupEnhancer}</body>`);
+      } else if (html.includes('</html>')) {
+        html = html.replace('</html>', `${driftCupEnhancer}</html>`);
+      } else {
+        html += driftCupEnhancer;
       }
     }
 
