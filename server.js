@@ -1397,10 +1397,7 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
       text = text.replace(/firstRun\s*=\s*!0/g, 'firstRun=!1');
       text = text.replace(
         'this.steer=(rightSteer+leftSteer)/aCarData[curCar].steerRate',
-        `this.steer=((window.rightSteer||rightSteer)+(window.leftSteer||leftSteer))/aCarData[curCar].steerRate;
-        if(window.isBraking){this.maxSpeedMultiplier=0.45;this.groundFrictionMultiplier=0.55;this.driftInc+=delta*2}
-        else if(window.isBoosting){this.maxSpeedMultiplier=1.35}
-        else{this.maxSpeedMultiplier=1;this.groundFrictionMultiplier=1}`
+        'this.steer=((window.rightSteer||rightSteer)+(window.leftSteer||leftSteer))/aCarData[curCar].steerRate,window.userCar=this,window.isBraking?(this.maxSpeedMultiplier=0.45,this.groundFrictionMultiplier=0.55,this.driftInc+=delta*2):window.isBoosting?(this.maxSpeedMultiplier=1.35,this.groundFrictionMultiplier=1):(this.maxSpeedMultiplier=1,this.groundFrictionMultiplier=1)'
       );
       const oldKeys = 'userInput.addKey("steerRight",butEventHandler,null,39),userInput.addKey("steerLeft",butEventHandler,null,37)';
       const newKeys = 'userInput.addKey("steerRight",butEventHandler,null,39),userInput.addKey("steerLeft",butEventHandler,null,37),userInput.addKey("steerRight",butEventHandler,null,68),userInput.addKey("steerLeft",butEventHandler,null,65),userInput.addKey("brake",butEventHandler,null,83),userInput.addKey("brake",butEventHandler,null,40),userInput.addKey("brake",butEventHandler,null,32),userInput.addKey("boost",butEventHandler,null,87),userInput.addKey("boost",butEventHandler,null,38)';
@@ -4019,7 +4016,7 @@ const handleGameFrame = async (req, res) => {
             left: 0;
             right: 0;
             height: 120px;
-            display: none;
+            display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 10px 24px;
@@ -4083,7 +4080,7 @@ const handleGameFrame = async (req, res) => {
             letter-spacing: 0.5px;
             z-index: 999999;
             pointer-events: none;
-            display: none;
+            display: flex;
             align-items: center;
             gap: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
@@ -4212,23 +4209,6 @@ const handleGameFrame = async (req, res) => {
                 window.isBoosting = false;
               }
             });
-
-            // Show HUD during race and hide during menus
-            function updateHud() {
-              var tc = document.getElementById('drift-touch-controls');
-              var kh = document.getElementById('drift-keyboard-helper');
-              var isRacing = (window.gameState === 'game');
-              if (tc) tc.style.display = isRacing ? 'flex' : 'none';
-              if (kh) {
-                if (window.innerWidth > 640) {
-                  kh.style.display = isRacing ? 'flex' : 'none';
-                } else {
-                  kh.style.display = 'none';
-                }
-              }
-            }
-            updateHud();
-            setInterval(updateHud, 100);
           })();
         </script>
       `;
