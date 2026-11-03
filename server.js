@@ -1194,8 +1194,24 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
       return res.status(404).send('Asset not found');
     }
 
-    if (cType) res.setHeader('Content-Type', cType);
+    // Proper MIME types for WebAssembly & Unity WebGL assets
+    if (assetPath.endsWith('.wasm') || assetPath.endsWith('.wasm.unityweb')) {
+      res.setHeader('Content-Type', 'application/wasm');
+    } else if (assetPath.endsWith('.framework.js.unityweb') || assetPath.endsWith('.loader.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    } else if (assetPath.endsWith('.data.unityweb')) {
+      res.setHeader('Content-Type', 'application/octet-stream');
+    } else if (assetPath.endsWith('.json')) {
+      res.setHeader('Content-Type', 'application/json');
+    } else if (cType) {
+      res.setHeader('Content-Type', cType);
+    }
     res.setHeader('Cache-Control', 'public, max-age=3600');
+
+    // Handle missing Localization.json for Cars Arena
+    if (assetPath.endsWith('Localization.json') && (!resp.ok || cType.includes('text/html'))) {
+      return res.status(200).send('{}');
+    }
 
     let buffer = Buffer.from(await resp.arrayBuffer());
     // Auto-patch Construct 3 main.js to pass valid absolute baseUrl to RuntimeInterface
@@ -1283,16 +1299,33 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
     if (isMotoGame && assetPath.endsWith('.js')) {
       let text = buffer.toString('utf8');
       // Neutralize external app store badges & version text from scene graph
+      text = text.replace(/this\.google_btn\s*=\s*new\s+[a-zA-Z0-9_.]+\([^)]*\)/g, 'this.google_btn=null');
+      text = text.replace(/this\.apple_btn\s*=\s*new\s+[a-zA-Z0-9_.]+\([^)]*\)/g, 'this.apple_btn=null');
+      text = text.replace(/this\.textVersion\s*=\s*new\s+[a-zA-Z0-9_.]+\([^)]*\)/g, 'this.textVersion=null');
       text = text.replace(/this\.background\.addChild\(this\.google_btn\)/g, 'void 0');
       text = text.replace(/this\.background\.addChild\(this\.apple_btn\)/g, 'void 0');
       text = text.replace(/this\.background3\.addChild\(this\.textVersion\)/g, 'void 0');
 
       if (text.includes('Phaser.BOTTOM_CENTER') && text.includes('this.background.alignIn')) {
         const patchBlock = `(function(menu) {
-              var isPortrait = menu.game.height > menu.game.width;
+              // Reliably detect mobile portrait orientation across devices
+              var isPortrait = (window.innerHeight > window.innerWidth) || (menu.game.height > menu.game.width) || (window.innerWidth < 650);
+
+              // Completely eliminate all third-party store badges, ads & version markers in both modes
+              [menu.google_btn, menu.apple_btn, menu.moregames, menu.textVersion, menu.brand_logo].forEach(function(item) {
+                if (item) {
+                  try { item.visible = false; } catch(e) {}
+                  try { item.x = -9999; item.y = -9999; } catch(e) {}
+                  try { if (item.destroy) item.destroy(); } catch(e) {}
+                  try { if (menu.background && menu.background.removeChild) menu.background.removeChild(item); } catch(e) {}
+                  try { if (menu.background3 && menu.background3.removeChild) menu.background3.removeChild(item); } catch(e) {}
+                  try { if (menu.world && menu.world.removeChild) menu.world.removeChild(item); } catch(e) {}
+                }
+              });
+
               if (isPortrait) {
                 // Seamlessly cover entire canvas with full background (no black split / bars)
-                var bgScale = Math.max(menu.game.width / 720, menu.game.height / 512) * 1.05;
+                var bgScale = Math.max(menu.game.width / 720, menu.game.height / 480) * 1.05;
                 menu.background.scale.set(bgScale);
                 menu.background.alignIn(menu.world.bounds, Phaser.CENTER);
 
@@ -1305,16 +1338,16 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
                 if (menu._armatureDisplay) {
                   var screenCenterInBgX = (menu.game.width / 2 - menu.background.x) / bgScale;
                   menu._armatureDisplay.x = screenCenterInBgX;
-                  menu._armatureDisplay.y = 330;
+                  menu._armatureDisplay.y = 300;
                 }
 
                 // Perfectly centered and scaled logo & play button
-                var logoScale = Math.min(1.0, menu.game.width / 400);
+                var logoScale = Math.min(1.0, menu.game.width / 360);
                 menu.logo.scale.set(logoScale);
                 menu.logo.x = menu.game.width / 2;
-                menu.logo.y = Math.max(70, Math.min(130, menu.game.height * 0.15));
+                menu.logo.y = Math.max(70, Math.min(130, menu.game.height * 0.16));
 
-                var playScale = Math.min(1.1, menu.game.width / 380);
+                var playScale = Math.min(1.1, menu.game.width / 340);
                 menu.playBtn.scale.set(playScale);
                 menu.playBtn.x = (menu.game.width - 260 * playScale) / 2;
                 menu.playBtn.y = menu.logo.y + 115 * logoScale;
@@ -1324,16 +1357,6 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
                 menu.garageBtn.y = 35;
                 menu.musicBtn.x = menu.game.width - 40;
                 menu.musicBtn.y = 35;
-
-                // Completely eliminate all third-party store badges, ads & version markers
-                [menu.google_btn, menu.apple_btn, menu.moregames, menu.textVersion, menu.brand_logo].forEach(function(item) {
-                  if (item) {
-                    try { item.visible = false; } catch(e) {}
-                    try { item.x = -9999; item.y = -9999; } catch(e) {}
-                    try { if (item.destroy) item.destroy(); } catch(e) {}
-                    try { if (menu.background && menu.background.removeChild) menu.background.removeChild(item); } catch(e) {}
-                  }
-                });
               } else {
                 menu.garageBtn.x = menu.game.width - 120;
                 menu.musicBtn.x = menu.game.width - 35;
@@ -1348,10 +1371,6 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
                 }
                 menu._armatureDisplay.x = -menu.background.x - 50;
                 menu.game.width > 820 ? menu.blackRightBG.x = 900 : menu.game.width - 110 > 450 ? menu.blackRightBG.x = menu.game.width - 110 : menu.blackRightBG.x = menu.game.width;
-                if (menu.google_btn && menu.apple_btn && menu.game.width > r.Constants.WIDTH) {
-                  menu.google_btn.x = 110 - (menu.game.width - r.Constants.WIDTH) / 2;
-                  menu.apple_btn.x = menu.google_btn.x;
-                }
                 menu.playBtn.x = menu.game.width - 250;
                 menu.playBtn.y = 200;
                 menu.playBtn.scale.set(e);
@@ -1964,6 +1983,24 @@ const handleGameFrame = async (req, res) => {
             } catch(e) {}
           }, 50);
           setTimeout(function() { clearInterval(checkC2OrientInterval); }, 25000);
+
+          // Auto-remove Cars Arena / Unity overlay when loading finishes
+          var ovlInterval = setInterval(function() {
+            var ovl = document.getElementById('x_ovl');
+            var unityLoading = document.getElementById('unity-loading-container');
+            if (unityLoading && unityLoading.classList.contains('finished')) {
+              if (typeof window.onGameStarted === 'function') {
+                try { window.onGameStarted(); } catch(e) {}
+              }
+              if (ovl) ovl.remove();
+              clearInterval(ovlInterval);
+            }
+          }, 100);
+          setTimeout(function() {
+            var ovl = document.getElementById('x_ovl');
+            if (ovl) ovl.remove();
+            clearInterval(ovlInterval);
+          }, 15000);
 
           // Real-time MutationObserver to eradicate ad banners from DOM
           try {
