@@ -3808,17 +3808,14 @@ const handleGameFrame = async (req, res) => {
             position: fixed !important;
             inset: 0 !important;
             background: #000 !important;
+            overflow: hidden !important;
           }
           #c2canvas {
-            width: 100% !important;
-            height: 100% !important;
-            max-width: 100vw !important;
-            max-height: 100vh !important;
-            aspect-ratio: 16 / 9 !important;
-            object-fit: contain !important;
             display: block !important;
             margin: auto !important;
             touch-action: none !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
           }
           /* Virtual Driving Pedals HUD */
           #pondTouchHud {
@@ -3939,6 +3936,7 @@ const handleGameFrame = async (req, res) => {
               function onStart(e) {
                 if (e && e.cancelable) e.preventDefault();
                 if (e && e.stopPropagation) e.stopPropagation();
+                dismissContinue();
                 if (!isDown) {
                   isDown = true;
                   el.classList.add('active');
@@ -3977,6 +3975,67 @@ const handleGameFrame = async (req, res) => {
               { keyCode: 37, code: 'ArrowLeft', key: 'ArrowLeft' },
               { keyCode: 65, code: 'KeyA', key: 'a' }
             ]);
+
+            // Auto-dismiss & click bridge for "HOW TO PLAY" Continue button
+            function dismissContinue() {
+              var c = document.getElementById('c2canvas');
+              if (!c) return;
+              var rect = c.getBoundingClientRect();
+              var clickX = rect.left + rect.width * 0.50;
+              var clickY = rect.top + rect.height * 0.69;
+              
+              ['mousedown', 'mouseup', 'click'].forEach(function(type) {
+                var evt = new MouseEvent(type, {
+                  clientX: clickX,
+                  clientY: clickY,
+                  bubbles: true,
+                  cancelable: true
+                });
+                c.dispatchEvent(evt);
+              });
+
+              try {
+                if (window.TouchEvent && window.Touch) {
+                  var touch = new Touch({
+                    identifier: Date.now(),
+                    target: c,
+                    clientX: clickX,
+                    clientY: clickY,
+                    pageX: clickX,
+                    pageY: clickY
+                  });
+                  ['touchstart', 'touchend'].forEach(function(type) {
+                    var tEvt = new TouchEvent(type, {
+                      changedTouches: [touch],
+                      targetTouches: [touch],
+                      touches: [touch],
+                      bubbles: true,
+                      cancelable: true
+                    });
+                    c.dispatchEvent(tEvt);
+                  });
+                }
+              } catch(e) {}
+            }
+
+            // Automatically dismiss tutorial board after 1.5s
+            setTimeout(dismissContinue, 1200);
+            setTimeout(dismissContinue, 2500);
+
+            // Also dismiss on ANY click anywhere on screen
+            window.addEventListener('click', function() {
+              setTimeout(dismissContinue, 10);
+            });
+            window.addEventListener('touchstart', function() {
+              setTimeout(dismissContinue, 10);
+            }, { passive: true });
+
+            // Also dismiss if player presses Space, Enter, D, or Right Arrow
+            window.addEventListener('keydown', function(e) {
+              if (['Space', 'Enter', 'KeyD', 'ArrowRight', 'KeyA', 'ArrowLeft'].includes(e.code) || [' ', 'Enter', 'd', 'D', 'ArrowRight'].includes(e.key)) {
+                dismissContinue();
+              }
+            });
 
             // Ensure audio resumes on touch
             ['touchstart', 'mousedown'].forEach(function(evtName) {
