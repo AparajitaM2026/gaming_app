@@ -883,8 +883,7 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
     playUrl = '/play/cars-arena';
   } else if (slug === 'penalty-shooters-2') {
     playUrl = '/play/penalty-shooters-2';
-  } else if (slug === 'moto-x3m-pool-party') {
-    playUrl = '/play/moto-x3m-pool-party';
+
   } else if (slug === 'stunt-bike-mania') {
     playUrl = '/play/stunt-bike-mania';
   } else if (slug === 'cut-the-rope-experiments' || slug === 'cut-the-rope-magic' || slug === 'om-nom-run' || slug === 'om-nom-bubbles' || slug === 'drift-cup-racing' || slug === 'table-tennis-world-tour' || slug === 'cannon-balls-3d' || slug === 'tower-crash-3d' || slug === 'tnt-bomb' || slug === 'archery-world-tour') {
@@ -1165,18 +1164,6 @@ const GAME_HOW_TO_PLAY = {
 4. Reach the finish checkered flag alive to unlock 3 stars!`,
     tips: `• Backflips reduce your stage time by 0.5s each!
 • Release gas right before big jumps to prevent overshooting into deadly spinning saws.`
-  },
-  'moto-x3m-pool-party': {
-    title: 'Moto X3M Pool Party',
-    category: 'Action & Stunt',
-    objective: 'Ride across giant waterslides, splash pools, underwater tubes, and sun-soaked hazard courses!',
-    controls: '⌨️ [↑] / [W] Gas | [↓] / [S] Brake | [←][→] Lean & Flip | 👆 Touch controls on mobile.',
-    rules: `1. Speed through waterpark attractions and hydro-dynamited tracks.
-2. Balance your dirtbike across slippery floating pipes and pool rings.
-3. Flip in the air to gain bonus time deductions.
-4. Hit every checkpoint to save your progress!`,
-    tips: `• Hydroplaning gives you extra speed bursts across flat water pools.
-• Land rear-wheel first when landing steep downhill slopes.`
   },
   'penalty-shooters-2': {
     title: 'Penalty Shooters 2',

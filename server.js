@@ -1063,7 +1063,6 @@ const INTERNAL_GAME_SOURCES = {
   'neon-run': 'https://gamezipper.com/neon-dash/?utm_source=embed',
   'ludo-hero-ai': 'https://cdn.htmlgames.com/Ludo/index.html?npa=1',
   'cars-arena': 'https://games.cdn.famobi.com/html5games/c/cars-arena/v010/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=bfca421b-0e9a-491b-8840-da277bda1aa4&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=471',
-  'moto-x3m-pool-party': 'https://html5.gamedistribution.com/rvvASMiM/f804d079d19f44d3b951ead4588e974a/index.html',
   'penalty-shooters-2': 'https://games.cdn.famobi.com/html5games/p/penalty-shooters-2/v350/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8e8bdb8b-f420-48ed-ad68-dd5721a807c8&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
   'cut-the-rope-experiments': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-experiments/v030/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=e73ceee2-0c50-4254-b0b8-656d7a69aca4&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
   'cut-the-rope-magic': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-magic/v040/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=35c37758-52d5-4802-86a9-d6110c41198b&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
@@ -1079,7 +1078,6 @@ const INTERNAL_GAME_SOURCES = {
 
 const RESOLVED_CDN_SOURCES = {
   'stack-smash-3d': 'https://html5.gamedistribution.com/rvvASMiM/a81fd206711b48489fddfa7fd4aab621/',
-  'moto-x3m-pool-party': 'https://html5.gamedistribution.com/rvvASMiM/f804d079d19f44d3b951ead4588e974a/',
   'cars-arena': 'https://games.cdn.famobi.com/html5games/c/cars-arena/v010/',
   'penalty-shooters-2': 'https://games.cdn.famobi.com/html5games/p/penalty-shooters-2/v350/',
   'cut-the-rope-experiments': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-experiments/v030/',
@@ -1256,6 +1254,33 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
             console.warn('[EMSCRIPTEN_RUN_SCRIPT ERR]', e);
           }
         }`);
+        buffer = Buffer.from(text, 'utf8');
+      }
+    }
+    // Auto-patch Garden Tile Match (Fruit Ninja) blade slicing & coordinate projection
+    if (slug === 'garden-tile-match') {
+      if (assetPath.endsWith('vendors.bundle.js')) {
+        let text = buffer.toString('utf8');
+        text = text.replace(
+          'const x = Math.round((vector3.x + 1) * (canvas.width / 2));',
+          'const x = Math.round((vector3.x + 1) * 640);'
+        );
+        text = text.replace(
+          'const y = Math.round((-vector3.y + 1) * (canvas.height / 2));',
+          'const y = Math.round((-vector3.y + 1) * 384);'
+        );
+        buffer = Buffer.from(text, 'utf8');
+      } else if (assetPath.endsWith('main.bundle.js')) {
+        let text = buffer.toString('utf8');
+        text = text.replace(/width:\s*100,\s*height:\s*100/g, 'width: 140, height: 140');
+        text = text.replace(
+          'if (clickedHomeClassic || clickedHomeSetting || clickedSettingBack || clickedResultQuit || clickedResultRetry) {',
+          'if (currentScreen === "HomeScreen" && (clickedHomeClassic || clickedHomeSetting || clickedSettingBack || clickedResultQuit || clickedResultRetry)) {'
+        );
+        text = text.replace(
+          'if (this.startMovingBlade && !this.hitBomb && !this.holdCredit) {',
+          'if ((this.startMovingBlade || pointer.isDown) && !this.hitBomb && !this.holdCredit) {'
+        );
         buffer = Buffer.from(text, 'utf8');
       }
     }
@@ -4005,6 +4030,42 @@ const handleGameFrame = async (req, res) => {
         html = html.replace('</html>', `${stuntMobileEnhancer}</html>`);
       } else {
         html += stuntMobileEnhancer;
+      }
+    }
+
+    // Garden Tile Match (Fruit Ninja) full-screen responsive canvas & centering
+    if (req.internalSlug === 'garden-tile-match' || (req.targetUrl && req.targetUrl.includes('garden-tile-match'))) {
+      const gardenEnhancer = `
+        <style>
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            overflow: hidden !important;
+            background: #000 !important;
+          }
+          #content {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          #phaser-canvas, #enable3d-three-canvas, #enable3d-phaser-canvas {
+            display: block !important;
+            margin: auto !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+          }
+        </style>
+      `;
+      if (html.includes('</body>')) {
+        html = html.replace('</body>', `${gardenEnhancer}</body>`);
+      } else {
+        html += gardenEnhancer;
       }
     }
 
