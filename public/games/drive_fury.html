@@ -660,7 +660,7 @@ function extendEndlessTerrain(g) {
 // ============================================================
 //  PHYSICS UPDATE
 // ============================================================
-function updatePhysics(g, dt, accel, brake) {
+function updatePhysics(g, dt, accel, brake, jump) {
   const v = g.vehicle;
   const pts = g.level.points;
   const def = v.def;
@@ -668,15 +668,7 @@ function updatePhysics(g, dt, accel, brake) {
   let cosA = 1, sinA = 0;
   let grounded = false;
 
-  /* FIX(verify 2026-08-24): integrate contact in substeps. At full frame dt the wheel
-   * springs (K=4200) sit outside the explicit-Euler stability region — the angular mode
-   * gains ~210 rad/s per pixel of penetration asymmetry against only ~162 of damping, so
-   * the car bounced off flat ground and backflipped into a crash/restart loop at x≈150
-   * (level 1 was unbeatable). 4 substeps keep the same springs/damping/handling but put
-   * the integrator back in its stable region. Contact force is also clamped to >= 0 (a
-   * contact spring can push but never pull — the raw damping term sucked the car into
-   * the ground on fast landings), and the rear wheel now uses rPen (it mistakenly read
-   * fPen, adding wrong-direction torque whenever only the rear wheel touched). */
+  /* Substep integration for spring & contact stability */
   const SUB = 4, sdt = dt / SUB;
   for (let sub = 0; sub < SUB; sub++) {
     // Gravity
@@ -686,14 +678,14 @@ function updatePhysics(g, dt, accel, brake) {
     v.vx *= (1 - AIR_DRAG * sdt);
     v.av *= (1 - ANGULAR_DAMP * sdt * (1 + def.stability));
 
-    // Wheel positions
+    // Wheel positions (including tire radius to terrain)
     cosA = Math.cos(v.angle); sinA = Math.sin(v.angle);
     const perpX = -sinA, perpY = cosA;
 
     const fwX = v.x + cosA * hw + perpX * def.cogH;
-    const fwY = v.y + sinA * hw + perpY * def.cogH;
+    const fwY = v.y + sinA * hw + perpY * (def.cogH + def.wheelR);
     const rwX = v.x - cosA * hw + perpX * def.cogH;
-    const rwY = v.y - sinA * hw + perpY * def.cogH;
+    const rwY = v.y - sinA * hw + perpY * (def.cogH + def.wheelR);
 
     let contact = false;
     const fTY = getTerrainY(pts, fwX);
@@ -714,19 +706,20 @@ function updatePhysics(g, dt, accel, brake) {
       v.av += f * hw * sdt / (v.inertia * def.mass);
     }
 
-    // Drive force & Jump
-    if (contact) {
+    // Drive force & Jump: activates whenever wheels are on or near ground
+    const isDriven = contact || (fPen > -4) || (rPen > -4) || v.grounded;
+    if (isDriven) {
       const ta = getTerrainAngle(pts, v.x);
-      const dir = accel ? 1 : (brake ? -0.6 : 0);
+      const dir = accel ? 1 : (brake ? -0.7 : 0);
       if (dir !== 0) {
-        const force = dir * def.power * 1350 * def.grip;
+        const force = dir * def.power * 2200 * def.grip;
         v.vx += (Math.cos(ta) * force * sdt) / def.mass;
         v.vy += (Math.sin(ta) * force * sdt) / def.mass;
       }
       // Hydraulic Spring Jump
       if (jump && (!v.jumpCooldown || v.jumpCooldown <= 0)) {
-        v.vy = -620; // Vault high into the air!
-        v.vx += 120; // Forward leaping boost
+        v.vy = -680; // Vault high into the air!
+        v.vx += 140; // Forward leaping boost
         v.jumpCooldown = 0.35;
         try { playSound('checkpoint'); } catch(e) {}
       }
@@ -738,9 +731,9 @@ function updatePhysics(g, dt, accel, brake) {
     } else {
       // In-air aerial tilt control
       if (accel) {
-        v.av += 6.0 * sdt;
+        v.av += 6.5 * sdt;
       } else if (brake) {
-        v.av -= 6.0 * sdt;
+        v.av -= 6.5 * sdt;
       }
     }
 
@@ -752,15 +745,14 @@ function updatePhysics(g, dt, accel, brake) {
     v.wheelAngle += v.speed * sdt * 0.1;
     if (v.jumpCooldown > 0) v.jumpCooldown -= sdt;
 
-    /* FIX(verify 2026-08-17): hard ground constraint when grounded + angular clamps —
-     * standard casual-racer model; with substeps above these only catch rare extremes. */
+    // Constraints & rest ground cushion
     if (v.av > 5) v.av = 5; else if (v.av < -5) v.av = -5;
     if (v.vy > 600) v.vy = 600; else if (v.vy < -800) v.vy = -800;
     if (contact) {
-      const restY = getTerrainY(pts, v.x) - def.cogH - def.wheelR;
+      const restY = getTerrainY(pts, v.x) - def.cogH - def.wheelR + 1.5;
       if (v.y > restY) { v.y = restY; if (v.vy > 0) v.vy = 0; }
     }
-    grounded = grounded || contact;
+    grounded = grounded || contact || (fPen > -4) || (rPen > -4);
   }
 
 
@@ -950,28 +942,65 @@ let keys = {};
 let touchAccel = false, touchBrake = false, touchJump = false;
 let activeTouchId = null;
 
+function setKey(code, key, val) {
+  if (code) keys[code] = val;
+  if (key) {
+    keys[key] = val;
+    keys[key.toLowerCase()] = val;
+    keys[key.toUpperCase()] = val;
+  }
+}
+
 window.addEventListener('keydown', e => {
-  keys[e.code] = true;
+  setKey(e.code, e.key, true);
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','KeyW','KeyA','KeyS','KeyD'].includes(e.code)) e.preventDefault();
   resumeAudio();
 });
-window.addEventListener('keyup', e => { keys[e.code] = false; });
+window.addEventListener('keyup', e => {
+  setKey(e.code, e.key, false);
+});
+
+// Receive forwarded keyboard events from top-level parent window
+window.addEventListener('message', e => {
+  if (!e.data) return;
+  if (e.data.action === 'keydown') {
+    setKey(e.data.code, e.data.key, true);
+    resumeAudio();
+  } else if (e.data.action === 'keyup') {
+    setKey(e.data.code, e.data.key, false);
+  }
+});
 
 function getInput() {
-  const accel = keys['ArrowRight'] || keys['KeyD'] || touchAccel;
-  const brake = keys['ArrowLeft'] || keys['KeyA'] || touchBrake;
-  const jump = keys['Space'] || keys['ArrowUp'] || keys['KeyW'] || touchJump;
+  const accel = keys['ArrowRight'] || keys['KeyD'] || keys['d'] || keys['D'] || touchAccel;
+  const brake = keys['ArrowLeft'] || keys['KeyA'] || keys['a'] || keys['A'] || touchBrake;
+  const jump = keys['Space'] || keys['ArrowUp'] || keys['KeyW'] || keys['w'] || keys['W'] || touchJump;
   return { accel, brake, jump };
 }
 
+// Ensure iframe window has active keyboard focus
+window.focus();
+window.addEventListener('click', () => { window.focus(); });
+
+// Convert screen clientX/clientY to exact in-game canvas coordinates
+function getCanvasCoords(clientX, clientY) {
+  const rect = C.getBoundingClientRect();
+  return {
+    x: (clientX - rect.left) * (W / (rect.width || 1)),
+    y: (clientY - rect.top) * (H / (rect.height || 1))
+  };
+}
+
 // Mouse/Touch
-function handlePointerDown(x, y) {
+function handlePointerDown(rawX, rawY) {
+  window.focus();
   resumeAudio(); initAudio();
-  mouseX = x; mouseY = y;
+  const pt = getCanvasCoords(rawX, rawY);
+  mouseX = pt.x; mouseY = pt.y;
   if (gameState === 'playing' || gameState === 'endless') {
-    if (y < H * 0.45) {
+    if (pt.y < H * 0.40) {
       touchJump = true;
-    } else if (x < W * 0.5) {
+    } else if (pt.x < W * 0.45) {
       touchBrake = true;
     } else {
       touchAccel = true;
@@ -979,21 +1008,28 @@ function handlePointerDown(x, y) {
   }
 }
 function handlePointerUp() { touchAccel = false; touchBrake = false; touchJump = false; }
-function handlePointerMove(x, y) { mouseX = x; mouseY = y; }
+function handlePointerMove(rawX, rawY) {
+  const pt = getCanvasCoords(rawX, rawY);
+  mouseX = pt.x; mouseY = pt.y;
+}
 
-C.addEventListener('mousedown', e => { e.preventDefault(); handlePointerDown(e.clientX, e.clientY); });
-C.addEventListener('mousemove', e => handlePointerMove(e.clientX, e.clientY));
-C.addEventListener('mouseup', e => handlePointerUp());
+C.addEventListener('mousedown', e => {
+  window.focus();
+  handlePointerDown(e.clientX, e.clientY);
+});
+window.addEventListener('mousemove', e => handlePointerMove(e.clientX, e.clientY));
+window.addEventListener('mouseup', e => handlePointerUp());
+
 function evaluateAllTouches(e) {
   if (gameState !== 'playing' && gameState !== 'endless') return;
   touchAccel = false;
   touchBrake = false;
   touchJump = false;
   for (let i = 0; i < e.touches.length; i++) {
-    const t = e.touches[i];
-    if (t.clientY < H * 0.45) {
+    const pt = getCanvasCoords(e.touches[i].clientX, e.touches[i].clientY);
+    if (pt.y < H * 0.40) {
       touchJump = true;
-    } else if (t.clientX < W * 0.5) {
+    } else if (pt.x < W * 0.45) {
       touchBrake = true;
     } else {
       touchAccel = true;
@@ -1457,30 +1493,34 @@ function drawHUD(g) {
 }
 
 function drawMobileControls() {
-  if (!isMobile) return;
+  const inp = getInput();
+  const isJumping = inp.jump || touchJump;
+  const isBraking = inp.brake || touchBrake;
+  const isAcceling = inp.accel || touchAccel;
+
   // Top zone (Hydraulic Jump)
-  ctx.fillStyle = touchJump ? 'rgba(0,210,255,0.35)' : 'rgba(0,180,255,0.15)';
-  ctx.fillRect(W * 0.15, 10, W * 0.7, H * 0.32);
-  ctx.strokeStyle = touchJump ? '#00e5ff' : 'rgba(0,210,255,0.45)'; ctx.lineWidth = 2.5;
-  ctx.strokeRect(W * 0.15, 10, W * 0.7, H * 0.32);
-  ctx.fillStyle = touchJump ? '#ffffff' : 'rgba(0,240,255,0.9)'; ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center';
-  ctx.fillText('⬆ TAP TO JUMP ⬆', W * 0.5, H * 0.18);
+  ctx.fillStyle = isJumping ? 'rgba(0,210,255,0.4)' : 'rgba(0,180,255,0.12)';
+  ctx.fillRect(W * 0.2, 8, W * 0.6, H * 0.26);
+  ctx.strokeStyle = isJumping ? '#00e5ff' : 'rgba(0,210,255,0.35)'; ctx.lineWidth = 2;
+  ctx.strokeRect(W * 0.2, 8, W * 0.6, H * 0.26);
+  ctx.fillStyle = isJumping ? '#ffffff' : 'rgba(0,240,255,0.85)'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('⬆ JUMP / VAULT [SPACE / W] ⬆', W * 0.5, H * 0.16);
 
   // Left zone (brake)
-  ctx.fillStyle = touchBrake ? 'rgba(255,60,60,0.35)' : 'rgba(255,50,50,0.14)';
-  ctx.fillRect(10, H * 0.48, W * 0.47 - 10, H * 0.5 - 15);
-  ctx.strokeStyle = touchBrake ? '#ff4444' : 'rgba(255,80,80,0.4)'; ctx.lineWidth = 2;
-  ctx.strokeRect(10, H * 0.48, W * 0.47 - 10, H * 0.5 - 15);
-  ctx.fillStyle = touchBrake ? '#ffffff' : 'rgba(255,255,255,0.6)'; ctx.font = 'bold 22px sans-serif'; ctx.textAlign = 'center';
-  ctx.fillText('🛑 BRAKE / REVERSE', W * 0.24, H * 0.75);
+  ctx.fillStyle = isBraking ? 'rgba(255,60,60,0.4)' : 'rgba(255,50,50,0.12)';
+  ctx.fillRect(8, H * 0.55, W * 0.46, H * 0.42);
+  ctx.strokeStyle = isBraking ? '#ff4444' : 'rgba(255,80,80,0.35)'; ctx.lineWidth = 2;
+  ctx.strokeRect(8, H * 0.55, W * 0.46, H * 0.42);
+  ctx.fillStyle = isBraking ? '#ffffff' : 'rgba(255,255,255,0.7)'; ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('🛑 BRAKE / REVERSE [A / ←]', W * 0.23, H * 0.78);
 
   // Right zone (accel)
-  ctx.fillStyle = touchAccel ? 'rgba(50,255,80,0.35)' : 'rgba(50,220,50,0.14)';
-  ctx.fillRect(W * 0.53, H * 0.48, W * 0.47 - 10, H * 0.5 - 15);
-  ctx.strokeStyle = touchAccel ? '#00ff66' : 'rgba(50,255,100,0.4)'; ctx.lineWidth = 2;
-  ctx.strokeRect(W * 0.53, H * 0.48, W * 0.47 - 10, H * 0.5 - 15);
-  ctx.fillStyle = touchAccel ? '#ffffff' : 'rgba(255,255,255,0.6)'; ctx.font = 'bold 22px sans-serif'; ctx.textAlign = 'center';
-  ctx.fillText('⚡ GAS / ACCEL', W * 0.76, H * 0.75);
+  ctx.fillStyle = isAcceling ? 'rgba(50,255,80,0.4)' : 'rgba(50,220,50,0.12)';
+  ctx.fillRect(W * 0.53, H * 0.55, W * 0.46, H * 0.42);
+  ctx.strokeStyle = isAcceling ? '#00ff66' : 'rgba(50,255,100,0.35)'; ctx.lineWidth = 2;
+  ctx.strokeRect(W * 0.53, H * 0.55, W * 0.46, H * 0.42);
+  ctx.fillStyle = isAcceling ? '#ffffff' : 'rgba(255,255,255,0.7)'; ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('⚡ GAS / DRIVE [D / →]', W * 0.76, H * 0.78);
 }
 
 // ============================================================
