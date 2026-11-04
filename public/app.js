@@ -887,8 +887,6 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
   } else if (slug === 'penalty-shooters-2') {
     playUrl = '/play/penalty-shooters-2';
 
-  } else if (slug === 'stunt-bike-mania') {
-    playUrl = '/play/stunt-bike-mania';
   } else if (slug === 'om-nom-run' || slug === 'om-nom-bubbles' || slug === 'drift-cup-racing' || slug === 'table-tennis-world-tour' || slug === 'cannon-balls-3d' || slug === 'tower-crash-3d' || slug === 'tnt-bomb' || slug === 'archery-world-tour') {
     playUrl = `/play/${slug}`;
   } else if (playUrl && (playUrl.startsWith('/play/') || playUrl.startsWith('/games/'))) {

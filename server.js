@@ -1046,7 +1046,6 @@ const INTERNAL_GAME_SOURCES = {
   'garden-tile-match': 'https://games.ottsol.cloud/garden-tile-match/',
   'bubble-column-match': 'https://games.ottsol.cloud/bubble-column-match/',
   'tnt-demolition': 'https://games.ottsol.cloud/tnt-demolition/',
-  'stunt-bike-mania': 'https://games.ottsol.cloud/stunt-bike-mania/',
   'precision-darts-3d': 'https://games.ottsol.cloud/precision-darts-3d/',
   'rail-surfer-express': 'https://games.ottsol.cloud/rail-surfer-express/',
   'gummy-rush': 'https://games.ottsol.cloud/gummy-rush/',
@@ -1317,103 +1316,6 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
             return ASM_CONSTS[code].apply(null,args);
           }`
         );
-        buffer = Buffer.from(text, 'utf8');
-      }
-    }
-    // Auto-patch Moto X3M series (Stunt Bike Mania, Moto X3M, Moto X3M Pool Party) start menu for mobile portrait mode
-    const isMotoGame = slug === 'stunt-bike-mania' || slug === 'moto-x3m' || slug === 'moto-x3m-pool-party' || slug.includes('moto-x3m');
-    if (isMotoGame && assetPath.endsWith('.js')) {
-      let text = buffer.toString('utf8');
-      // Neutralize external app store badges & version text from scene graph
-      text = text.replace(/this\.google_btn\s*=\s*new\s+[a-zA-Z0-9_.]+\([^)]*\)/g, 'this.google_btn=null');
-      text = text.replace(/this\.apple_btn\s*=\s*new\s+[a-zA-Z0-9_.]+\([^)]*\)/g, 'this.apple_btn=null');
-      text = text.replace(/this\.textVersion\s*=\s*new\s+[a-zA-Z0-9_.]+\([^)]*\)/g, 'this.textVersion=null');
-      text = text.replace(/this\.background\.addChild\(this\.google_btn\)/g, 'void 0');
-      text = text.replace(/this\.background\.addChild\(this\.apple_btn\)/g, 'void 0');
-      text = text.replace(/this\.background3\.addChild\(this\.textVersion\)/g, 'void 0');
-
-      if (text.includes('Phaser.BOTTOM_CENTER') && text.includes('this.background.alignIn')) {
-        const patchBlock = `(function(menu) {
-              // Reliably detect mobile portrait orientation across devices
-              var isPortrait = (window.innerHeight > window.innerWidth) || (menu.game.height > menu.game.width) || (window.innerWidth < 650);
-
-              // Completely eliminate all third-party store badges, ads & version markers in both modes
-              [menu.google_btn, menu.apple_btn, menu.moregames, menu.textVersion, menu.brand_logo].forEach(function(item) {
-                if (item) {
-                  try { item.visible = false; } catch(e) {}
-                  try { item.x = -9999; item.y = -9999; } catch(e) {}
-                  try { if (item.destroy) item.destroy(); } catch(e) {}
-                  try { if (menu.background && menu.background.removeChild) menu.background.removeChild(item); } catch(e) {}
-                  try { if (menu.background3 && menu.background3.removeChild) menu.background3.removeChild(item); } catch(e) {}
-                  try { if (menu.world && menu.world.removeChild) menu.world.removeChild(item); } catch(e) {}
-                }
-              });
-
-              if (isPortrait) {
-                // Seamlessly cover entire canvas with full background (no black split / bars)
-                var bgScale = Math.max(menu.game.width / 720, menu.game.height / 480) * 1.05;
-                menu.background.scale.set(bgScale);
-                menu.background.alignIn(menu.world.bounds, Phaser.CENTER);
-
-                // Hide ugly landscape-only black top tire overlay & side bars
-                if (menu.bgTop) { menu.bgTop.visible = false; menu.bgTop.x = -9999; }
-                if (menu.blackRightBG) { menu.blackRightBG.visible = false; menu.blackRightBG.x = -9999; }
-                if (menu.background2) { menu.background2.visible = false; menu.background2.x = -9999; }
-
-                // Center biker armature stunt in the sunny sky
-                if (menu._armatureDisplay) {
-                  var screenCenterInBgX = (menu.game.width / 2 - menu.background.x) / bgScale;
-                  menu._armatureDisplay.x = screenCenterInBgX;
-                  menu._armatureDisplay.y = 300;
-                }
-
-                // Perfectly centered and scaled logo & play button
-                var logoScale = Math.min(1.0, menu.game.width / 360);
-                menu.logo.scale.set(logoScale);
-                menu.logo.x = menu.game.width / 2;
-                menu.logo.y = Math.max(70, Math.min(130, menu.game.height * 0.16));
-
-                var playScale = Math.min(1.1, menu.game.width / 340);
-                menu.playBtn.scale.set(playScale);
-                menu.playBtn.x = (menu.game.width - 260 * playScale) / 2;
-                menu.playBtn.y = menu.logo.y + 115 * logoScale;
-
-                // Corner icons
-                menu.garageBtn.x = menu.game.width - 110;
-                menu.garageBtn.y = 35;
-                menu.musicBtn.x = menu.game.width - 40;
-                menu.musicBtn.y = 35;
-              } else {
-                menu.garageBtn.x = menu.game.width - 120;
-                menu.musicBtn.x = menu.game.width - 35;
-                menu.bgTop.x = menu.game.width - 250;
-                menu.background.scale.set(e);
-                menu.background.alignIn(menu.world.bounds, Phaser.BOTTOM_CENTER);
-                menu.logo.scale.set(e);
-                if (menu.background2) {
-                  menu.background2.scale.set(2.02 * Phaser.Math.max(menu.game.width / r.Constants.WIDTH, menu.game.height / r.Constants.HEIGHT));
-                  menu.background2.alignIn(menu.world.bounds, Phaser.CENTER);
-                  menu.background2.visible = false;
-                }
-                menu._armatureDisplay.x = -menu.background.x - 50;
-                menu.game.width > 820 ? menu.blackRightBG.x = 900 : menu.game.width - 110 > 450 ? menu.blackRightBG.x = menu.game.width - 110 : menu.blackRightBG.x = menu.game.width;
-                menu.playBtn.x = menu.game.width - 250;
-                menu.playBtn.y = 200;
-                menu.playBtn.scale.set(e);
-                if (menu.moregames) {
-                  menu.moregames.x = menu.game.width - 100;
-                  menu.moregames.y = menu.game.height - 180;
-                  menu.moregames.scale.set(e);
-                }
-                menu.textVersion.x = menu.game.width - 60;
-                menu.textVersion.y = menu.game.height - 20;
-                if (menu.brand_logo) {
-                  menu.brand_logo.x = menu.game.width - 60;
-                  menu.brand_logo.y = menu.game.height - 180;
-                }
-              }
-            })(this),`;
-        text = text.replace(/this\.garageBtn\.x\s*=\s*this\.game\.width\s*-\s*120[\s\S]*?(?:this\.textVersion\.y\s*=\s*this\.game\.height\s*-\s*20|this\.brand_logo\.y\s*=\s*this\.game\.height\s*-\s*180)\s*,/, patchBlock);
         buffer = Buffer.from(text, 'utf8');
       }
     }
@@ -4054,50 +3956,6 @@ const handleGameFrame = async (req, res) => {
         </script>
       `;
       html = html.replace('</body>', `${pondMobileEnhancer}</body>`);
-    }
-
-    // Moto X3M series (Stunt Bike Mania, Moto X3M, Moto X3M Pool Party) mobile responsiveness & container
-    if (req.internalSlug === 'stunt-bike-mania' || req.internalSlug === 'moto-x3m' || req.internalSlug === 'moto-x3m-pool-party' || (req.targetUrl && (req.targetUrl.includes('stunt-bike-mania') || req.targetUrl.includes('moto-x3m')))) {
-      const stuntMobileEnhancer = `
-        <style>
-          html, body {
-            width: 100% !important;
-            height: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            overflow: hidden !important;
-            background: #000 !important;
-            touch-action: manipulation !important;
-            user-select: none !important;
-            -webkit-user-select: none !important;
-          }
-          #content {
-            width: 100vw !important;
-            height: 100vh !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            background: #000 !important;
-            overflow: hidden !important;
-          }
-          #content canvas {
-            display: block !important;
-            margin: auto !important;
-            max-width: 100vw !important;
-            max-height: 100vh !important;
-          }
-          #orientation {
-            display: none !important;
-          }
-        </style>
-      `;
-      if (html.includes('</body>')) {
-        html = html.replace('</body>', `${stuntMobileEnhancer}</body>`);
-      } else if (html.includes('</html>')) {
-        html = html.replace('</html>', `${stuntMobileEnhancer}</html>`);
-      } else {
-        html += stuntMobileEnhancer;
-      }
     }
 
     // Garden Tile Match (Fruit Ninja) full-screen responsive canvas & centering

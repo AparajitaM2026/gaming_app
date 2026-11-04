@@ -1275,23 +1275,6 @@
     "is_premium": false
   },
   {
-    "id": 103,
-    "slug": "stunt-bike-mania",
-    "title": "Stunt Bike Mania",
-    "category": "action",
-    "thumbnail": "/assets/posters/stunt-bike-mania.svg",
-    "game_url": "/play/stunt-bike-mania",
-    "is_multiplayer": false,
-    "min_players": 1,
-    "max_players": 1,
-    "entry_fee_coins": 0,
-    "orientation": "landscape",
-    "rating": "4.9",
-    "plays_count": 34200,
-    "is_featured": true,
-    "is_premium": true
-  },
-  {
     "id": 104,
     "slug": "precision-darts-3d",
     "title": "Precision Darts 3D",
