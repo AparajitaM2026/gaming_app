@@ -418,6 +418,7 @@ function draw() {
 }
 
 function drawCell(r, c) {
+  if (!board || !board[r] || !board[r][c]) return;
   const x = c * cellSize, y = r * cellSize;
   const cell = board[r][c];
   const cs = cellSize;
@@ -676,10 +677,12 @@ function setupKeyboard() {
 let animFrameId = null;
 let animationRunning = false;
 
+let needsRedrawCount = 20;
 function animLoop() {
   if (!animationRunning) return;
-  if (particles.length > 0) {
+  if (needsRedrawCount > 0 || particles.length > 0) {
     draw();
+    if (needsRedrawCount > 0) needsRedrawCount--;
   }
   animFrameId = requestAnimationFrame(animLoop);
 }
@@ -714,6 +717,9 @@ function init() { window.__ms_inited = true;
   setupTouchHandlers();
   setupKeyboard();
   startAnimation();
+  setTimeout(function() { resizeCanvas(); draw(); needsRedrawCount = 10; }, 50);
+  setTimeout(function() { resizeCanvas(); draw(); needsRedrawCount = 10; }, 200);
+  setTimeout(function() { resizeCanvas(); draw(); needsRedrawCount = 10; }, 600);
 
   // Difficulty buttons — R377: ignore clicks during active gameplay so rage-clicks around the canvas do not reset the board mid-game
   var diffBtns = document.querySelectorAll('.ms-diff-btn[data-diff]');

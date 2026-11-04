@@ -1074,8 +1074,8 @@ const INTERNAL_GAME_SOURCES = {
   'drift-cup-racing': 'https://games.cdn.famobi.com/html5games/d/drift-cup-racing/v620/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=e8ca54ee-cfbe-417c-b69e-e4f4858a9957&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
   'table-tennis-world-tour': 'https://games.cdn.famobi.com/html5games/t/table-tennis-world-tour/v310/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8c8e5fc6-7e38-47ab-96eb-150276e79ef8&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
   'archery-world-tour': 'https://html5.gamedistribution.com/rvvASMiM/0ccd52f987014bb49708e6afa2e3a8f7/index.html',
-  'moto-x3m-pool-party': 'https://motox3munblocked.github.io/5-pool-party/',
-  'stunt-bike-mania': 'https://motox3munblocked.github.io/5-pool-party/',
+  'moto-x3m-pool-party': 'https://html5.gamedistribution.com/rvvASMiM/f804d079d19f44d3b951ead4588e974a/',
+  'stunt-bike-mania': 'https://html5.gamedistribution.com/rvvASMiM/f804d079d19f44d3b951ead4588e974a/',
   'cut-the-rope-experiments': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-experiments/v030/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=e73ceee2-0c50-4254-b0b8-656d7a69aca4&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
   'cut-the-rope-magic': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-magic/v040/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=35c37758-52d5-4802-86a9-d6110c41198b&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472'
 };
@@ -1095,8 +1095,8 @@ const RESOLVED_CDN_SOURCES = {
   'table-tennis-world-tour': 'https://games.cdn.famobi.com/html5games/t/table-tennis-world-tour/v310/',
   'solitaire': 'https://games.cdn.famobi.com/html5games/s/spider-solitaire/v2/',
   'spider-solitaire': 'https://games.cdn.famobi.com/html5games/s/spider-solitaire/v2/',
-  'moto-x3m-pool-party': 'https://motox3munblocked.github.io/5-pool-party/',
-  'stunt-bike-mania': 'https://motox3munblocked.github.io/5-pool-party/',
+  'moto-x3m-pool-party': 'https://html5.gamedistribution.com/rvvASMiM/f804d079d19f44d3b951ead4588e974a/',
+  'stunt-bike-mania': 'https://html5.gamedistribution.com/rvvASMiM/f804d079d19f44d3b951ead4588e974a/',
   'classic-minesweeper': 'https://gamezipper.com/minesweeper/'
 };
 
@@ -2910,12 +2910,8 @@ const handleGameFrame = async (req, res) => {
           display: none !important;
         }
         #ms-canvas {
-          height: auto !important;
-          max-height: calc(100vh - 140px) !important;
-          width: auto !important;
-          max-width: calc(100vw - 16px) !important;
-          aspect-ratio: 1 / 1 !important;
           margin: 0 auto !important;
+          display: block !important;
         }
         /* Completely eliminate all scrollbars across all game containers, trays & viewports */
         *::-webkit-scrollbar,
@@ -3533,6 +3529,39 @@ const handleGameFrame = async (req, res) => {
         html = html.replace('</body>', `<script>${cachedPatchedMinesweeper}</script></body>`);
       } else {
         html += `<script>${cachedPatchedMinesweeper}</script>`;
+      }
+    }
+
+    // Tetris: Remove blocking SEO controls/platform cards and How-to-Play section covering the board
+    if (finalUrl.includes('tetris') || targetUrl.includes('tetris') || req.internalSlug === 'tetris') {
+      const tetrisFix = `
+        <style>
+          div[style*="border:1px solid #e2e8f0"],
+          div[style*="background:#fff;border:1px solid #e2e8f0"],
+          div:has(> div[style*="border:1px solid #e2e8f0"]),
+          section:has(div[style*="border:1px solid #e2e8f0"]),
+          #game-wrap ~ div,
+          #game-wrap ~ section {
+            display: none !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            height: 0 !important;
+          }
+          html, body {
+            overflow: hidden !important;
+            background: #000000 !important;
+          }
+          #game-wrap {
+            max-height: 100vh !important;
+            justify-content: center !important;
+          }
+        </style>
+      `;
+      html = html.replace(/<div[^>]*style=["'][^"']*background:#fff;border:1px solid #e2e8f0[\s\S]*?<\/section>/gi, '');
+      if (html.includes('</head>')) {
+        html = html.replace('</head>', `${tetrisFix}</head>`);
+      } else {
+        html = tetrisFix + html;
       }
     }
 
@@ -4283,17 +4312,24 @@ const handleGameFrame = async (req, res) => {
           .grid-container {
             width: 100% !important;
             margin: 0 auto !important;
+            padding: 8px !important;
           }
           .word-grid {
-            gap: 6px !important;
-            margin-bottom: 8px !important;
+            gap: 5px !important;
+            margin-bottom: 6px !important;
           }
-          .word-card {
-            min-height: 48px !important;
-            max-height: 60px !important;
-            padding: 6px 3px !important;
+          .word-tile, .word-card {
+            aspect-ratio: auto !important;
+            height: 38px !important;
+            min-height: 36px !important;
+            max-height: 42px !important;
+            padding: 2px 4px !important;
             font-size: 11px !important;
-            line-height: 1.2 !important;
+            line-height: 1.15 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 8px !important;
           }
           .controls {
             margin-top: 4px !important;
@@ -4301,8 +4337,8 @@ const handleGameFrame = async (req, res) => {
             gap: 6px !important;
           }
           .btn {
-            padding: 7px 12px !important;
-            font-size: 11.5px !important;
+            padding: 6px 12px !important;
+            font-size: 11px !important;
             border-radius: 8px !important;
           }
           /* Remove external backlinks, branding watermark and standalone anchor */
@@ -4367,7 +4403,7 @@ const themeNames`
 
       // Fix card drawing: set explicit dark fillStyle for emoji & draw high-contrast bold number badge in corner
       html = html.replace(
-        /if\s*\(\s*showFront\s*\)\s*\{[\s\S]*?ctx\.fillText\(c\.emoji\s*,\s*cx2\s*,\s*cy2\);\s*\}/i,
+        /if\s*\(\s*showFront\s*\)\s*\{[\s\S]*?ctx\.fillText\(c\.emoji\s*,\s*cx2\s*,\s*cy2\);\s*\}\s*\}/i,
         `if(showFront){
       drawRoundRect(cx2-drawW/2,r.y,drawW,r.h,10);
       ctx.fillStyle='#ffffff';ctx.fill();
@@ -4435,16 +4471,17 @@ const themeNames`
           }
           #c, canvas#c, canvas {
             display: block !important;
-            width: 100vw !important;
-            height: 100vh !important;
+            width: 100% !important;
+            height: 100% !important;
             max-width: 100vw !important;
             max-height: 100vh !important;
-            margin: 0 !important;
+            margin: 0 auto !important;
             padding: 0 !important;
             position: absolute !important;
             top: 0 !important;
             left: 0 !important;
-            object-fit: contain !important;
+            right: 0 !important;
+            bottom: 0 !important;
           }
         </style>
       `;
