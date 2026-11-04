@@ -1036,7 +1036,7 @@ const INTERNAL_GAME_SOURCES = {
   'low-poly-speedster': 'https://games.ottsol.cloud/low-poly-speedster/',
   'turbo-drift-unleashed': 'https://games.ottsol.cloud/turbo-drift-unleashed/',
   'striker-king-3d': 'https://games.ottsol.cloud/striker-king-3d/',
-  'power-puck-hockey': 'https://games.ottsol.cloud/power-puck-hockey/',
+  'power-puck-hockey': 'https://play.famobi.com/street-ball-star',
   'vector-arena-shooter': 'https://games.ottsol.cloud/vector-arena-shooter/',
   'lost-tomb-runner': 'https://games.ottsol.cloud/lost-tomb-runner/',
   'pond-rescue-io': 'https://games.ottsol.cloud/pond-rescue-io/',
