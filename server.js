@@ -2707,6 +2707,11 @@ const handleGameFrame = async (req, res) => {
           pointer-events: auto !important;
           touch-action: manipulation !important;
         }
+        #confetti-canvas,
+        canvas#confetti-canvas,
+        canvas[id*="confetti"] {
+          pointer-events: none !important;
+        }
         * {
           filter: none !important;
           backdrop-filter: none !important;
@@ -3547,6 +3552,79 @@ const handleGameFrame = async (req, res) => {
           }
         </style>
       `;
+    }
+
+    // Jigsaw Puzzle: Fix Play button click, prevent overlay canvas click interception, and ensure responsive category grid
+    if (finalUrl.includes('jigsaw-puzzle') || targetUrl.includes('jigsaw-puzzle') || req.internalSlug === 'jigsaw-puzzle') {
+      const jigsawFix = `
+        <style>
+          #confetti-canvas, canvas#confetti-canvas, [id*="confetti"], #menu-preview {
+            pointer-events: none !important;
+          }
+          #menu-screen, #cat-screen, #puz-screen, #game-screen {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+          }
+          .screen {
+            pointer-events: none !important;
+          }
+          .screen.active {
+            pointer-events: auto !important;
+            z-index: 20 !important;
+          }
+          .screen.active button,
+          .screen.active .btn,
+          .screen.active .cat-card,
+          .screen.active .puz-card,
+          .screen.active .diff-btn,
+          .screen.active .back-btn {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+            position: relative !important;
+            z-index: 30 !important;
+          }
+        </style>
+        <script>
+          (function() {
+            function bindPlayButton() {
+              var btn = document.querySelector('#menu-screen button.btn-primary');
+              if (btn && !btn.__bound) {
+                btn.__bound = true;
+                btn.style.pointerEvents = 'auto';
+                btn.style.cursor = 'pointer';
+                var trigger = function(e) {
+                  try {
+                    if (typeof showScreen === 'function') {
+                      showScreen('cat-screen');
+                    }
+                  } catch(err) {
+                    console.error('Error opening cat-screen:', err);
+                  }
+                };
+                btn.addEventListener('click', trigger);
+                btn.addEventListener('pointerup', trigger);
+                btn.addEventListener('touchend', trigger);
+              }
+            }
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', bindPlayButton);
+            } else {
+              bindPlayButton();
+            }
+            window.addEventListener('load', bindPlayButton);
+            setTimeout(bindPlayButton, 200);
+            setTimeout(bindPlayButton, 600);
+          })();
+        </script>
+      `;
+      if (html.includes('</head>')) {
+        html = html.replace('</head>', `${jigsawFix}</head>`);
+      } else {
+        html = jigsawFix + html;
+      }
     }
 
     // Auto-start Brick Breaker level 1 and clean canvas loop
