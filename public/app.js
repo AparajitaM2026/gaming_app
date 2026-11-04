@@ -580,7 +580,7 @@ const PORTRAIT_GAMES = new Set([
   'arrow-escape', 'sand-balls', 'fruit-slash', 'katana-fruits', 'slice-master', 'watermelon-merge', 
   'block-stacker', 'cyberpunk-flappy', 'bubble-shooter',
   'cloud-amp-sheep', 'paint-splash',
-  'cut-the-rope-experiments', 'cut-the-rope-magic',
+  'cut-the-rope-magic',
   'om-nom-run', 'om-nom-bubbles', 'tower-crash-3d',
   'precision-darts-3d', 'rail-surfer-express', 'rope-cutter-deluxe',
   'spatial-block-master', 'safari-block-pop'
@@ -890,7 +890,7 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
 
   } else if (slug === 'stunt-bike-mania') {
     playUrl = '/play/stunt-bike-mania';
-  } else if (slug === 'cut-the-rope-experiments' || slug === 'cut-the-rope-magic' || slug === 'om-nom-run' || slug === 'om-nom-bubbles' || slug === 'drift-cup-racing' || slug === 'table-tennis-world-tour' || slug === 'cannon-balls-3d' || slug === 'tower-crash-3d' || slug === 'tnt-bomb' || slug === 'archery-world-tour') {
+  } else if (slug === 'cut-the-rope-magic' || slug === 'om-nom-run' || slug === 'om-nom-bubbles' || slug === 'drift-cup-racing' || slug === 'table-tennis-world-tour' || slug === 'cannon-balls-3d' || slug === 'tower-crash-3d' || slug === 'tnt-bomb' || slug === 'archery-world-tour') {
     playUrl = `/play/${slug}`;
   } else if (playUrl && (playUrl.startsWith('/play/') || playUrl.startsWith('/games/'))) {
     playUrl = playUrl;
@@ -1179,18 +1179,6 @@ const GAME_HOW_TO_PLAY = {
 3. Score more penalties than your opponent in 5 rounds (or sudden death) to advance!`,
     tips: `• Aim high into the top corner nets for unstoppably fast strikes.
 • Wait until the striker begins their kicking run-up before diving as goalkeeper.`
-  },
-  'cut-the-rope-experiments': {
-    title: 'Cut the Rope: Experiments',
-    category: 'Physics Puzzle',
-    objective: 'Slice ropes, launch suction cups, and guide the candy directly into Om Nom\'s mouth!',
-    controls: '🖱️ Drag Mouse / 👆 Swipe: Slice ropes with quick swipes, tap interactive lab gadgets.',
-    rules: `1. Slice ropes holding the candy to let gravity swing it.
-2. Collect up to 3 gold stars with the candy on each stage.
-3. Use rocket boosters, suction cups, and water bubbles to navigate complex lab mazes.
-4. Deliver the treat into Om Nom\'s mouth to complete the level!`,
-    tips: `• Timing is key—cut ropes at the peak of their pendulum swing for maximum launch distance.
-• Pop air bubbles right when the candy floats directly above Om Nom.`
   },
   'cut-the-rope-magic': {
     title: 'Cut the Rope: Magic',

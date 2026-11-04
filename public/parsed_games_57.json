@@ -843,23 +843,6 @@
     "is_premium": false
   },
   {
-    "id": 77,
-    "slug": "cut-the-rope-experiments",
-    "title": "Cut the Rope: Experiments",
-    "category": "puzzle",
-    "thumbnail": "/assets/posters/cut-the-rope-experiments.svg",
-    "game_url": "https://games.cdn.famobi.com/html5games/c/cut-the-rope-experiments/v030/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=e73ceee2-0c50-4254-b0b8-656d7a69aca4&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472",
-    "is_multiplayer": false,
-    "min_players": 1,
-    "max_players": 1,
-    "entry_fee_coins": 0,
-    "orientation": "portrait",
-    "rating": "4.9",
-    "plays_count": 29540,
-    "is_featured": true,
-    "is_premium": false
-  },
-  {
     "id": 78,
     "slug": "cut-the-rope-magic",
     "title": "Cut the Rope: Magic",
