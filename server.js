@@ -1019,7 +1019,7 @@ const INTERNAL_GAME_SOURCES = {
   'mahjong-solitaire': 'https://play.famobi.com/mahjong-classic',
   'sliding-puzzle': 'https://games.ottsol.cloud/sliding-puzzle/',
   'trivia-crack': 'https://games.ottsol.cloud/trivia-crack/',
-  'cut-the-rope': 'https://games.ottsol.cloud/cut-the-rope/',
+  'cut-the-rope': 'https://play.famobi.com/cut-the-rope',
   'drive-fury': 'https://gamezipper.com/drive-fury/?utm_source=embed',
   'escape-manor': 'https://games.ottsol.cloud/escape-manor/',
   'sand-balls': 'https://games.ottsol.cloud/sand-balls/',
@@ -1048,10 +1048,10 @@ const INTERNAL_GAME_SOURCES = {
   'garden-tile-match': 'https://play.famobi.com/garden-match-3d',
   'bubble-column-match': 'https://games.ottsol.cloud/bubble-column-match/',
   'tnt-demolition': 'https://games.ottsol.cloud/tnt-demolition/',
-  'precision-darts-3d': 'https://games.ottsol.cloud/precision-darts-3d/',
+  'precision-darts-3d': 'https://play.famobi.com/3d-darts',
   'rail-surfer-express': 'https://games.ottsol.cloud/rail-surfer-express/',
   'gummy-rush': 'https://games.ottsol.cloud/gummy-rush/',
-  'rope-cutter-deluxe': 'https://games.ottsol.cloud/rope-cutter-deluxe/',
+  'rope-cutter-deluxe': 'https://play.famobi.com/cut-the-rope-time-travel',
   'stickman-run-hardcore': 'https://games.ottsol.cloud/stickman-run-hardcore/',
   'fire-ice-temple': 'https://games.ottsol.cloud/fire-ice-temple/',
   'surf-and-shoot': 'https://games.ottsol.cloud/surf-and-shoot/',
@@ -3203,148 +3203,36 @@ const handleGameFrame = async (req, res) => {
       );
     }
 
-    // Fix Drive Fury sluggish acceleration and add hydraulic jump mechanic
+    // Fix Drive Fury smooth acceleration and natural Hill Climb controls (No rocket jump, clean screen)
     if (html.includes('DRIVE FURY') || finalUrl.includes('drive-fury') || targetUrl.includes('drive-fury')) {
-      // 1. Boost vehicle speeds and engine power
+      // 1. Balanced vehicle speeds and engine power
       html = html.replace(
         "{ id:'dusty_truck', name:'Dusty Truck', mass:1.0, power:1.0, grip:1.0, stability:0.8,\n    color:'#ff8800', accent:'#cc6600', w:70, h:34, wheelR:10, wheelBase:54,\n    cogH:20, maxSpeed:420,",
-        "{ id:'dusty_truck', name:'Dusty Truck', mass:1.0, power:1.4, grip:1.2, stability:0.9,\n    color:'#ff8800', accent:'#cc6600', w:70, h:34, wheelR:10, wheelBase:54,\n    cogH:20, maxSpeed:650,"
+        "{ id:'dusty_truck', name:'Dusty Truck', mass:1.0, power:1.3, grip:1.2, stability:0.9,\n    color:'#ff8800', accent:'#cc6600', w:70, h:34, wheelR:10, wheelBase:54,\n    cogH:20, maxSpeed:580,"
       );
       html = html.replace(
         "{ id:'sand_buggy', name:'Sand Buggy', mass:0.7, power:1.3, grip:0.7, stability:0.5,\n    color:'#ffcc00', accent:'#aa8800', w:62, h:28, wheelR:9, wheelBase:46,\n    cogH:17, maxSpeed:520,",
-        "{ id:'sand_buggy', name:'Sand Buggy', mass:0.7, power:1.7, grip:0.9, stability:0.6,\n    color:'#ffcc00', accent:'#aa8800', w:62, h:28, wheelR:9, wheelBase:46,\n    cogH:17, maxSpeed:780,"
+        "{ id:'sand_buggy', name:'Sand Buggy', mass:0.7, power:1.5, grip:0.9, stability:0.6,\n    color:'#ffcc00', accent:'#aa8800', w:62, h:28, wheelR:9, wheelBase:46,\n    cogH:17, maxSpeed:680,"
       );
       html = html.replace(
         "{ id:'monster_truck', name:'Monster Truck', mass:1.8, power:0.8, grip:1.2, stability:1.2,\n    color:'#ee2222', accent:'#aa0000', w:80, h:42, wheelR:14, wheelBase:60,\n    cogH:24, maxSpeed:340,",
-        "{ id:'monster_truck', name:'Monster Truck', mass:1.8, power:1.3, grip:1.4, stability:1.3,\n    color:'#ee2222', accent:'#aa0000', w:80, h:42, wheelR:14, wheelBase:60,\n    cogH:24, maxSpeed:550,"
+        "{ id:'monster_truck', name:'Monster Truck', mass:1.8, power:1.2, grip:1.3, stability:1.3,\n    color:'#ee2222', accent:'#aa0000', w:80, h:42, wheelR:14, wheelBase:60,\n    cogH:24, maxSpeed:480,"
       );
 
-      // 2. Touch and keyboard jump input
-      html = html.replace(
-        'let touchAccel = false, touchBrake = false;',
-        'let touchAccel = false, touchBrake = false, touchJump = false;'
-      );
-
+      // 2. Map standard driving keys: Gas (Right, Up, D, W), Brake (Left, Down, A, S)
       html = html.replace(
         "function getInput() {\n  const accel = keys['ArrowRight'] || keys['KeyD'] || keys['ArrowUp'] || keys['KeyW'] || touchAccel;\n  const brake = keys['ArrowLeft'] || keys['KeyA'] || keys['ArrowDown'] || keys['KeyS'] || touchBrake;\n  return { accel, brake };\n}",
         `function getInput() {
-  const accel = keys['ArrowRight'] || keys['KeyD'] || touchAccel;
-  const brake = keys['ArrowLeft'] || keys['KeyA'] || touchBrake;
-  const jump = keys['Space'] || keys['ArrowUp'] || keys['KeyW'] || touchJump;
-  return { accel, brake, jump };
+  const accel = keys['ArrowRight'] || keys['KeyD'] || keys['d'] || keys['D'] || keys['ArrowUp'] || keys['KeyW'] || keys['w'] || keys['W'] || touchAccel;
+  const brake = keys['ArrowLeft'] || keys['KeyA'] || keys['a'] || keys['A'] || keys['ArrowDown'] || keys['KeyS'] || keys['s'] || keys['S'] || touchBrake;
+  return { accel, brake, jump: false };
 }`
       );
 
+      // 3. Remove mobile touch overlay rectangles for a clean screen
       html = html.replace(
-        "if (gameState === 'playing' || gameState === 'endless') {\n    if (isMobile) {\n      if (x < W * 0.5) touchBrake = true; else touchAccel = true;\n    }\n  }",
-        `if (gameState === 'playing' || gameState === 'endless') {
-    if (y < H * 0.45) {
-      touchJump = true;
-    } else if (x < W * 0.5) {
-      touchBrake = true;
-    } else {
-      touchAccel = true;
-    }
-  }`
-      );
-
-      html = html.replace(
-        "function handlePointerUp() { touchAccel = false; touchBrake = false; }",
-        "function handlePointerUp() { touchAccel = false; touchBrake = false; touchJump = false; }"
-      );
-
-      // 3. Update updateGame signature and callers
-      html = html.replace(
-        "function updateGame(g, dt, accel, brake) {",
-        "function updateGame(g, dt, accel, brake, jump) {"
-      );
-
-      html = html.replace(
-        "const result = updatePhysics(g, dt, accel, brake);",
-        "const result = updatePhysics(g, dt, accel, brake, jump);"
-      );
-
-      html = html.replace(
-        "updateGame(game, dt, inp.accel, inp.brake);",
-        "updateGame(game, dt, inp.accel, inp.brake, inp.jump);"
-      );
-
-      html = html.replace(
-        "if (game.endless) updateGame(game, dt, inp.accel, inp.brake);",
-        "// endless single update"
-      );
-
-      // 4. Boost acceleration power, add hydraulic jump and mid-air rotation
-      html = html.replace(
-        `    // Drive force
-    if (contact) {
-      const ta = getTerrainAngle(pts, v.x);
-      const dir = accel ? 1 : (brake ? -0.6 : 0);
-      if (dir !== 0) {
-        const force = dir * def.power * 650 * def.grip;
-        v.vx += (Math.cos(ta) * force * sdt) / def.mass;
-        v.vy += (Math.sin(ta) * force * sdt) / def.mass;
-      }
-      // Ground friction
-      v.vx *= (1 - GROUND_FRIC * sdt * 0.1);
-      // Speed limit
-      const spd = Math.abs(v.vx);
-      if (spd > def.maxSpeed) v.vx *= def.maxSpeed / spd;
-    }`,
-        `    // Drive force & Jump
-    if (contact) {
-      const ta = getTerrainAngle(pts, v.x);
-      const dir = accel ? 1 : (brake ? -0.6 : 0);
-      if (dir !== 0) {
-        const force = dir * def.power * 1350 * def.grip;
-        v.vx += (Math.cos(ta) * force * sdt) / def.mass;
-        v.vy += (Math.sin(ta) * force * sdt) / def.mass;
-      }
-      // Hydraulic Spring Jump
-      if (jump && (!v.jumpCooldown || v.jumpCooldown <= 0)) {
-        v.vy = -620;
-        v.vx += 120;
-        v.jumpCooldown = 0.35;
-        try { playSound('checkpoint'); } catch(e) {}
-      }
-      // Ground friction
-      v.vx *= (1 - GROUND_FRIC * sdt * 0.1);
-      // Speed limit
-      const spd = Math.abs(v.vx);
-      if (spd > def.maxSpeed) v.vx *= def.maxSpeed / spd;
-    } else {
-      // In-air aerial tilt control
-      if (accel) {
-        v.av += 6.0 * sdt;
-      } else if (brake) {
-        v.av -= 6.0 * sdt;
-      }
-    }`
-      );
-
-      // 5. Jump cooldown countdown
-      html = html.replace(
-        "v.wheelAngle += v.speed * sdt * 0.1;",
-        "v.wheelAngle += v.speed * sdt * 0.1;\n    if (v.jumpCooldown > 0) v.jumpCooldown -= sdt;"
-      );
-
-      // 6. UI controls hint
-      html = html.replace(
-        "ctx.fillText(isMobile ? 'Tap left/right to control' : 'Arrow keys or WASD to drive', cx, H - 30);",
-        "ctx.fillText(isMobile ? 'Tap Bottom: Drive/Brake | Tap Top: JUMP' : '[→]/[D] Gas | [←]/[A] Brake | [SPACE]/[↑]/[W] JUMP!', cx, H - 30);"
-      );
-
-      html = html.replace(
-        `  // Left zone (brake)`,
-        `  // Top zone (jump)
-  ctx.fillStyle = 'rgba(0,200,255,0.15)';
-  ctx.fillRect(W * 0.2, 0, W * 0.6, H * 0.35);
-  ctx.strokeStyle = 'rgba(0,200,255,0.4)'; ctx.lineWidth = 2;
-  ctx.strokeRect(W * 0.2, 0, W * 0.6, H * 0.35);
-  ctx.fillStyle = 'rgba(0,255,255,0.8)'; ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center';
-  ctx.fillText('⬆ TAP TO JUMP ⬆', W * 0.5, H * 0.2);
-
-  // Left zone (brake)`
+        "drawMobileControls();",
+        "// drawMobileControls clean"
       );
     }
 
