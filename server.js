@@ -4249,7 +4249,7 @@ const handleGameFrame = async (req, res) => {
       }
     }
 
-    // Memory Master (Memory Match): Unlock start screen, remove blocking overlay, enable instant canvas touch
+    // Memory Master (Memory Match): Unlock start screen, remove blocking overlay, enable instant canvas touch, and fix card visibility (emojis + bold number badges)
     if (req.internalSlug === 'memory-master' || (req.targetUrl && req.targetUrl.includes('memory-match'))) {
       html = html.replace(/<div[^>]*id=["']tutorial-overlay["'][\s\S]*?<\/div>\s*<\/div>/gi, '');
       html = html.replace(/cvs\.style\.pointerEvents\s*=\s*['"]none['"]/g, "cvs.style.pointerEvents='auto'");
@@ -4257,6 +4257,52 @@ const handleGameFrame = async (req, res) => {
         "canvas.addEventListener('click',e=>{",
         "function onCanvasClick(clientX, clientY) { const rect = canvas.getBoundingClientRect(); const scaleX = canvas.width / (rect.width || 1); const scaleY = canvas.height / (rect.height || 1); handleClick((clientX - rect.left) * scaleX, (clientY - rect.top) * scaleY); }\ncanvas.addEventListener('pointerdown', e => onCanvasClick(e.clientX, e.clientY));\ncanvas.addEventListener('click',e=>{"
       );
+
+      // Fix blank white card bug: replace text-only pool with colorful emojis + distinct number pairs
+      html = html.replace(
+        /const themes\s*=\s*\{[\s\S]*?\};\s*const themeNames/i,
+        `const themes = {
+  animals: ['🦁 1', '🐯 2', '🐘 3', '🐵 4', '🐼 5', '🦊 6', '🐸 7', '🦄 8', '🐬 9', '🐶 10', '🐱 11', '🐰 12', '🐻 13', '🐨 14', '🐧 15'],
+  fruits: ['🍎 1', '🍌 2', '🍓 3', '🍇 4', '🍉 5', '🍒 6', '🍍 7', '🥝 8', '🍑 9', '🍊 10', '🍋 11', '🍐 12', '🥭 13', '🫐 14', '🥥 15'],
+  flags: ['🚩 1', '🎯 2', '🏆 3', '⭐ 4', '💎 5', '🔥 6', '⚡ 7', '🌟 8', '👑 9', '🎪 10', '🎨 11', '🚀 12', '🎸 13', '⚽ 14', '🎮 15'],
+  faces: ['😀 1', '😎 2', '🥳 3', '🤩 4', '🤠 5', '😜 6', '😇 7', '🤖 8', '👻 9', '👾 10', '👽 11', '🐱 12', '🐶 13', '🦊 14', '🐻 15']
+};
+const themeNames`
+      );
+
+      // Fix card drawing: set explicit dark fillStyle for emoji & draw high-contrast bold number badge in corner
+      html = html.replace(
+        /if\s*\(\s*showFront\s*\)\s*\{[\s\S]*?ctx\.fillText\(c\.emoji\s*,\s*cx2\s*,\s*cy2\);\s*\}/i,
+        `if(showFront){
+      drawRoundRect(cx2-drawW/2,r.y,drawW,r.h,10);
+      ctx.fillStyle='#ffffff';ctx.fill();
+      ctx.strokeStyle='#ffd700';ctx.lineWidth=2.5;ctx.stroke();
+      if(scaleX>0.3){
+        var emojiChar = c.emoji;
+        var numLabel = '';
+        if (typeof c.emoji === 'string' && c.emoji.includes(' ')) {
+          var parts = c.emoji.split(' ');
+          emojiChar = parts[0];
+          numLabel = parts[1];
+        } else if (c.index !== undefined) {
+          numLabel = '' + ((c.index % (totalPairs || 8)) + 1);
+        }
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        const fontSize=Math.min(cardW,cardH)*0.44;
+        ctx.font=fontSize+'px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+        ctx.fillStyle='#111111';
+        ctx.fillText(emojiChar, cx2, cy2 + (numLabel ? 6 : 0));
+
+        if(numLabel){
+          ctx.font='bold ' + Math.max(12, Math.floor(Math.min(cardW,cardH)*0.22)) + 'px -apple-system,BlinkMacSystemFont,sans-serif';
+          ctx.fillStyle='#e63946';
+          ctx.textAlign='left';
+          ctx.fillText('#' + numLabel, cx2 - drawW/2 + 6, r.y + Math.max(14, cardH * 0.16));
+        }
+      }
+    }`
+      );
+
       const mmFix = `
         <style>
           #tutorial-overlay, #splash-screen { display: none !important; pointer-events: none !important; }
