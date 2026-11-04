@@ -4138,6 +4138,141 @@ const handleGameFrame = async (req, res) => {
       }
     }
 
+    // Word Connections: Full responsive layout, auto-scale & remove bottom cutoff
+    if (req.internalSlug === 'word-connections' || (req.targetUrl && req.targetUrl.includes('word-connections'))) {
+      const wordConnEnhancer = `
+        <style>
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            min-height: 100% !important;
+            height: auto !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            background: #0a0a1a !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: flex-start !important;
+          }
+          .container {
+            max-width: 500px !important;
+            width: 100% !important;
+            padding: 6px 12px 16px !important;
+            min-height: auto !important;
+            height: auto !important;
+            margin: 0 auto !important;
+            box-sizing: border-box !important;
+          }
+          header {
+            padding: 6px 0 2px !important;
+          }
+          header h1 {
+            font-size: 20px !important;
+            letter-spacing: 2px !important;
+            margin-bottom: 2px !important;
+          }
+          header .subtitle {
+            font-size: 10px !important;
+            letter-spacing: 1px !important;
+            margin-bottom: 2px !important;
+          }
+          .nav-tabs {
+            margin: 6px 0 !important;
+            gap: 4px !important;
+          }
+          .nav-tab {
+            padding: 5px 12px !important;
+            font-size: 11px !important;
+            border-radius: 6px !important;
+          }
+          .puzzle-info {
+            padding: 6px 10px !important;
+            margin-bottom: 4px !important;
+          }
+          .puzzle-info h3 {
+            font-size: 13.5px !important;
+            margin-bottom: 1px !important;
+          }
+          .puzzle-info p {
+            font-size: 10.5px !important;
+          }
+          .difficulty-label {
+            margin: 4px 0 !important;
+            font-size: 10.5px !important;
+            gap: 8px !important;
+          }
+          .status-bar {
+            margin: 4px 0 6px !important;
+            padding: 3px 8px !important;
+            font-size: 11px !important;
+          }
+          .hints-left {
+            font-size: 11px !important;
+          }
+          .grid-container {
+            width: 100% !important;
+            margin: 0 auto !important;
+          }
+          .word-grid {
+            gap: 6px !important;
+            margin-bottom: 8px !important;
+          }
+          .word-card {
+            min-height: 48px !important;
+            max-height: 60px !important;
+            padding: 6px 3px !important;
+            font-size: 11px !important;
+            line-height: 1.2 !important;
+          }
+          .controls {
+            margin-top: 4px !important;
+            padding-top: 4px !important;
+            gap: 6px !important;
+          }
+          .btn {
+            padding: 7px 12px !important;
+            font-size: 11.5px !important;
+            border-radius: 8px !important;
+          }
+          /* Remove external backlinks, branding watermark and standalone anchor */
+          a[href*="ottsol.cloud"], a[href*="standalone"], .standalone, #backlinksPlace {
+            display: none !important;
+            height: 0 !important;
+            visibility: hidden !important;
+          }
+        </style>
+        <script>
+          (function() {
+            function fitWordConnections() {
+              var container = document.querySelector('.container');
+              if (!container) return;
+              var vh = window.innerHeight;
+              var ch = container.scrollHeight;
+              if (vh > 250 && ch > vh) {
+                var scale = Math.min(1, Math.max(0.65, (vh - 6) / ch));
+                container.style.transform = 'scale(' + scale + ')';
+                container.style.transformOrigin = 'top center';
+              } else {
+                container.style.transform = 'none';
+              }
+            }
+            window.addEventListener('resize', fitWordConnections);
+            window.addEventListener('orientationchange', fitWordConnections);
+            document.addEventListener('DOMContentLoaded', fitWordConnections);
+            setTimeout(fitWordConnections, 100);
+            setTimeout(fitWordConnections, 400);
+            setTimeout(fitWordConnections, 1000);
+          })();
+        </script>
+      `;
+      if (html.includes('</body>')) {
+        html = html.replace('</body>', `${wordConnEnhancer}</body>`);
+      } else {
+        html += wordConnEnhancer;
+      }
+    }
+
     // Memory Master (Memory Match): Unlock start screen, remove blocking overlay, enable instant canvas touch
     if (req.internalSlug === 'memory-master' || (req.targetUrl && req.targetUrl.includes('memory-match'))) {
       html = html.replace(/<div[^>]*id=["']tutorial-overlay["'][\s\S]*?<\/div>\s*<\/div>/gi, '');

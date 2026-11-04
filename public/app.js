@@ -576,7 +576,7 @@ function handleSearch(query) {
 // 6. SAFE GAME LAUNCHER & IN-APP THEATER (With Multi-Aspect Cabinet Controller)
 // -------------------------------------------------------------
 const PORTRAIT_GAMES = new Set([
-  'magic-sort', 'memory-master', 
+  'magic-sort', 'memory-master', 'word-connections', 
   'arrow-escape', 'sand-balls', 'fruit-slash', 'katana-fruits', 'slice-master', 'watermelon-merge', 
   'block-stacker', 'cyberpunk-flappy', 'bubble-shooter',
   'cloud-amp-sheep', 'paint-splash',
@@ -588,7 +588,7 @@ const PORTRAIT_GAMES = new Set([
 
 const STANDARD_GAMES = new Set([
   'flow-connect', 'classic-minesweeper', 'classic-sudoku', 'crossword-puzzle', 
-  'nonogram-puzzle', 'jigsaw-puzzle', 'unblock-me', 'word-connections', 
+  'nonogram-puzzle', 'jigsaw-puzzle', 'unblock-me', 
   'go', 'dots-and-boxes', 'queens-puzzle', 
   'mahjong-solitaire', 'sliding-puzzle', '2048-galaxy', 'level-devil', 'neon-run',
   'ludo-hero-ai', 'carrom-clash-ai', 'chess-master-ai',
