@@ -682,6 +682,23 @@
     "url": "/play/memory-master"
   },
   {
+    "id": 58,
+    "slug": "slice-master",
+    "title": "Slice Master 3D",
+    "category": "arcade",
+    "thumbnail": "/assets/posters/slice-master.svg",
+    "game_url": "https://gamezipper.com/slice-master/?utm_source=embed",
+    "is_multiplayer": false,
+    "min_players": 1,
+    "max_players": 1,
+    "entry_fee_coins": 0,
+    "orientation": "portrait",
+    "rating": "4.8",
+    "plays_count": 18450,
+    "is_featured": false,
+    "is_premium": false
+  },
+  {
     "id": 59,
     "slug": "typing-speed-test",
     "title": "Typing Speed Test",
@@ -824,6 +841,23 @@
     "is_featured": true,
     "is_premium": false,
     "url": "https://games.cdn.famobi.com/html5games/c/cars-arena/v010/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=bfca421b-0e9a-491b-8840-da277bda1aa4&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=471"
+  },
+  {
+    "id": 75,
+    "slug": "moto-x3m-pool-party",
+    "title": "Moto X3M Pool Party",
+    "category": "action",
+    "thumbnail": "/assets/posters/moto-x3m-pool-party.svg",
+    "game_url": "/play/moto-x3m-pool-party",
+    "is_multiplayer": false,
+    "min_players": 1,
+    "max_players": 1,
+    "entry_fee_coins": 0,
+    "orientation": "landscape",
+    "rating": "4.9",
+    "plays_count": 36200,
+    "is_featured": true,
+    "is_premium": false
   },
   {
     "id": 76,
@@ -1241,23 +1275,6 @@
     "is_premium": true
   },
   {
-    "id": 58,
-    "slug": "slice-master",
-    "title": "Slice Master 3D",
-    "category": "arcade",
-    "thumbnail": "/assets/posters/slice-master.svg",
-    "game_url": "https://gamezipper.com/slice-master/?utm_source=embed",
-    "is_multiplayer": false,
-    "min_players": 1,
-    "max_players": 1,
-    "entry_fee_coins": 0,
-    "orientation": "portrait",
-    "rating": "4.8",
-    "plays_count": 18450,
-    "is_featured": false,
-    "is_premium": false
-  },
-  {
     "id": 104,
     "slug": "callbreak",
     "title": "Callbreak Card Game",
@@ -1305,6 +1322,23 @@
     "orientation": "portrait",
     "rating": "4.9",
     "plays_count": 48900,
+    "is_featured": true,
+    "is_premium": true
+  },
+  {
+    "id": 105,
+    "slug": "stunt-bike-mania",
+    "title": "Stunt Bike Mania",
+    "category": "action",
+    "thumbnail": "/assets/posters/stunt-bike-mania.svg",
+    "game_url": "/play/stunt-bike-mania",
+    "is_multiplayer": false,
+    "min_players": 1,
+    "max_players": 1,
+    "entry_fee_coins": 0,
+    "orientation": "landscape",
+    "rating": "4.9",
+    "plays_count": 34200,
     "is_featured": true,
     "is_premium": true
   },

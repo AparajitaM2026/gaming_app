@@ -593,7 +593,8 @@ const STANDARD_GAMES = new Set([
   'ludo-hero-ai', 'carrom-clash-ai', 'chess-master-ai',
   'checkers-classic-ai', 'connect4-arena-ai', 'tictactoe-neon-ai',
   'pong', 'brick-breaker', 'tetris',
-  'table-tennis-world-tour', 'archery-world-tour', 'cannon-balls-3d'
+  'table-tennis-world-tour', 'archery-world-tour', 'cannon-balls-3d',
+  'moto-x3m-pool-party', 'stunt-bike-mania'
 ]);
 
 let currentTheaterSize = 'standard';
@@ -1165,6 +1166,30 @@ const GAME_HOW_TO_PLAY = {
 4. Reach the finish checkered flag alive to unlock 3 stars!`,
     tips: `• Backflips reduce your stage time by 0.5s each!
 • Release gas right before big jumps to prevent overshooting into deadly spinning saws.`
+  },
+  'moto-x3m-pool-party': {
+    title: 'Moto X3M Pool Party',
+    category: 'Action & Stunt',
+    objective: 'Race across waterpark slides, massive loops, and underwater stunt tubes on your motorcycle.',
+    controls: '⌨️ [↑] / [W] Gas | [↓] / [S] Brake | [←][→] / [A][D] Lean & Balance | 👆 Touch controls on mobile.',
+    rules: `1. Accelerate across slippery water flumes and floating obstacle rafts.
+2. Tilt backwards or forwards to execute crazy flips for time bonuses.
+3. Dodge explosive beach balls, deadly spike traps, and swinging sunbeds.
+4. Reach the finish line alive to earn 3 stars on every summer level!`,
+    tips: `• Flips shave 0.5s off your stage time.
+• Brake lightly before landing steep underwater plunges to keep balance.`
+  },
+  'stunt-bike-mania': {
+    title: 'Stunt Bike Mania',
+    category: 'Action & Stunt',
+    objective: 'Master intense obstacle tracks, perform backflips, and navigate hazardous stunts.',
+    controls: '⌨️ [↑] / [W] Gas | [↓] / [S] Brake | [←][→] / [A][D] Lean & Balance | 👆 Touch controls on mobile.',
+    rules: `1. Power through dynamic obstacle courses and steep vertical hills.
+2. Balance your bike in mid-air to land smoothly on both tires.
+3. Execute high-flying front and back flips to reduce your race time.
+4. Beat each track in record time to unlock elite trophies!`,
+    tips: `• Release acceleration mid-air to stabilize rotation.
+• Lean back on upward ramps for extra leap distance.`
   },
   'penalty-shooters-2': {
     title: 'Penalty Shooters 2',

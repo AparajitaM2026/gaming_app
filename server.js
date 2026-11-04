@@ -1071,7 +1071,9 @@ const INTERNAL_GAME_SOURCES = {
   'tower-crash-3d': 'https://games.cdn.famobi.com/html5games/t/tower-crash-3d/v290/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=68a7c06e-ec27-4fa4-99a5-a5e9702ac4ef&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
   'drift-cup-racing': 'https://games.cdn.famobi.com/html5games/d/drift-cup-racing/v620/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=e8ca54ee-cfbe-417c-b69e-e4f4858a9957&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
   'table-tennis-world-tour': 'https://games.cdn.famobi.com/html5games/t/table-tennis-world-tour/v310/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8c8e5fc6-7e38-47ab-96eb-150276e79ef8&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
-  'archery-world-tour': 'https://html5.gamedistribution.com/rvvASMiM/0ccd52f987014bb49708e6afa2e3a8f7/index.html'
+  'archery-world-tour': 'https://html5.gamedistribution.com/rvvASMiM/0ccd52f987014bb49708e6afa2e3a8f7/index.html',
+  'moto-x3m-pool-party': 'https://motox3munblocked.github.io/5-pool-party/',
+  'stunt-bike-mania': 'https://motox3munblocked.github.io/5-pool-party/'
 };
 
 const RESOLVED_CDN_SOURCES = {
@@ -1086,7 +1088,9 @@ const RESOLVED_CDN_SOURCES = {
   'drift-cup-racing': 'https://games.cdn.famobi.com/html5games/d/drift-cup-racing/v620/',
   'table-tennis-world-tour': 'https://games.cdn.famobi.com/html5games/t/table-tennis-world-tour/v310/',
   'solitaire': 'https://games.cdn.famobi.com/html5games/s/spider-solitaire/v2/',
-  'spider-solitaire': 'https://games.cdn.famobi.com/html5games/s/spider-solitaire/v2/'
+  'spider-solitaire': 'https://games.cdn.famobi.com/html5games/s/spider-solitaire/v2/',
+  'moto-x3m-pool-party': 'https://motox3munblocked.github.io/5-pool-party/',
+  'stunt-bike-mania': 'https://motox3munblocked.github.io/5-pool-party/'
 };
 
 // Internal Voltixz Player Endpoint: Zero external domain leakage
@@ -1330,6 +1334,38 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
       const oldKeys = 'userInput.addKey("steerRight",butEventHandler,null,39),userInput.addKey("steerLeft",butEventHandler,null,37)';
       const newKeys = 'userInput.addKey("steerRight",butEventHandler,null,39),userInput.addKey("steerLeft",butEventHandler,null,37),userInput.addKey("steerRight",butEventHandler,null,68),userInput.addKey("steerLeft",butEventHandler,null,65),userInput.addKey("brake",butEventHandler,null,83),userInput.addKey("brake",butEventHandler,null,40),userInput.addKey("brake",butEventHandler,null,32),userInput.addKey("boost",butEventHandler,null,87),userInput.addKey("boost",butEventHandler,null,38)';
       text = text.replaceAll(oldKeys, newKeys);
+      buffer = Buffer.from(text, 'utf8');
+    }
+    // Auto-patch Moto X3M series (Stunt Bike Mania, Moto X3M, Moto X3M Pool Party) start menu for mobile portrait mode
+    const isMotoGame = slug === 'stunt-bike-mania' || slug === 'moto-x3m' || slug === 'moto-x3m-pool-party' || slug.includes('moto-x3m');
+    if (isMotoGame && assetPath.endsWith('.js')) {
+      let text = buffer.toString('utf8');
+      // Neutralize external app store badges & version text from scene graph
+      text = text.replace(/this\.google_btn\s*=\s*new\s+[a-zA-Z0-9_.]+\([^)]*\)/g, 'this.google_btn=null');
+      text = text.replace(/this\.apple_btn\s*=\s*new\s+[a-zA-Z0-9_.]+\([^)]*\)/g, 'this.apple_btn=null');
+      text = text.replace(/this\.textVersion\s*=\s*new\s+[a-zA-Z0-9_.]+\([^)]*\)/g, 'this.textVersion=null');
+      text = text.replace(/this\.background\.addChild\(this\.google_btn\)/g, 'void 0');
+      text = text.replace(/this\.background\.addChild\(this\.apple_btn\)/g, 'void 0');
+      text = text.replace(/this\.background3\.addChild\(this\.textVersion\)/g, 'void 0');
+
+      if (text.includes('Phaser.BOTTOM_CENTER') && text.includes('this.background.alignIn')) {
+        const patchBlock = `(function(menu) {
+              var isPortrait = (window.innerHeight > window.innerWidth) || (menu.game.height > menu.game.width) || (window.innerWidth < 650);
+              [menu.google_btn, menu.apple_btn, menu.moregames, menu.textVersion, menu.brand_logo].forEach(function(item) {
+                if (item) {
+                  try { item.visible = false; } catch(e) {}
+                  try { item.x = -9999; item.y = -9999; } catch(e) {}
+                  try { if (item.destroy) item.destroy(); } catch(e) {}
+                }
+              });
+              if (isPortrait && menu.btn_play) {
+                menu.btn_play.scale.set(1.4);
+                menu.btn_play.x = menu.game.width / 2;
+                menu.btn_play.y = menu.game.height * 0.58;
+              }
+            })(this);`;
+        text = text.replace('this.background.alignIn(this.google_btn,Phaser.BOTTOM_CENTER,0,-50)', patchBlock);
+      }
       buffer = Buffer.from(text, 'utf8');
     }
     res.send(buffer);
@@ -3956,6 +3992,90 @@ const handleGameFrame = async (req, res) => {
         </script>
       `;
       html = html.replace('</body>', `${pondMobileEnhancer}</body>`);
+    }
+
+    // Moto X3M series (Stunt Bike Mania, Moto X3M, Moto X3M Pool Party) mobile responsiveness, auto-start & container
+    if (req.internalSlug === 'stunt-bike-mania' || req.internalSlug === 'moto-x3m' || req.internalSlug === 'moto-x3m-pool-party' || (req.targetUrl && (req.targetUrl.includes('stunt-bike-mania') || req.targetUrl.includes('moto-x3m') || req.targetUrl.includes('5-pool-party')))) {
+      // Strip extraneous third-party trackers
+      html = html.replace(/<script[^>]*analytics_ubg[^>]*>.*?<\/script>/gi, '');
+      html = html.replace(/<script[^>]*ubg235_client[^>]*>.*?<\/script>/gi, '');
+
+      const stuntMobileEnhancer = `
+        <style>
+          html, body {
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            background: #000 !important;
+            touch-action: manipulation !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+          }
+          #content {
+            width: 100vw !important;
+            height: 100vh !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: #000 !important;
+            overflow: hidden !important;
+          }
+          #content canvas {
+            display: block !important;
+            margin: auto !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+          }
+          #orientation {
+            display: none !important;
+          }
+          #loader {
+            display: none !important;
+          }
+        </style>
+        <script>
+          (function() {
+            function triggerGameStart() {
+              var content = document.getElementById('content');
+              if (content) {
+                try {
+                  var ev = (typeof Event === 'function') ? new Event('SDK_GAME_START') : document.createEvent('Event');
+                  if (typeof Event !== 'function') ev.initEvent('SDK_GAME_START', true, true);
+                  content.dispatchEvent(ev);
+                } catch(e) {}
+              }
+              var loader = document.getElementById('loader');
+              if (loader) {
+                try { loader.style.display = 'none'; loader.remove(); } catch(e) {}
+              }
+            }
+
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', triggerGameStart);
+            } else {
+              triggerGameStart();
+            }
+            window.addEventListener('load', function() {
+              triggerGameStart();
+              setTimeout(triggerGameStart, 300);
+              setTimeout(triggerGameStart, 800);
+              setTimeout(triggerGameStart, 1500);
+            });
+            setInterval(function() {
+              triggerGameStart();
+            }, 1000);
+          })();
+        </script>
+      `;
+      if (html.includes('</body>')) {
+        html = html.replace('</body>', `${stuntMobileEnhancer}</body>`);
+      } else if (html.includes('</html>')) {
+        html = html.replace('</html>', `${stuntMobileEnhancer}</html>`);
+      } else {
+        html += stuntMobileEnhancer;
+      }
     }
 
     // Garden Tile Match (Fruit Ninja) full-screen responsive canvas & centering
