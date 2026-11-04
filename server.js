@@ -3263,7 +3263,7 @@ const handleGameFrame = async (req, res) => {
 
       // 2. Direct tap anywhere on Title, Win, or Level Select to play
       html = html.replace(
-        /function handleClick\(e\)\{[\s\S]*?loadLevel\(i\);return\}\}\}\}/,
+        /function handleClick\(e\)\{[\s\S]*?gameState='levelselect';resetPlayer\(\)\}\}\}/,
         `function handleClick(e){
           initAudio();
           if(gameState==='title'||gameState==='levelselect'||gameState==='win'){
@@ -3271,13 +3271,17 @@ const handleGameFrame = async (req, res) => {
             for(var li=0;li<LEVELS.length;li++){if(savedData.levels[li]&&(savedData.levels[li].completed||savedData.levels[li].unlocked))sl=li;}
             if(gameState==='win'&&currentLevel+1<LEVELS.length) sl=currentLevel+1;
             loadLevel(sl);
+          } else if(gameState==='playing'){
+            var rect=canvas.getBoundingClientRect();
+            var x=e.clientX-rect.left, y=e.clientY-rect.top;
+            if(x>W-60&&y<40){ gameState='levelselect'; resetPlayer(); }
           }
         }`
       );
 
       // 3. Isolated multi-touch on-screen HUD buttons (holding Left/Right while tapping Jump works smoothly)
       html = html.replace(
-        /function pressBtn\(btn,\s*key\)[\s\S]*?pressBtn\(document\.getElementById\('btn-jump'\),\s*'jump'\);/,
+        /\(function\(\)\{\s*function pressBtn\(btn,\s*key\)[\s\S]*?pressBtn\(document\.getElementById\('btn-jump'\),\s*'jump'\);\s*\}\)\(\);/,
         `(function(){
           function setupBtn(btn, key){
             if(!btn) return;
