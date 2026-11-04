@@ -674,6 +674,8 @@ function openGameModeModal(slug) {
     if (slug === 'snake') game = window.gameMap['classic-snake'];
     if (slug === 'classic-snake') game = window.gameMap['snake'];
     if (slug === '2048') game = window.gameMap['2048-galaxy'];
+    if (slug === 'spider-solitaire') game = window.gameMap['solitaire'] || window.gameMap['spider-solitaire'];
+    if (slug === 'solitaire') game = window.gameMap['solitaire'] || window.gameMap['spider-solitaire'];
   }
   if (!game) {
     return launchGameBySlug(slug, true);
@@ -802,6 +804,8 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
     if (slug === 'snake') game = window.gameMap['classic-snake'];
     if (slug === 'classic-snake') game = window.gameMap['snake'];
     if (slug === '2048') game = window.gameMap['2048-galaxy'];
+    if (slug === 'spider-solitaire') game = window.gameMap['solitaire'] || window.gameMap['spider-solitaire'];
+    if (slug === 'solitaire') game = window.gameMap['solitaire'] || window.gameMap['spider-solitaire'];
   }
   if (!game) {
     console.error('Game not found in catalog map:', slug);

@@ -2,16 +2,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
   <defs>
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#181204" />
-      <stop offset="50%" stop-color="#080c18" />
-      <stop offset="100%" stop-color="#854d0e" stop-opacity="0.8" />
+      <stop offset="0%" stop-color="#05101a" />
+      <stop offset="50%" stop-color="#0a192f" />
+      <stop offset="100%" stop-color="#023a3a" />
     </linearGradient>
     <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feGaussianBlur stdDeviation="5" result="blur" />
       <feComposite in="SourceGraphic" in2="blur" operator="over" />
     </filter>
     <filter id="brightGlow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="12" result="blur1" />
+      <feGaussianBlur stdDeviation="10" result="blur1" />
       <feGaussianBlur stdDeviation="3" result="blur2" />
       <feMerge>
         <feMergeNode in="blur1" />
@@ -19,34 +19,63 @@
         <feMergeNode in="SourceGraphic" />
       </feMerge>
     </filter>
-    <radialGradient id="cyanSphere" cx="35%" cy="35%" r="65%">
-      <stop offset="0%" stop-color="#ffffff" />
-      <stop offset="40%" stop-color="#00f0ff" />
-      <stop offset="100%" stop-color="#0369a1" />
-    </radialGradient>
     <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#fef08a" />
       <stop offset="50%" stop-color="#eab308" />
       <stop offset="100%" stop-color="#a16207" />
     </linearGradient>
-    <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
-      <path d="M 20 0 L 0 20 M 0 0 L 20 20" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.04" />
-    </pattern>
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
   </defs>
 
+  <!-- Background -->
   <rect width="300" height="300" fill="url(#bgGrad)" />
-  <rect width="300" height="300" fill="url(#gridPattern)" />
-  <circle cx="150" cy="150" r="120" fill="#eab308" opacity="0.18" filter="url(#brightGlow)" />
+  <circle cx="150" cy="140" r="110" fill="#00f0ff" opacity="0.12" filter="url(#brightGlow)" />
 
+  <!-- Spider Web Ambient Art -->
+  <g stroke="#38bdf8" stroke-opacity="0.25" stroke-width="1.2" fill="none">
+    <path d="M 150 140 L 40 40 M 150 140 L 260 40 M 150 140 L 270 190 M 150 140 L 150 260 M 150 140 L 30 190" />
+    <path d="M 95 90 Q 150 70 205 90 Q 225 140 215 170 Q 150 205 85 170 Q 75 130 95 90 Z" />
+    <path d="M 115 110 Q 150 95 185 110 Q 200 140 190 155 Q 150 180 110 155 Q 100 135 115 110 Z" />
+  </g>
+
+  <!-- Overlapping Cards Group -->
   <g transform="translate(0, 5)">
-    
-      <g filter="url(#glow)">
-        <g transform="rotate(8 150 150)">
-          <rect x="90" y="65" width="125" height="175" rx="16" fill="#ffffff" stroke="#e2e8f0" stroke-width="3" filter="url(#brightGlow)" />
-          <text x="108" y="100" font-family="'Orbitron', sans-serif" font-weight="900" font-size="28" fill="#0f172a">A</text>
-          <path d="M152 125 C 130 152 115 168 152 190 C 189 168 174 152 152 125 Z" fill="#0f172a" filter="url(#brightGlow)" />
-          <path d="M152 185 L 144 205 H 160 Z" fill="#0f172a" />
-        </g>
-      </g>
+    <!-- Back Card (Left, tilted -12 deg) -->
+    <g transform="rotate(-12 110 140)" filter="url(#glow)">
+      <rect x="55" y="65" width="105" height="155" rx="12" fill="#1e293b" stroke="#38bdf8" stroke-width="2.5" />
+      <rect x="62" y="72" width="91" height="141" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1" />
+      <text x="70" y="98" font-family="'Orbitron', sans-serif" font-weight="900" font-size="22" fill="#38bdf8">K</text>
+      <!-- Spade icon small -->
+      <path d="M78 108 C 72 115 68 120 78 126 C 88 120 84 115 78 108 Z" fill="#38bdf8" />
+      <!-- Big Center Crown / Spade -->
+      <path d="M107 125 C 92 144 82 155 107 170 C 132 155 122 144 107 125 Z" fill="#38bdf8" filter="url(#glow)" />
+      <path d="M107 166 L 102 180 H 112 Z" fill="#38bdf8" />
+    </g>
+
+    <!-- Front Card (Right, tilted 8 deg) -->
+    <g transform="rotate(8 175 140)" filter="url(#brightGlow)">
+      <rect x="125" y="55" width="115" height="168" rx="14" fill="#ffffff" stroke="#f1f5f9" stroke-width="3" />
+      <rect x="133" y="63" width="99" height="152" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+      <text x="144" y="92" font-family="'Orbitron', sans-serif" font-weight="900" font-size="26" fill="#0f172a">A</text>
+      <!-- Spade icon small -->
+      <path d="M152 102 C 145 110 140 116 152 123 C 164 116 159 110 152 102 Z" fill="#0f172a" />
+      <!-- Big Center Spade with Spider Crest -->
+      <path d="M182 120 C 160 147 145 163 182 185 C 219 163 204 147 182 120 Z" fill="#0f172a" />
+      <path d="M182 180 L 174 200 H 190 Z" fill="#0f172a" />
+      
+      <!-- Spider Glow Emblem inside Ace -->
+      <circle cx="182" cy="155" r="4.5" fill="#e11d48" filter="url(#glow)" />
+      <circle cx="182" cy="164" r="6.5" fill="#e11d48" filter="url(#glow)" />
+      <path d="M 178 153 Q 168 147 165 155 M 186 153 Q 196 147 199 155 M 177 162 Q 166 165 163 175 M 187 162 Q 198 165 201 175" stroke="#e11d48" stroke-width="1.6" fill="none" />
+    </g>
+  </g>
+
+  <!-- Title Badge Ribbon -->
+  <g transform="translate(150, 260)">
+    <rect x="-95" y="-18" width="190" height="34" rx="17" fill="#0f172a" stroke="#00f0ff" stroke-width="1.8" filter="url(#glow)" />
+    <text x="0" y="4" font-family="'Orbitron', sans-serif" font-weight="900" font-size="13" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">SPIDER SOLITAIRE</text>
   </g>
 </svg>

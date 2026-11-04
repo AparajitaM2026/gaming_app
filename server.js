@@ -1009,7 +1009,8 @@ const INTERNAL_GAME_SOURCES = {
   'word-connections': 'https://games.ottsol.cloud/word-connections/',
   'little-alchemy': 'https://games.ottsol.cloud/little-alchemy/',
   'the-impossible-quiz': 'https://games.ottsol.cloud/impossible-quiz/',
-  'solitaire': 'https://games.ottsol.cloud/solitaire/',
+  'solitaire': 'https://games.cdn.famobi.com/html5games/s/spider-solitaire/v2/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=03206d0d-f8b4-4ccf-bcd0-3be11c651f57&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=241',
+  'spider-solitaire': 'https://games.cdn.famobi.com/html5games/s/spider-solitaire/v2/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=03206d0d-f8b4-4ccf-bcd0-3be11c651f57&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=241',
   'reversi': 'https://games.ottsol.cloud/reversi/',
   'dots-and-boxes': 'https://games.ottsol.cloud/dots-and-boxes/',
   'queens-puzzle': 'https://games.ottsol.cloud/queens/',
@@ -1088,7 +1089,9 @@ const RESOLVED_CDN_SOURCES = {
   'cannon-balls-3d': 'https://games.cdn.famobi.com/html5games/c/cannon-balls-3d/v320/',
   'tower-crash-3d': 'https://games.cdn.famobi.com/html5games/t/tower-crash-3d/v290/',
   'drift-cup-racing': 'https://games.cdn.famobi.com/html5games/d/drift-cup-racing/v620/',
-  'table-tennis-world-tour': 'https://games.cdn.famobi.com/html5games/t/table-tennis-world-tour/v310/'
+  'table-tennis-world-tour': 'https://games.cdn.famobi.com/html5games/t/table-tennis-world-tour/v310/',
+  'solitaire': 'https://games.cdn.famobi.com/html5games/s/spider-solitaire/v2/',
+  'spider-solitaire': 'https://games.cdn.famobi.com/html5games/s/spider-solitaire/v2/'
 };
 
 // Internal Voltixz Player Endpoint: Zero external domain leakage
