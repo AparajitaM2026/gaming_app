@@ -2742,12 +2742,14 @@ const handleGameFrame = async (req, res) => {
           justify-content: center !important;
           align-items: center !important;
         }
-        /* When body has fixed/absolute wrappers (e.g. Katana Fruits, Phaser, Unity, GameMaker), don't flex-squeeze */
+        /* When body has fixed/absolute wrappers (e.g. Katana Fruits, Phaser, Unity, GameMaker, Defold), don't flex-squeeze */
         body:has(> div[style*="position: fixed"]),
         body:has(> div[style*="position:fixed"]),
         body:has(> #unity-container),
         body:has(> #c2canvasdiv),
-        body:has(> .gm4html5_div_class) {
+        body:has(> .gm4html5_div_class),
+        body:has(> .canvas-app-container),
+        body:has(> #app-container) {
           display: block !important;
         }
         div.gm4html5_div_class {
@@ -2859,7 +2861,7 @@ const handleGameFrame = async (req, res) => {
         #game-wrap .hud-box .val {
           font-size: 16px !important;
         }
-        #canvas-container {
+        #game-wrap #canvas-container {
           position: relative !important;
           display: flex !important;
           justify-content: center !important;
@@ -2871,12 +2873,46 @@ const handleGameFrame = async (req, res) => {
           aspect-ratio: 10 / 19 !important;
           flex-shrink: 1 !important;
         }
-        #canvas-container canvas#main {
+        #game-wrap #canvas-container canvas#main {
           width: 100% !important;
           height: 100% !important;
           max-width: 100% !important;
           max-height: 100% !important;
           object-fit: contain !important;
+        }
+        /* Defold Engine Games (Safari Block Pop & Spatial Block Master) Responsive Full Centering */
+        .canvas-app-container,
+        #app-container {
+          width: 100% !important;
+          height: 100% !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          background: #000000 !important;
+        }
+        .canvas-app-container #canvas-container,
+        #app-container #canvas-container {
+          width: 100% !important;
+          height: 100% !important;
+          max-width: 100vw !important;
+          max-height: 100vh !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          position: relative !important;
+          aspect-ratio: unset !important;
+        }
+        .canvas-app-container #canvas,
+        #app-container #canvas {
+          max-width: 100vw !important;
+          max-height: 100vh !important;
+          width: auto !important;
+          height: 100% !important;
+          object-fit: contain !important;
+          margin: auto !important;
         }
         #wrap #header {
           width: 100% !important;
