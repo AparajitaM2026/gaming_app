@@ -1045,7 +1045,7 @@ const INTERNAL_GAME_SOURCES = {
   'stack-smash-3d': 'https://html5.gamedistribution.com/rvvASMiM/a81fd206711b48489fddfa7fd4aab621/index.html',
   'cannon-target-smash': 'https://games.ottsol.cloud/cannon-target-smash/',
   'wipeout-dash-3d': 'https://games.ottsol.cloud/wipeout-dash-3d/',
-  'garden-tile-match': 'https://games.ottsol.cloud/garden-tile-match/',
+  'garden-tile-match': 'https://play.famobi.com/garden-match-3d',
   'bubble-column-match': 'https://games.ottsol.cloud/bubble-column-match/',
   'tnt-demolition': 'https://games.ottsol.cloud/tnt-demolition/',
   'precision-darts-3d': 'https://games.ottsol.cloud/precision-darts-3d/',
