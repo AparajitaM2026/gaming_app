@@ -1065,7 +1065,6 @@ const INTERNAL_GAME_SOURCES = {
   'ludo-hero-ai': 'https://cdn.htmlgames.com/Ludo/index.html?npa=1',
   'cars-arena': 'https://games.cdn.famobi.com/html5games/c/cars-arena/v010/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=bfca421b-0e9a-491b-8840-da277bda1aa4&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=471',
   'penalty-shooters-2': 'https://games.cdn.famobi.com/html5games/p/penalty-shooters-2/v350/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8e8bdb8b-f420-48ed-ad68-dd5721a807c8&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
-  'cut-the-rope-magic': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-magic/v040/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=35c37758-52d5-4802-86a9-d6110c41198b&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
   'om-nom-run': 'https://games.cdn.famobi.com/html5games/o/om-nom-run/v1240/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=abe80572-560a-444d-baf7-2fa4a7b2c02f&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
   'om-nom-bubbles': 'https://games.cdn.famobi.com/html5games/o/om-nom-bubbles/v040/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=04a8baa6-e3ad-43e7-8b35-b274552d5890&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
   'tnt-bomb': 'https://games.cdn.famobi.com/html5games/t/tnt-bomb/v250/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=fa946169-bde2-4b3b-8552-08a85d7ae0e7&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
@@ -1080,7 +1079,6 @@ const RESOLVED_CDN_SOURCES = {
   'stack-smash-3d': 'https://html5.gamedistribution.com/rvvASMiM/a81fd206711b48489fddfa7fd4aab621/',
   'cars-arena': 'https://games.cdn.famobi.com/html5games/c/cars-arena/v010/',
   'penalty-shooters-2': 'https://games.cdn.famobi.com/html5games/p/penalty-shooters-2/v350/',
-  'cut-the-rope-magic': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-magic/v040/',
   'om-nom-run': 'https://games.cdn.famobi.com/html5games/o/om-nom-run/v1240/',
   'om-nom-bubbles': 'https://games.cdn.famobi.com/html5games/o/om-nom-bubbles/v040/',
   'tnt-bomb': 'https://games.cdn.famobi.com/html5games/t/tnt-bomb/v250/',
@@ -4543,7 +4541,7 @@ app.get(/^\/(?:api\/)?StreamingAssets\/(.*)/, async (req, res) => {
   try {
     const referer = req.headers.referer || '';
     const match = referer.match(/url=([^&]+)/);
-    const origUrl = match ? decodeURIComponent(match[1]) : 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-magic/v040/';
+    const origUrl = match ? decodeURIComponent(match[1]) : 'https://games.cdn.famobi.com/html5games/o/om-nom-run/v1240/';
     const subPath = req.params[0] || '';
     const targetUrl = new URL(`StreamingAssets/${subPath}`, origUrl).href;
     const resp = await fetch(targetUrl);

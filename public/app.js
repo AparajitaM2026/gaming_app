@@ -580,7 +580,6 @@ const PORTRAIT_GAMES = new Set([
   'arrow-escape', 'sand-balls', 'fruit-slash', 'katana-fruits', 'slice-master', 'watermelon-merge', 
   'block-stacker', 'cyberpunk-flappy', 'bubble-shooter',
   'cloud-amp-sheep', 'paint-splash',
-  'cut-the-rope-magic',
   'om-nom-run', 'om-nom-bubbles', 'tower-crash-3d',
   'precision-darts-3d', 'rail-surfer-express', 'rope-cutter-deluxe',
   'spatial-block-master', 'safari-block-pop'
@@ -890,7 +889,7 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
 
   } else if (slug === 'stunt-bike-mania') {
     playUrl = '/play/stunt-bike-mania';
-  } else if (slug === 'cut-the-rope-magic' || slug === 'om-nom-run' || slug === 'om-nom-bubbles' || slug === 'drift-cup-racing' || slug === 'table-tennis-world-tour' || slug === 'cannon-balls-3d' || slug === 'tower-crash-3d' || slug === 'tnt-bomb' || slug === 'archery-world-tour') {
+  } else if (slug === 'om-nom-run' || slug === 'om-nom-bubbles' || slug === 'drift-cup-racing' || slug === 'table-tennis-world-tour' || slug === 'cannon-balls-3d' || slug === 'tower-crash-3d' || slug === 'tnt-bomb' || slug === 'archery-world-tour') {
     playUrl = `/play/${slug}`;
   } else if (playUrl && (playUrl.startsWith('/play/') || playUrl.startsWith('/games/'))) {
     playUrl = playUrl;
@@ -1179,17 +1178,6 @@ const GAME_HOW_TO_PLAY = {
 3. Score more penalties than your opponent in 5 rounds (or sudden death) to advance!`,
     tips: `• Aim high into the top corner nets for unstoppably fast strikes.
 • Wait until the striker begins their kicking run-up before diving as goalkeeper.`
-  },
-  'cut-the-rope-magic': {
-    title: 'Cut the Rope: Magic',
-    category: 'Physics Puzzle',
-    objective: 'Transform Om Nom into magical shapes to bypass wizard traps and retrieve the candy!',
-    controls: '🖱️ Swipe to cut ropes | 👆 Tap Om Nom to transform into bird, baby, fish, or mouse!',
-    rules: `1. Slice ropes strategically to collect stars.
-2. Tap the magic transformation button to morph Om Nom into different creatures with unique powers!
-3. Bird form lets Om Nom fly; Fish form lets him dive underwater; Mouse form makes him scurry after cheese!`,
-    tips: `• Switch between forms dynamically mid-air to solve complex multi-phase puzzles.
-• Use mouse form to pull candy through tight crevices.`
   },
   'om-nom-run': {
     title: 'Om Nom Run 3D',
