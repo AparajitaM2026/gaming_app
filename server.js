@@ -9,10 +9,12 @@ const bcrypt = require('bcryptjs');
 let cachedPatchedPong = '';
 let cachedPatchedTrex = '';
 let cachedPatchedBubble = '';
+let cachedPatchedMinesweeper = '';
 try {
   cachedPatchedPong = fs.readFileSync(path.join(__dirname, 'public', 'games', 'patches', 'pong_game.js'), 'utf8');
   cachedPatchedTrex = fs.readFileSync(path.join(__dirname, 'public', 'games', 'patches', 'trex_game.js'), 'utf8');
   cachedPatchedBubble = fs.readFileSync(path.join(__dirname, 'public', 'games', 'patches', 'bubble_shooter_game.js'), 'utf8');
+  cachedPatchedMinesweeper = fs.readFileSync(path.join(__dirname, 'public', 'games', 'patches', 'minesweeper_game.js'), 'utf8');
 } catch (e) {
   console.error('Error preloading game patches:', e);
 }
@@ -1002,7 +1004,7 @@ const INTERNAL_GAME_SOURCES = {
   'classic-sudoku': 'https://games.ottsol.cloud/sudoku/',
   'crossword-puzzle': 'https://games.ottsol.cloud/crossword/',
   'nonogram-puzzle': 'https://games.ottsol.cloud/nonogram/',
-  'classic-minesweeper': 'https://games.ottsol.cloud/minesweeper/',
+  'classic-minesweeper': 'https://gamezipper.com/minesweeper/?utm_source=embed',
   'jigsaw-puzzle': 'https://games.ottsol.cloud/jigsaw-puzzle/',
   'unblock-me': 'https://games.ottsol.cloud/unblock-me/',
   'flow-connect': 'https://games.ottsol.cloud/flow-connect/',
@@ -1090,7 +1092,8 @@ const RESOLVED_CDN_SOURCES = {
   'solitaire': 'https://games.cdn.famobi.com/html5games/s/spider-solitaire/v2/',
   'spider-solitaire': 'https://games.cdn.famobi.com/html5games/s/spider-solitaire/v2/',
   'moto-x3m-pool-party': 'https://motox3munblocked.github.io/5-pool-party/',
-  'stunt-bike-mania': 'https://motox3munblocked.github.io/5-pool-party/'
+  'stunt-bike-mania': 'https://motox3munblocked.github.io/5-pool-party/',
+  'classic-minesweeper': 'https://gamezipper.com/minesweeper/'
 };
 
 // Internal Voltixz Player Endpoint: Zero external domain leakage
@@ -3513,6 +3516,17 @@ const handleGameFrame = async (req, res) => {
     // Inlined patched script for Bubble Shooter (fixes collision detection, grid snapping, and aim pointer)
     if ((finalUrl.includes('bubble-shooter') || targetUrl.includes('bubble-shooter')) && cachedPatchedBubble) {
       html = html.replace(/<script>[\s\S]*?const canvas\s*=\s*document\.getElementById\('gameCanvas'\);[\s\S]*?<\/script>/i, `<script>${cachedPatchedBubble}</script>`);
+    }
+
+    // Inlined patched script for Classic Minesweeper (guarantees board initialization & draws tiles)
+    if ((finalUrl.includes('minesweeper') || targetUrl.includes('minesweeper')) && cachedPatchedMinesweeper) {
+      if (html.includes('game.js')) {
+        html = html.replace(/<script\b[^>]*src=["'][^"']*game\.js[^"']*["'][^>]*><\/script>/i, `<script>${cachedPatchedMinesweeper}</script>`);
+      } else if (html.includes('</body>')) {
+        html = html.replace('</body>', `<script>${cachedPatchedMinesweeper}</script></body>`);
+      } else {
+        html += `<script>${cachedPatchedMinesweeper}</script>`;
+      }
     }
 
     // Fix Watermelon Merge: ensure touching fruits of the same level merge reliably and clean UI

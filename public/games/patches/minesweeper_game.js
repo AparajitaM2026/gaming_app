@@ -1,0 +1,772 @@
+/**
+ * Minesweeper Game Logic
+ * Pure JavaScript, Web Audio API, no external dependencies
+ */
+
+'use strict';
+
+// ── Difficulty configs ──────────────────────────────────────────────
+const DIFFICULTIES = {
+  beginner: { rows: 9, cols: 9, mines: 10 },
+  intermediate: { rows: 16, cols: 16, mines: 40 },
+  expert: { rows: 16, cols: 30, mines: 99 }
+};
+
+// ── State ────────────────────────────────────────────────────────────
+let board = [];
+let gameState = 'idle';   // idle | playing | won | lost
+let difficulty = 'beginner';
+let timerInterval = null;
+let elapsedSeconds = 0;
+let firstClick = true;
+let cursorX = 0, cursorY = 0;
+let cellSize = 32;
+let boardPixelW = 0, boardPixelH = 0;
+let particles = [];
+
+// ── Persistence (best time per difficulty) ───────────────────────────
+const SAVE_KEY = 'gz_minesweeper_v1';
+let bestTimes = { beginner: 0, intermediate: 0, expert: 0 };
+let bestWins = { beginner: 0, intermediate: 0, expert: 0 };
+let totalWins = 0;
+function loadSave() {
+  try {
+    const d = JSON.parse(localStorage.getItem(SAVE_KEY) || '{}');
+    ['beginner', 'intermediate', 'expert'].forEach(function(name) {
+      var time = Number(d.bt && d.bt[name]);
+      var wins = Number(d.bw && d.bw[name]);
+      bestTimes[name] = Number.isInteger(time) && time > 0 && time <= 999 ? time : 0;
+      bestWins[name] = Number.isSafeInteger(wins) && wins >= 0 ? wins : 0;
+    });
+    var savedTotal = Number(d.tw);
+    totalWins = Number.isSafeInteger(savedTotal) && savedTotal >= 0 ? savedTotal : 0;
+  } catch (e) {}
+}
+function writeSave() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify({ bt: bestTimes, bw: bestWins, tw: totalWins })); } catch (e) {}
+}
+function renderBestTimes() {
+  ['beginner', 'intermediate', 'expert'].forEach(function (d) {
+    var el = document.getElementById('ms-best-' + d);
+    if (!el) return;
+    var bt = bestTimes[d] | 0;
+    var bw = bestWins[d] | 0;
+    if (bt > 0) {
+      el.textContent = 'Best ' + bt + 's · ' + bw + ' win' + (bw === 1 ? '' : 's');
+    } else {
+      el.textContent = '—';
+    }
+  });
+}
+
+// ── DOM refs (initialized after DOMContentLoaded) ──────────────────
+let canvas, ctx;
+
+// ── Audio ───────────────────────────────────────────────────────────
+let audioCtx = null;
+
+function ensureAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  }
+}
+
+function playClick() {
+  try {
+    ensureAudio();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.frequency.setValueAtTime(600, audioCtx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.08);
+    g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+    o.start(); o.stop(audioCtx.currentTime + 0.12);
+  } catch(e) {}
+}
+
+function playExplosion() {
+  try {
+    ensureAudio();
+    const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.4, audioCtx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 1.5);
+    }
+    const src = audioCtx.createBufferSource();
+    const g = audioCtx.createGain();
+    src.buffer = buf;
+    src.connect(g); g.connect(audioCtx.destination);
+    g.gain.setValueAtTime(0.5, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+    src.start();
+  } catch(e) {}
+}
+
+function playWin() {
+  try {
+    ensureAudio();
+    const notes = [523, 659, 784, 1047];
+    notes.forEach(function(freq, i) {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.connect(g); g.connect(audioCtx.destination);
+      o.frequency.value = freq;
+      const t = audioCtx.currentTime + i * 0.12;
+      g.gain.setValueAtTime(0.0, t);
+      g.gain.linearRampToValueAtTime(0.2, t + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      o.start(t); o.stop(t + 0.35);
+    });
+  } catch(e) {}
+}
+
+// ── Board initialization ────────────────────────────────────────────
+function createBoard(rows, cols) {
+  const b = [];
+  for (let r = 0; r < rows; r++) {
+    b[r] = [];
+    for (let c = 0; c < cols; c++) {
+      b[r][c] = { revealed: false, flagged: false, mine: false, adjacent: 0 };
+    }
+  }
+  return b;
+}
+
+function placeMines(excludeRow, excludeCol) {
+  const cfg = DIFFICULTIES[difficulty];
+  let placed = 0;
+  while (placed < cfg.mines) {
+    const r = Math.floor(Math.random() * cfg.rows);
+    const c = Math.floor(Math.random() * cfg.cols);
+    if (Math.abs(r - excludeRow) <= 1 && Math.abs(c - excludeCol) <= 1) continue;
+    if (!board[r][c].mine) {
+      board[r][c].mine = true;
+      placed++;
+    }
+  }
+  for (let r = 0; r < cfg.rows; r++) {
+    for (let c = 0; c < cfg.cols; c++) {
+      if (board[r][c].mine) continue;
+      let count = 0;
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          if (dr === 0 && dc === 0) continue;
+          const nr = r + dr, nc = c + dc;
+          if (nr >= 0 && nr < cfg.rows && nc >= 0 && nc < cfg.cols && board[nr][nc].mine) count++;
+        }
+      }
+      board[r][c].adjacent = count;
+    }
+  }
+}
+
+function floodReveal(r, c) {
+  const cfg = DIFFICULTIES[difficulty];
+  const stack = [[r, c]];
+  const visited = {};
+  visited[r + ',' + c] = true;
+  while (stack.length) {
+    const item = stack.pop();
+    const cr = item[0], cc = item[1];
+    if (board[cr][cc].revealed) continue;
+    board[cr][cc].revealed = true;
+    if (board[cr][cc].adjacent === 0) {
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          if (dr === 0 && dc === 0) continue;
+          const nr = cr + dr, nc = cc + dc;
+          const key = nr + ',' + nc;
+          if (nr >= 0 && nr < cfg.rows && nc >= 0 && nc < cfg.cols && !visited[key]) {
+            visited[key] = true;
+            if (!board[nr][nc].mine && !board[nr][nc].flagged) {
+              stack.push([nr, nc]);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// ── Timer ───────────────────────────────────────────────────────────
+function startTimer() {
+  stopTimer();
+  elapsedSeconds = 0;
+  updateTimerDisplay();
+  timerInterval = setInterval(function() {
+    elapsedSeconds++;
+    if (elapsedSeconds >= 999) {
+      elapsedSeconds = 999;
+      stopTimer();
+    }
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+function updateTimerDisplay() {
+  const el = document.getElementById('ms-timer');
+  if (el) el.textContent = String(elapsedSeconds).padStart(3, '0');
+}
+
+function updateMinesDisplay() {
+  const cfg = DIFFICULTIES[difficulty];
+  let flagged = 0;
+  for (let r = 0; r < cfg.rows; r++) {
+    for (let c = 0; c < cfg.cols; c++) {
+      if (board[r][c].flagged) flagged++;
+    }
+  }
+  const remaining = cfg.mines - flagged;
+  const el = document.getElementById('ms-mines');
+  if (el) {
+    el.textContent = String(Math.max(-99, Math.min(99, remaining))).padStart(3, '0').replace('-', '\u2212');
+  }
+}
+
+// ── Game actions ────────────────────────────────────────────────────
+function newGame(diff) {
+  difficulty = diff;
+  const cfg = DIFFICULTIES[difficulty];
+  board = createBoard(cfg.rows, cfg.cols);
+  gameState = 'idle';
+  firstClick = true;
+  stopTimer();
+  elapsedSeconds = 0;
+  particles = [];
+  updateTimerDisplay();
+  updateMinesDisplay();
+  cursorX = Math.floor(cfg.cols / 2);
+  cursorY = Math.floor(cfg.rows / 2);
+  resizeCanvas();
+  draw();
+}
+
+function handleCellClick(r, c) {
+  if (gameState === 'won' || gameState === 'lost') return;
+  if (board[r][c].revealed || board[r][c].flagged) return;
+
+  // R377: move the cursor highlight to the clicked cell so the user sees immediate visual feedback that the click was registered (timer stays at 000 for the first second otherwise)
+  cursorX = c;
+  cursorY = r;
+
+  if (firstClick) {
+    firstClick = false;
+    placeMines(r, c);
+    gameState = 'playing';
+    startTimer();
+  }
+
+  if (board[r][c].mine) {
+    board[r][c].revealed = true;
+    revealAllMines();
+    gameState = 'lost';
+    stopTimer();
+    playExplosion();
+    draw();
+    spawnExplosionParticles(r, c);
+    showGameOverOverlay(false);
+    return;
+  }
+
+  playClick();
+  floodReveal(r, c);
+  updateMinesDisplay();
+  draw();
+  checkWin();
+}
+
+function toggleFlag(r, c) {
+  if (gameState === 'won' || gameState === 'lost') return;
+  if (board[r][c].revealed) return;
+  // Flags are allowed before the first reveal. Starting here would leave the
+  // board mine-free and make the run impossible to win.
+  board[r][c].flagged = !board[r][c].flagged;
+  playClick();
+  updateMinesDisplay();
+  draw();
+}
+
+function revealAllMines() {
+  const cfg = DIFFICULTIES[difficulty];
+  for (let r = 0; r < cfg.rows; r++) {
+    for (let c = 0; c < cfg.cols; c++) {
+      if (board[r][c].mine) board[r][c].revealed = true;
+    }
+  }
+}
+
+function checkWin() {
+  const cfg = DIFFICULTIES[difficulty];
+  const totalCells = cfg.rows * cfg.cols;
+  let revealedCount = 0;
+  for (let r = 0; r < cfg.rows; r++) {
+    for (let c = 0; c < cfg.cols; c++) {
+      if (board[r][c].revealed) revealedCount++;
+    }
+  }
+  if (revealedCount === totalCells - cfg.mines) {
+    gameState = 'won';
+    stopTimer();
+    playWin();
+    draw();
+    // Persist best time + win count
+    if (bestTimes[difficulty] === 0 || elapsedSeconds < bestTimes[difficulty]) {
+      bestTimes[difficulty] = elapsedSeconds;
+    }
+    bestWins[difficulty] = (bestWins[difficulty] | 0) + 1;
+    totalWins++;
+    writeSave();
+    renderBestTimes();
+    showGameOverOverlay(true);
+  }
+}
+
+function showGameOverOverlay(won) {
+  const overlay = document.getElementById('game-over-overlay');
+  const title = document.getElementById('go-title');
+  const subtitle = document.getElementById('go-subtitle');
+  if (!overlay) return;
+
+  if (won) {
+    title.textContent = '🎉 YOU WIN!';
+    title.style.color = '#00ff88';
+    subtitle.textContent = 'Time: ' + elapsedSeconds + 's';
+  } else {
+    title.textContent = '💥 GAME OVER';
+    title.style.color = '#ff4444';
+    subtitle.textContent = 'Time: ' + elapsedSeconds + 's';
+  }
+  overlay.style.display = 'flex';
+  window.finalScore = elapsedSeconds;
+  window.dispatchEvent(new CustomEvent('gameover', { detail: { game: 'minesweeper', won: won } }));
+}
+
+function hideGameOverOverlay() {
+  const overlay = document.getElementById('game-over-overlay');
+  if (overlay) overlay.style.display = 'none';
+  window.finalScore = undefined;
+}
+
+function getCurrentDifficulty() {
+  return difficulty;
+}
+
+// ── Canvas sizing ───────────────────────────────────────────────────
+function resizeCanvas() {
+  canvas = document.getElementById('ms-canvas');
+  if (!canvas) return;
+  ctx = canvas.getContext('2d');
+
+  const dpr = window.devicePixelRatio || 1;
+  const cfg = DIFFICULTIES[difficulty];
+  const navH = 28;
+  // FIX R970-P1: /game-footer.js injects #game-footer as position:fixed;bottom:0;z-index:40
+  // (~41px tall) on top of the play area. R377 sized the canvas to fill the whole viewport
+  // height, so the bottom board row sat UNDER the footer and every click there hit the
+  // footer's "More Puzzle" anchor instead of the canvas -> dead_click/rage_click (BI 7d:
+  // 54 rage + 492 perf on /minesweeper/). Reserve a FIXED budget for it -- the footer is
+  // lazy-injected, so measuring offsetHeight here would read 0 on the first call and
+  // reserve nothing (same trap as the UI-reservation anti-pattern).
+  const FOOTER_RESERVE = 56;
+  // Measure the real wrap offset instead of the hardcoded 140px guess: the header + HUD +
+  // difficulty row render ~190px tall, so the old constant under-reserved by ~50px.
+  // Defensive: headless VM verifiers stub `canvas` without getBoundingClientRect.
+  let wrapTop = 140;
+  try {
+    if (canvas && typeof canvas.getBoundingClientRect === 'function') {
+      wrapTop = Math.ceil(canvas.getBoundingClientRect().top + window.scrollY) || 140;
+    }
+  } catch (e) { /* keep 140 */ }
+  const availW = window.innerWidth - 8;
+  const availH = Math.max(180, window.innerHeight - wrapTop - navH - FOOTER_RESERVE - 12);
+
+  cellSize = Math.max(20, Math.min(64, Math.floor(Math.min(availW / cfg.cols, availH / cfg.rows)))); // R377: cap raised 36→64 so canvas fills the screen on desktop instead of being a tiny 324x324 widget; avoids rage-clicks caused by users missing the small target
+  // Hard guarantee: never let the board grow past the space we reserved, or the bottom row
+  // slides under the fixed footer again on short viewports (the 20px floor above can do this).
+  if (cellSize * cfg.rows > availH) cellSize = Math.max(8, Math.floor(availH / cfg.rows));
+  boardPixelW = cfg.cols * cellSize;
+  boardPixelH = cfg.rows * cellSize;
+
+  canvas.width = boardPixelW * dpr;
+  canvas.height = boardPixelH * dpr;
+  canvas.style.width = boardPixelW + 'px';
+  canvas.style.height = boardPixelH + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+// ── Drawing ─────────────────────────────────────────────────────────
+const NUM_COLORS = ['', '#3498db', '#2ecc71', '#e74c3c', '#2c3e7a', '#8b4513', '#00bcd4', '#111', '#888'];
+
+function draw() {
+  if (!ctx) return;
+  const cfg = DIFFICULTIES[difficulty];
+
+  ctx.clearRect(0, 0, boardPixelW, boardPixelH);
+
+  for (let r = 0; r < cfg.rows; r++) {
+    for (let c = 0; c < cfg.cols; c++) {
+      drawCell(r, c);
+    }
+  }
+
+  drawCursor();
+  updateParticles();
+  drawParticles();
+}
+
+function drawCell(r, c) {
+  const x = c * cellSize, y = r * cellSize;
+  const cell = board[r][c];
+  const cs = cellSize;
+
+  if (cell.revealed) {
+    ctx.fillStyle = '#1a2a3a';
+    ctx.fillRect(x, y, cs, cs);
+
+    if (cell.mine) {
+      ctx.fillStyle = '#e74c3c';
+      ctx.beginPath();
+      ctx.arc(x + cs / 2, y + cs / 2, cs * 0.32, 0, Math.PI * 2);
+      ctx.fill();
+      // Spikes
+      ctx.strokeStyle = '#c0392b';
+      ctx.lineWidth = Math.max(1.5, cs * 0.08);
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(x + cs / 2 + Math.cos(angle) * cs * 0.18, y + cs / 2 + Math.sin(angle) * cs * 0.18);
+        ctx.lineTo(x + cs / 2 + Math.cos(angle) * cs * 0.4, y + cs / 2 + Math.sin(angle) * cs * 0.4);
+        ctx.stroke();
+      }
+      ctx.fillStyle = '#2c3e50';
+      ctx.beginPath();
+      ctx.arc(x + cs / 2, y + cs / 2, cs * 0.1, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (cell.adjacent > 0) {
+      ctx.fillStyle = NUM_COLORS[cell.adjacent] || '#fff';
+      ctx.font = 'bold ' + Math.floor(cs * 0.62) + 'px Arial, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(cell.adjacent, x + cs / 2, y + cs / 2 + 1);
+    }
+  } else {
+    // 3D raised effect
+    ctx.fillStyle = '#2e4155';
+    ctx.fillRect(x, y, cs, cs);
+    ctx.fillStyle = '#3d5266';
+    ctx.fillRect(x, y, cs, 2);
+    ctx.fillRect(x, y, 2, cs);
+    ctx.fillStyle = '#1a2a3a';
+    ctx.fillRect(x + cs - 2, y, 2, cs);
+    ctx.fillRect(x, y + cs - 2, cs, 2);
+    ctx.fillStyle = '#4a6075';
+    ctx.fillRect(x + 2, y + 2, cs - 4, 1);
+    ctx.fillRect(x + 2, y + 2, 1, cs - 4);
+
+    if (cell.flagged) {
+      const fx = x + cs / 2, fy = y + cs / 2;
+      ctx.strokeStyle = '#e74c3c';
+      ctx.lineWidth = Math.max(1.5, cs * 0.09);
+      ctx.beginPath();
+      ctx.moveTo(fx, fy + cs * 0.28);
+      ctx.lineTo(fx, fy - cs * 0.28);
+      ctx.stroke();
+      ctx.fillStyle = '#e74c3c';
+      ctx.beginPath();
+      ctx.moveTo(fx, fy - cs * 0.28);
+      ctx.lineTo(fx + cs * 0.22, fy - cs * 0.14);
+      ctx.lineTo(fx, fy);
+      ctx.fill();
+    }
+  }
+
+  // Grid
+  ctx.strokeStyle = '#1a2a3a';
+  ctx.lineWidth = 0.5;
+  ctx.strokeRect(x, y, cs, cs);
+}
+
+function drawCursor() {
+  const cfg = DIFFICULTIES[difficulty];
+  if (cursorX < 0) cursorX = 0;
+  if (cursorX >= cfg.cols) cursorX = cfg.cols - 1;
+  if (cursorY < 0) cursorY = 0;
+  if (cursorY >= cfg.rows) cursorY = cfg.rows - 1;
+  const x = cursorX * cellSize, y = cursorY * cellSize;
+  ctx.strokeStyle = '#00ff88';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x + 1.5, y + 1.5, cellSize - 3, cellSize - 3);
+}
+
+// ── Particles ───────────────────────────────────────────────────────
+function spawnExplosionParticles(r, c) {
+  const cx = c * cellSize + cellSize / 2;
+  const cy = r * cellSize + cellSize / 2;
+  for (let i = 0; i < 24; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 2 + Math.random() * 7;
+    particles.push({
+      x: cx, y: cy,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 1.0,
+      color: ['#e74c3c', '#f39c12', '#fff'][Math.floor(Math.random() * 3)],
+      size: 2 + Math.random() * 4
+    });
+  }
+}
+
+function updateParticles() {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.15;
+    p.life -= 0.03;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function drawParticles() {
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ── Touch handling ──────────────────────────────────────────────────
+let touchHoldTimer = null;
+let touchStartCell = null;
+const LONG_PRESS_MS = 400;
+
+function getCellFromEvent(e) {
+  if (!canvas) return null;
+  const rect = canvas.getBoundingClientRect();
+  // canvas.width is device-pixel sized. Board coordinates must stay in CSS
+  // pixels so touch input maps correctly on high-DPR and constrained screens.
+  const scaleX = boardPixelW / rect.width;
+  const scaleY = boardPixelH / rect.height;
+  let clientX, clientY;
+  if (e.touches && e.touches.length > 0) {
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  } else if (e.changedTouches && e.changedTouches.length > 0) {
+    clientX = e.changedTouches[0].clientX;
+    clientY = e.changedTouches[0].clientY;
+  } else {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }
+  const x = (clientX - rect.left) * scaleX;
+  const y = (clientY - rect.top) * scaleY;
+  const cfg = DIFFICULTIES[difficulty];
+  const c = Math.floor(x / cellSize);
+  const r = Math.floor(y / cellSize);
+  if (r >= 0 && r < cfg.rows && c >= 0 && c < cfg.cols) return { r: r, c: c };
+  return null;
+}
+
+function setupTouchHandlers() {
+  canvas.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    const cell = getCellFromEvent(e);
+    if (!cell) return;
+    touchStartCell = cell;
+    touchHoldTimer = setTimeout(function() {
+      toggleFlag(cell.r, cell.c);
+      touchStartCell = null;
+      touchHoldTimer = null;
+    }, LONG_PRESS_MS);
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', function(e) {
+    e.preventDefault();
+    if (touchHoldTimer) { clearTimeout(touchHoldTimer); touchHoldTimer = null; }
+    if (!touchStartCell) return;
+    const cell = getCellFromEvent(e);
+    if (cell && cell.r === touchStartCell.r && cell.c === touchStartCell.c) {
+      handleCellClick(cell.r, cell.c);
+    }
+    touchStartCell = null;
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', function(e) {
+    if (touchHoldTimer) { clearTimeout(touchHoldTimer); touchHoldTimer = null; }
+  }, { passive: true });
+
+  canvas.addEventListener('click', function(e) {
+    const cell = getCellFromEvent(e);
+    if (cell) handleCellClick(cell.r, cell.c);
+  });
+
+  canvas.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    const cell = getCellFromEvent(e);
+    if (cell) toggleFlag(cell.r, cell.c);
+  });
+}
+
+// ── Keyboard handling ───────────────────────────────────────────────
+function setupKeyboard() {
+  document.addEventListener('keydown', function(e) {
+    const cfg = DIFFICULTIES[difficulty];
+    switch (e.key) {
+      case 'ArrowUp':
+      case 'w':
+      case 'W':
+        e.preventDefault();
+        cursorY = Math.max(0, cursorY - 1);
+        draw();
+        break;
+      case 'ArrowDown':
+      case 's':
+      case 'S':
+        e.preventDefault();
+        cursorY = Math.min(cfg.rows - 1, cursorY + 1);
+        draw();
+        break;
+      case 'ArrowLeft':
+      case 'a':
+      case 'A':
+        e.preventDefault();
+        cursorX = Math.max(0, cursorX - 1);
+        draw();
+        break;
+      case 'ArrowRight':
+      case 'd':
+      case 'D':
+        e.preventDefault();
+        cursorX = Math.min(cfg.cols - 1, cursorX + 1);
+        draw();
+        break;
+      case ' ':
+      case 'Enter':
+        e.preventDefault();
+        handleCellClick(cursorY, cursorX);
+        break;
+      case 'f':
+      case 'F':
+        e.preventDefault();
+        if (gameState === 'idle') {
+          gameState = 'playing';
+          firstClick = false;
+          startTimer();
+        }
+        toggleFlag(cursorY, cursorX);
+        break;
+      case 'r':
+      case 'R':
+        e.preventDefault();
+        hideGameOverOverlay();
+        newGame(difficulty);
+        break;
+    }
+  });
+}
+
+// ── Animation loop ─────────────────────────────────────────────────
+let animFrameId = null;
+let animationRunning = false;
+
+function animLoop() {
+  if (!animationRunning) return;
+  if (particles.length > 0) {
+    draw();
+  }
+  animFrameId = requestAnimationFrame(animLoop);
+}
+
+function startAnimation() {
+  if (animationRunning) return;
+  animationRunning = true;
+  animFrameId = requestAnimationFrame(animLoop);
+}
+
+function stopAnimation() {
+  animationRunning = false;
+  if (animFrameId) {
+    cancelAnimationFrame(animFrameId);
+    animFrameId = null;
+  }
+}
+
+// ── Global API ─────────────────────────────────────────────────────
+window.msNewGame = newGame;
+window.msGetDifficulty = getCurrentDifficulty;
+
+// ── Init ────────────────────────────────────────────────────────────
+function init() { window.__ms_inited = true;
+  loadSave();
+  canvas = document.getElementById('ms-canvas');
+  if (!canvas) return;
+  ctx = canvas.getContext('2d');
+
+  renderBestTimes();
+  newGame('beginner');
+  setupTouchHandlers();
+  setupKeyboard();
+  startAnimation();
+
+  // Difficulty buttons — R377: ignore clicks during active gameplay so rage-clicks around the canvas do not reset the board mid-game
+  var diffBtns = document.querySelectorAll('.ms-diff-btn[data-diff]');
+  for (var i = 0; i < diffBtns.length; i++) {
+    diffBtns[i].addEventListener('click', (function(btn) {
+      return function() {
+        // Only allow difficulty change when idle or game-over; mid-game clicks are ignored
+        if (gameState === 'playing' && !firstClick) {
+          if (typeof window.gzToast === 'function') window.gzToast('Finish or restart to change difficulty');
+          return;
+        }
+        var diff = btn.dataset.diff;
+        hideGameOverOverlay();
+        newGame(diff);
+        document.querySelectorAll('.ms-diff-btn').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+      };
+    })(diffBtns[i]));
+  }
+
+  // Restart button (the 🔄 button)
+  var restartBtn = document.getElementById('ms-restart-btn');
+  if (restartBtn) {
+    restartBtn.addEventListener('click', function() {
+      hideGameOverOverlay();
+      newGame(getCurrentDifficulty());
+    });
+  }
+
+  // Resize
+  window.addEventListener('resize', function() { resizeCanvas(); draw(); });
+
+  // Focus canvas for keyboard
+  canvas.setAttribute('tabindex', '0');
+  canvas.style.outline = 'none';
+  canvas.focus();
+
+  // Refocus canvas after interactions
+  document.addEventListener('click', function(e) {
+    if (e.target !== canvas && (!canvas || !canvas.contains(e.target)) && e.target.tagName !== 'BUTTON') {
+      setTimeout(function() { if (canvas) canvas.focus(); }, 50);
+    }
+  });
+
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) stopAnimation();
+    else startAnimation();
+  });
+  window.addEventListener('beforeunload', function() {
+    stopTimer();
+    stopAnimation();
+  });
+}
+
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
+window.addEventListener('load', function() { if (!window.__ms_inited) { try { init(); } catch(e){} } });
