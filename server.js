@@ -3092,15 +3092,14 @@ const handleGameFrame = async (req, res) => {
     html = html.replace(/<div[^>]*class=["']gz-related-games["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<div[^>]*class=["']gz-seo-section["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<div[^>]*class=["']gz-seo-content["'][\s\S]*?<\/div>/gi, '');
-    html = html.replace(/<!--\s*Extra SEO Content[\s\S]*?(?=<\/body>|$)/gi, '');
-    html = html.replace(/<!--\s*SEO Content Section[\s\S]*?(?=<\/body>|$)/gi, '');
-    html = html.replace(/<div[^>]*itemtype=["'][^"']*FAQPage["'][\s\S]*?(?=<\/body>|$)/gi, '');
-    html = html.replace(/<div[^>]*style=["'][^"']*margin:\s*0\s*auto;padding:\s*16px\s*20px\s*32px[\s\S]*?(?=<\/body>|$)/gi, '');
+    html = html.replace(/<!--\s*Extra SEO Content[\s\S]*?-->/gi, '');
+    html = html.replace(/<!--\s*SEO Content Section[\s\S]*?-->/gi, '');
+    html = html.replace(/<div[^>]*itemtype=["'][^"']*FAQPage["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<section[^>]*class=["'][^"']*(?:gz-seo|gz-related|faq|game-info)[^"']*["'][\s\S]*?<\/section>/gi, '');
     html = html.replace(/<div[^>]*id=["']share-btn-overlay["'][\s\S]*?<\/div>/gi, '');
-    html = html.replace(/<div[^>]*id=["']how-to-play["'][\s\S]*?(?=<script\b[^>]*src=["'][^"']*game\.js)/gi, '');
     html = html.replace(/<div[^>]*id=["']how-to-play["'][\s\S]*?<\/div>/gi, '');
-    html = html.replace(/<!--\s*More Games[\s\S]*?(?=<\/body>|$)/gi, '');
+    html = html.replace(/<!--\s*More Games[\s\S]*?-->/gi, '');
+    html = html.replace(/<section[^>]*class=["'][^"']*more-games[^"']*["'][\s\S]*?<\/section>/gi, '');
     html = html.replace(/<div[^>]*class=["'][^"']*gz-tips-guides[^"']*["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<div[^>]*id=["']controls-hint["'][\s\S]*?<\/div>/gi, '');
     html = html.replace(/<a[^>]*class=["']fix-top["'][\s\S]*?<\/a>/gi, '');
@@ -3120,6 +3119,14 @@ const handleGameFrame = async (req, res) => {
       'const wBtnGap = 6; const wBtnW = Math.min(84, Math.floor((cardW - 32 - (totalBtns - 1) * wBtnGap) / totalBtns)); const wBtnH = 38;'
     );
     html = html.replace(/const wBy = cardY \+ \(streakCount >= 2 \|\| milestone \? 210 : 193\);/g, 'const wBy = cardY + cardH - 54;');
+
+    // Fix Memory Master flipped card emoji/number white-on-white bug
+    if (finalUrl.includes('memory-match') || req.internalSlug === 'memory-master') {
+      html = html.replace("ctx.fillText(c.emoji,cx2,cy2);", "ctx.fillStyle='#1a0a0a';ctx.fillText(c.emoji,cx2,cy2);");
+    }
+
+    // Strip external instructions/SEO cards that overlay game canvas (e.g. Tetris / OTT Sol games)
+    html = html.replace(/<div[^>]*style=["'][^"']*background:\s*#fff[^"']*border:\s*1px\s*solid\s*#e2e8f0[^"']*["'][\s\S]*?<\/section>/gi, '');
 
     // Fix Neon Dash / Neon Run impossible obstacle spacing (obstacles crammed 100px apart)
     if (html.includes('First Steps')) {
@@ -3607,7 +3614,18 @@ const handleGameFrame = async (req, res) => {
           .screen {
             pointer-events: none !important;
           }
+          .screen:not(.active) {
+            display: none !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            visibility: hidden !important;
+          }
+          .screen:not(.active) * {
+            pointer-events: none !important;
+          }
           .screen.active {
+            display: flex !important;
+            opacity: 1 !important;
             pointer-events: auto !important;
             z-index: 20 !important;
           }
@@ -3622,6 +3640,12 @@ const handleGameFrame = async (req, res) => {
             position: relative !important;
             z-index: 30 !important;
           }
+          #menu-screen button.btn-primary {
+            position: relative !important;
+            z-index: 9999 !important;
+            pointer-events: auto !important;
+            cursor: pointer !important;
+          }
         </style>
         <script>
           (function() {
@@ -3631,8 +3655,11 @@ const handleGameFrame = async (req, res) => {
                 btn.__bound = true;
                 btn.style.pointerEvents = 'auto';
                 btn.style.cursor = 'pointer';
+                btn.style.position = 'relative';
+                btn.style.zIndex = '9999';
                 var trigger = function(e) {
                   try {
+                    if (e && e.preventDefault && e.type !== 'click') e.preventDefault();
                     if (typeof showScreen === 'function') {
                       showScreen('cat-screen');
                     }
@@ -3640,6 +3667,7 @@ const handleGameFrame = async (req, res) => {
                     console.error('Error opening cat-screen:', err);
                   }
                 };
+                btn.onclick = trigger;
                 btn.addEventListener('click', trigger);
                 btn.addEventListener('pointerup', trigger);
                 btn.addEventListener('touchend', trigger);
@@ -3653,6 +3681,7 @@ const handleGameFrame = async (req, res) => {
             window.addEventListener('load', bindPlayButton);
             setTimeout(bindPlayButton, 200);
             setTimeout(bindPlayButton, 600);
+            setInterval(bindPlayButton, 1000);
           })();
         </script>
       `;
