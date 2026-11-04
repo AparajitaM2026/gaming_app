@@ -1075,13 +1075,17 @@ const INTERNAL_GAME_SOURCES = {
   'table-tennis-world-tour': 'https://games.cdn.famobi.com/html5games/t/table-tennis-world-tour/v310/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8c8e5fc6-7e38-47ab-96eb-150276e79ef8&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
   'archery-world-tour': 'https://html5.gamedistribution.com/rvvASMiM/0ccd52f987014bb49708e6afa2e3a8f7/index.html',
   'moto-x3m-pool-party': 'https://motox3munblocked.github.io/5-pool-party/',
-  'stunt-bike-mania': 'https://motox3munblocked.github.io/5-pool-party/'
+  'stunt-bike-mania': 'https://motox3munblocked.github.io/5-pool-party/',
+  'cut-the-rope-experiments': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-experiments/v030/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=e73ceee2-0c50-4254-b0b8-656d7a69aca4&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472',
+  'cut-the-rope-magic': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-magic/v040/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=35c37758-52d5-4802-86a9-d6110c41198b&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472'
 };
 
 const RESOLVED_CDN_SOURCES = {
   'stack-smash-3d': 'https://html5.gamedistribution.com/rvvASMiM/a81fd206711b48489fddfa7fd4aab621/',
   'cars-arena': 'https://games.cdn.famobi.com/html5games/c/cars-arena/v010/',
   'penalty-shooters-2': 'https://games.cdn.famobi.com/html5games/p/penalty-shooters-2/v350/',
+  'cut-the-rope-experiments': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-experiments/v030/',
+  'cut-the-rope-magic': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope-magic/v040/',
   'om-nom-run': 'https://games.cdn.famobi.com/html5games/o/om-nom-run/v1240/',
   'om-nom-bubbles': 'https://games.cdn.famobi.com/html5games/o/om-nom-bubbles/v040/',
   'tnt-bomb': 'https://games.cdn.famobi.com/html5games/t/tnt-bomb/v250/',
@@ -2950,8 +2954,7 @@ const handleGameFrame = async (req, res) => {
           max-height: 100vh !important;
           object-fit: contain !important;
         }
-        #wrap:has(#hud) canvas,
-        canvas#c {
+        #wrap:has(#hud) canvas {
           display: block !important;
           margin: auto !important;
           max-width: 100% !important;
@@ -3070,7 +3073,6 @@ const handleGameFrame = async (req, res) => {
 
     // Strip Famobi official anti-embed API caller & tracker so autonomous emulator runs
     html = html.replace(/<script[^>]*src=["'][^"']*gameapi\/v1\.js[^"']*["'][^>]*><\/script>/gi, '');
-    html = html.replace(/<script[^>]*src=["'][^"']*famobi-game-interface\.js[^"']*["'][^>]*><\/script>/gi, '');
 
     // Completely remove GameZipper topnav, SEO sections, related games sections and toolbars from DOM safely
     html = html.replace(/#gz-tap-start[^{]*\{[^}]*\}/gi, '');
@@ -3844,13 +3846,13 @@ const handleGameFrame = async (req, res) => {
 
         <div id="pondTouchHud">
           <!-- Brake / Reverse (Left) -->
-          <div id="pondBtnBrake" class="pond-pedal-btn pond-brake-btn" title="Reverse / Brake">
+          <div id="pondBtnBrake" class="pond-pedal-btn pond-brake-btn">
             <div class="pond-pedal-icon">◀</div>
             <div class="pond-pedal-label">BRAKE</div>
           </div>
 
           <!-- Gas / Accelerate (Right) -->
-          <div id="pondBtnGas" class="pond-pedal-btn pond-gas-btn" title="Accelerate / Gas">
+          <div id="pondBtnGas" class="pond-pedal-btn pond-gas-btn">
             <div class="pond-pedal-icon">▶</div>
             <div class="pond-pedal-label">GAS</div>
           </div>
@@ -4256,6 +4258,7 @@ const handleGameFrame = async (req, res) => {
           })();
         </script>
       `;
+      html = html.replace(/\+\s*standalone/gi, '');
       if (html.includes('</body>')) {
         html = html.replace('</body>', `${wordConnEnhancer}</body>`);
       } else {
@@ -4337,6 +4340,107 @@ const themeNames`
       } else {
         html = mmFix + html;
       }
+    }
+
+    // Magic Sort (Color Sort): Expand canvas to 100% full height (remove bottom black gap), clean top menu header, and make Claim & level buttons pixel-perfect responsive
+    if (req.internalSlug === 'magic-sort' || (req.targetUrl && req.targetUrl.includes('magic-sort'))) {
+      // 1. Force canvas to fill 100% full screen
+      const magicSortCSS = `
+        <style>
+          html, body {
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            background: #000000 !important;
+          }
+          #c, canvas#c, canvas {
+            display: block !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            object-fit: contain !important;
+          }
+        </style>
+      `;
+      if (html.includes('</head>')) {
+        html = html.replace('</head>', `${magicSortCSS}</head>`);
+      } else {
+        html = magicSortCSS + html;
+      }
+
+      // 2. Remove redundant "← Home" button from renderMenu
+      html = html.replace(
+        'drawButton(12, 8, 90, 30, "← Home", hoverBtn === 100, false);',
+        '// Home removed for Voltixz clean header'
+      );
+
+      // 3. Re-space top bar buttons: Stats on left, Jump and Resume on right
+      html = html.replace(
+        'drawButton(106, 8, 56, 30, "📊 Stats", hoverBtn === 103, false);',
+        'drawButton(12, 8, 64, 28, "📊 Stats", hoverBtn === 103, false);'
+      );
+      html = html.replace(
+        'drawButton(166, 8, 56, 30, favN > 0 ? ("⭐ " + favN) : "⭐ Fav", hoverBtn === 104, favN > 0);',
+        'drawButton(80, 8, 56, 28, favN > 0 ? ("⭐ " + favN) : "⭐ Fav", hoverBtn === 104, favN > 0);'
+      );
+      html = html.replace(
+        'drawButton(W - 78, 8, 66, 30, "Jump", hoverBtn === 101, true);',
+        'drawButton(W - 70, 8, 58, 28, "Jump", hoverBtn === 101, true);'
+      );
+      html = html.replace(
+        'drawButton(W - 158, 8, 72, 30, "▶ Lv." + (lastPlayedLevel + 1), hoverBtn === 102, true);',
+        'drawButton(W - 146, 8, 72, 28, "▶ Lv." + (lastPlayedLevel + 1), hoverBtn === 102, true);'
+      );
+
+      // 4. Reposition Daily Challenge banner, Select Level header, stars stats, progress bar, and level grid
+      html = html.replace('const bannerY = 4;', 'const bannerY = 40;');
+      html = html.replace('const headerY = isDailyDone() ? 34 : 48;', 'const headerY = isDailyDone() ? 44 : 74;');
+      html = html.replace(
+        'X.fillText(`Stars ${totalStars}/${maxStars}  |  Done ${completedCount}/${TOTAL_LEVELS}  |  🏅${achieved}/${ACHIEVEMENTS.length}`, W / 2, 52);',
+        'X.fillText(`Stars ${totalStars}/${maxStars}  |  Done ${completedCount}/${TOTAL_LEVELS}  |  🏅${achieved}/${ACHIEVEMENTS.length}`, W / 2, isDailyDone() ? 66 : 94);'
+      );
+      html = html.replace(
+        'const barY = 60;',
+        'const barY = isDailyDone() ? 76 : 104;'
+      );
+      html = html.replace(
+        'const gridTop = 70 - menuScrollY;',
+        'const gridTop = (isDailyDone() ? 92 : 120) - menuScrollY;'
+      );
+
+      // 5. Update hit testing in click handler to match new positions
+      html = html.replace(
+        'if (hitTest(px, py, 12, 8, 90, 30)) {\n      window.location.href = "/"; return;\n    }',
+        '// Home tap removed'
+      );
+      html = html.replace(
+        'if (hitTest(px, py, 106, 8, 56, 30)) {',
+        'if (hitTest(px, py, 12, 8, 64, 28)) {'
+      );
+      html = html.replace(
+        'if (hitTest(px, py, 166, 8, 56, 30)) {',
+        'if (hitTest(px, py, 80, 8, 56, 28)) {'
+      );
+      html = html.replace(
+        'if (!isDailyDone() && hitTest(px, py, 8, 4, W - 16, 28)) {',
+        'if (!isDailyDone() && hitTest(px, py, 8, 40, W - 16, 28)) {'
+      );
+      html = html.replace(
+        'if (hitTest(px, py, W - 78, 8, 66, 30)) {',
+        'if (hitTest(px, py, W - 70, 8, 58, 28)) {'
+      );
+      html = html.replace(
+        'if (lastPlayedLevel > 0 && lastPlayedLevel < TOTAL_LEVELS && hitTest(px, py, W - 158, 8, 72, 30)) {',
+        'if (lastPlayedLevel > 0 && lastPlayedLevel < TOTAL_LEVELS && hitTest(px, py, W - 146, 8, 72, 28)) {'
+      );
     }
 
     // Drift Cup Racing: Inject high-performance steering HUD, touch buttons, and keyboard controls

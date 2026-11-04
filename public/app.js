@@ -580,6 +580,7 @@ const PORTRAIT_GAMES = new Set([
   'arrow-escape', 'sand-balls', 'fruit-slash', 'katana-fruits', 'slice-master', 'watermelon-merge', 
   'block-stacker', 'cyberpunk-flappy', 'bubble-shooter',
   'cloud-amp-sheep', 'paint-splash',
+  'cut-the-rope-experiments', 'cut-the-rope-magic',
   'om-nom-run', 'om-nom-bubbles', 'tower-crash-3d',
   'precision-darts-3d', 'rail-surfer-express', 'rope-cutter-deluxe',
   'spatial-block-master', 'safari-block-pop'
@@ -888,7 +889,7 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
   } else if (slug === 'penalty-shooters-2') {
     playUrl = '/play/penalty-shooters-2';
 
-  } else if (slug === 'om-nom-run' || slug === 'om-nom-bubbles' || slug === 'drift-cup-racing' || slug === 'table-tennis-world-tour' || slug === 'cannon-balls-3d' || slug === 'tower-crash-3d' || slug === 'tnt-bomb' || slug === 'archery-world-tour') {
+  } else if (slug === 'cut-the-rope-experiments' || slug === 'cut-the-rope-magic' || slug === 'om-nom-run' || slug === 'om-nom-bubbles' || slug === 'drift-cup-racing' || slug === 'table-tennis-world-tour' || slug === 'cannon-balls-3d' || slug === 'tower-crash-3d' || slug === 'tnt-bomb' || slug === 'archery-world-tour') {
     playUrl = `/play/${slug}`;
   } else if (playUrl && (playUrl.startsWith('/play/') || playUrl.startsWith('/games/'))) {
     playUrl = playUrl;
