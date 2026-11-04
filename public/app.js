@@ -598,53 +598,16 @@ const STANDARD_GAMES = new Set([
   'moto-x3m-pool-party', 'stunt-bike-mania'
 ]);
 
-let currentTheaterSize = 'standard';
+let currentTheaterSize = 'wide';
 window.currentTheaterGameOrientation = 'landscape';
 
 function setTheaterSize(mode) {
-  currentTheaterSize = mode;
+  currentTheaterSize = 'wide';
   const container = document.getElementById('theaterFrameContainer');
-  const btnMobile = document.getElementById('theaterSizeMobile');
-  const btnStandard = document.getElementById('theaterSizeStandard');
-  const btnWide = document.getElementById('theaterSizeWide');
-
   if (!container) return;
 
-  // Reset base classes with strict overflow protection
-  container.className = 'transition-all duration-300 flex items-center justify-center relative bg-black shadow-2xl rounded-none sm:rounded-2xl overflow-hidden border-0 sm:border border-white/10';
-
-  const defaultBtnClass = 'px-2.5 py-1 rounded-lg text-gray-400 hover:text-white transition-all flex items-center gap-1.5';
-  const activeBtnClass = 'px-2.5 py-1 rounded-lg bg-neonCyan text-black font-extrabold transition-all flex items-center gap-1.5 shadow-md shadow-cyan-500/20';
-
-  if (btnMobile) btnMobile.className = defaultBtnClass;
-  if (btnStandard) btnStandard.className = defaultBtnClass;
-  if (btnWide) btnWide.className = defaultBtnClass;
-
-  const isPortrait = window.currentTheaterGameOrientation === 'portrait';
-  const isMobileScreen = window.innerWidth < 768 || window.innerHeight < 600;
-
-  if (isMobileScreen) {
-    // Fill full screen cleanly on mobile devices without any letterboxing/overflow
-    container.classList.add('w-full', 'h-full', 'max-w-full', 'max-h-full');
-  } else if (mode === 'mobile') {
-    if (isPortrait) {
-      container.classList.add('w-auto', 'h-full', 'max-w-[480px]', 'max-h-full', 'aspect-[9/16]');
-    } else {
-      container.classList.add('w-auto', 'h-full', 'max-w-[850px]', 'max-h-full', 'aspect-[16/9]');
-    }
-  } else if (mode === 'standard') {
-    if (isPortrait) {
-      container.classList.add('w-auto', 'h-full', 'max-w-[600px]', 'max-h-full', 'aspect-[3/4]');
-    } else {
-      container.classList.add('w-auto', 'h-full', 'max-w-[980px]', 'max-h-full', 'aspect-[4/3]');
-    }
-  } else { // wide / full
-    container.classList.add('w-full', 'h-full', 'max-w-full', 'max-h-full');
-  }
-
-  if (mode === 'mobile' && btnMobile) btnMobile.className = activeBtnClass;
-  if (mode === 'standard' && btnStandard) btnStandard.className = activeBtnClass;
-  if (mode === 'wide' && btnWide) btnWide.className = activeBtnClass;
+  // Always fill 100% full web view cleanly across all devices and desktops
+  container.className = 'transition-all duration-300 flex items-center justify-center relative bg-black shadow-2xl rounded-none sm:rounded-2xl overflow-hidden border-0 sm:border border-white/10 w-full h-full max-w-full max-h-full';
 
   // Trigger resize inside iframe so responsive game engines adjust smoothly
   setTimeout(() => {
@@ -817,20 +780,9 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
   const title = cleanGameTitle(game.title);
   let playUrl = game.url || game.game_url;
 
-  // Detect optimal aspect ratio cabinet mode
-  if (PORTRAIT_GAMES.has(slug)) {
-    window.currentTheaterGameOrientation = 'portrait';
-    setTheaterSize('mobile');
-  } else if (STANDARD_GAMES.has(slug)) {
-    window.currentTheaterGameOrientation = 'landscape';
-    setTheaterSize('standard');
-  } else if (game.orientation === 'portrait') {
-    window.currentTheaterGameOrientation = 'portrait';
-    setTheaterSize('mobile');
-  } else {
-    window.currentTheaterGameOrientation = 'landscape';
-    setTheaterSize('wide');
-  }
+  // Full Web View for all games across the entire web app
+  window.currentTheaterGameOrientation = game.orientation || 'landscape';
+  setTheaterSize('wide');
 
   // In-House Polished AI & Board Games (with Pass & Play or Live Party support)
   let gameModeParam = '';
