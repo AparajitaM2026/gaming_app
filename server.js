@@ -1223,6 +1223,7 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
     }
 
     let buffer = Buffer.from(await resp.arrayBuffer());
+
     // Auto-patch Construct 3 main.js to pass valid absolute baseUrl to RuntimeInterface
     if (assetPath.endsWith('main.js')) {
       let text = buffer.toString('utf8');
@@ -1345,11 +1346,17 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
     }
     // Auto-patch Moto X3M series (Stunt Bike Mania, Moto X3M, Moto X3M Pool Party) start menu for mobile portrait mode
     const isMotoGame = slug === 'stunt-bike-mania' || slug === 'moto-x3m' || slug === 'moto-x3m-pool-party' || slug.includes('moto-x3m');
-    if (isMotoGame && assetPath.endsWith('.js')) {
+    const cleanAssetPath = assetPath.split('?')[0];
+    if (isMotoGame && (cleanAssetPath.endsWith('.js') || assetPath.includes('motox3m'))) {
       let text = buffer.toString('utf8');
-      // Neutralize external app store badges & version text from scene graph
-      text = text.replace(/this\.google_btn\s*=\s*new\s+[a-zA-Z0-9_.]+\([^)]*\)/g, 'this.google_btn=null');
-      text = text.replace(/this\.apple_btn\s*=\s*new\s+[a-zA-Z0-9_.]+\([^)]*\)/g, 'this.apple_btn=null');
+      const dummyBtn = '{setFrames:function(){},scale:{set:function(){}},anchor:{setTo:function(){}},x:0,y:0,visible:false,destroy:function(){}}';
+      // Neutralize external app store badges & version text without crashing null reference in Menu.create & resize
+      text = text.replace(/this\.google_btn\s*=\s*new\s+[a-zA-Z0-9_.]+\([^)]*\)/g, `this.google_btn=${dummyBtn}`);
+      text = text.replace(/this\.apple_btn\s*=\s*new\s+[a-zA-Z0-9_.]+\([^)]*\)/g, `this.apple_btn=${dummyBtn}`);
+      text = text.replaceAll('this.google_btn=null', `this.google_btn=${dummyBtn}`);
+      text = text.replaceAll('this.apple_btn=null', `this.apple_btn=${dummyBtn}`);
+      text = text.replaceAll('i.google_btn=null', `i.google_btn=${dummyBtn}`);
+      text = text.replaceAll('i.apple_btn=null', `i.apple_btn=${dummyBtn}`);
       text = text.replace(/this\.textVersion\s*=\s*new\s+[a-zA-Z0-9_.]+\([^)]*\)/g, 'this.textVersion=null');
       text = text.replace(/this\.background\.addChild\(this\.google_btn\)/g, 'void 0');
       text = text.replace(/this\.background\.addChild\(this\.apple_btn\)/g, 'void 0');
