@@ -54,8 +54,8 @@ window.addEventListener('resize', resize);
 // ============================================================
 //  CONSTANTS
 // ============================================================
-const GRAVITY = 900;
-const SPRING_K = 4200;
+const GRAVITY = 1250;
+const SPRING_K = 3800;
 const SPRING_DAMP = 180;
 const ANGULAR_DAMP = 2.5;
 const AIR_DRAG = 0.3;
@@ -695,19 +695,23 @@ function updatePhysics(g, dt, accel, brake, jump) {
 
     if (fPen > 0) {
       contact = true;
-      const f = Math.max(0, fPen * SPRING_K - v.vy * SPRING_DAMP * 0.5 - v.av * hw * SPRING_DAMP * 0.3);
+      const vNormal = v.vy + v.av * hw;
+      const dampForce = vNormal > 0 ? vNormal * SPRING_DAMP * 0.6 : vNormal * SPRING_DAMP * 0.1;
+      const f = Math.max(-100, Math.min(4200, fPen * SPRING_K - dampForce));
       v.vy -= f * sdt / def.mass;
       v.av -= f * hw * sdt / (v.inertia * def.mass);
     }
     if (rPen > 0) {
       contact = true;
-      const f = Math.max(0, rPen * SPRING_K - v.vy * SPRING_DAMP * 0.5 + v.av * hw * SPRING_DAMP * 0.3);
+      const vNormal = v.vy - v.av * hw;
+      const dampForce = vNormal > 0 ? vNormal * SPRING_DAMP * 0.6 : vNormal * SPRING_DAMP * 0.1;
+      const f = Math.max(-100, Math.min(4200, rPen * SPRING_K - dampForce));
       v.vy -= f * sdt / def.mass;
       v.av += f * hw * sdt / (v.inertia * def.mass);
     }
 
-    // Drive force & Jump: activates whenever wheels are on or near ground
-    const isDriven = contact || (fPen > -4) || (rPen > -4) || v.grounded;
+    // Drive force & Jump: activates ONLY when wheels have real physical contact with ground
+    const isDriven = contact;
     if (isDriven) {
       const ta = getTerrainAngle(pts, v.x);
       const dir = accel ? 1 : (brake ? -0.7 : 0);
@@ -740,7 +744,7 @@ function updatePhysics(g, dt, accel, brake, jump) {
 
     // Constraints & rest ground cushion
     if (v.av > 5) v.av = 5; else if (v.av < -5) v.av = -5;
-    if (v.vy > 600) v.vy = 600; else if (v.vy < -800) v.vy = -800;
+    if (v.vy > 650) v.vy = 650; else if (v.vy < -420) v.vy = -420;
     if (contact) {
       const restY = getTerrainY(pts, v.x) - def.cogH - def.wheelR + 1.5;
       if (v.y > restY) { v.y = restY; if (v.vy > 0) v.vy = 0; }
@@ -923,6 +927,7 @@ function updateGame(g, dt, accel, brake, jump) {
   const lookAhead = g.vehicle.vx * 0.25;
   camera.x += (g.vehicle.x + lookAhead - W * 0.35 - camera.x) * 4 * dt;
   camera.y += (g.vehicle.y - H * 0.5 - camera.y) * 3 * dt;
+  camera.y = Math.max(-120, camera.y); // Keep ground in sight
 
   // Shake
   if (shake > 0.5) shake *= Math.pow(0.05, dt); else shake = 0;
@@ -951,6 +956,11 @@ window.addEventListener('keydown', e => {
 });
 window.addEventListener('keyup', e => {
   setKey(e.code, e.key, false);
+});
+window.addEventListener('blur', () => {
+  keys = {};
+  touchAccel = false;
+  touchBrake = false;
 });
 
 // Receive forwarded keyboard events from top-level parent window
