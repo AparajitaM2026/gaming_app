@@ -466,6 +466,34 @@
     </section>
 
     <!-- ======================================================== -->
+    <!-- ZONE 5: NEW GAMES • NIGERIA, GHANA, ZAMBIA & CENTRAL ASIA -->
+    <!-- ======================================================== -->
+    <section class="space-y-3 relative" id="new-games-section">
+      <div class="flex items-center justify-between px-1">
+        <div class="flex items-center gap-2.5">
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-emerald-500 to-amber-500 text-black shadow-sm">NEW GAMES</span>
+          <h2 class="text-base sm:text-lg font-bold text-white tracking-wide flex items-center gap-2">
+            <span>African &amp; Central Asian Champions</span>
+          </h2>
+        </div>
+        <span class="text-xs font-semibold text-emerald-400 hidden sm:inline">Nigeria • Ghana • Zambia • Central Asia</span>
+      </div>
+
+      <div class="relative group/carousel">
+        <button onclick="scrollRow('newGamesRow', -360)" class="carousel-nav-btn absolute -left-2 sm:-left-3.5 top-1/2 -translate-y-1/2 opacity-90 hover:opacity-100 transition-all" aria-label="Previous">
+          <i class="fa-solid fa-chevron-left text-xs"></i>
+        </button>
+        <button onclick="scrollRow('newGamesRow', 360)" class="carousel-nav-btn absolute -right-2 sm:-right-3.5 top-1/2 -translate-y-1/2 opacity-90 hover:opacity-100 transition-all" aria-label="Next">
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+        </button>
+
+        <div id="newGamesRow" class="flex gap-3.5 sm:gap-4 overflow-x-auto no-scrollbar py-2 px-1 scroll-smooth">
+          <!-- Rendered dynamically by app.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
     <!-- ALL GAMES FULL GRID (SEARCH / BROWSE EXPLORER) -->
     <!-- ======================================================== -->
     <section class="space-y-4 pt-4 border-t border-white/10" id="all-games-container">

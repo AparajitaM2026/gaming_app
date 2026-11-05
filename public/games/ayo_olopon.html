@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Ayo Olopon — Nigerian Yoruba Mancala</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700;800&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 20%, #064e3b 0%, #022c22 45%, #02120d 100%);
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .cinzel { font-family: 'Cinzel', serif; }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+
+    /* Yoruba Carved Teak Wood Board */
+    .ayo-board {
+      background: linear-gradient(135deg, #78350f 0%, #451a03 50%, #1c0a03 100%);
+      box-shadow: inset 0 2px 6px rgba(255,255,255,0.15), 0 16px 40px rgba(0,0,0,0.85), 0 0 0 3px #10b981;
+    }
+    .ayo-pit {
+      background: radial-gradient(circle at 45% 45%, #180902 0%, #050201 100%);
+      box-shadow: inset 0 6px 14px rgba(0,0,0,0.95), 0 1px 1px rgba(255,255,255,0.06);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .ayo-pit:active {
+      transform: scale(0.95);
+    }
+    .ayo-pit.active-turn {
+      border: 2px solid #10b981;
+      box-shadow: inset 0 4px 10px rgba(0,0,0,0.8), 0 0 16px rgba(16, 185, 129, 0.5);
+      cursor: pointer;
+    }
+    .ayo-pit.active-turn:hover {
+      border-color: #34d399;
+      box-shadow: inset 0 4px 10px rgba(0,0,0,0.8), 0 0 22px rgba(52, 211, 153, 0.7);
+    }
+    .ayo-pit.sowing-highlight {
+      border: 2px solid #facc15 !important;
+      box-shadow: 0 0 18px rgba(250, 204, 21, 0.8) !important;
+    }
+
+    /* Cowrie Shell Seed Design */
+    .cowrie-shell {
+      width: 12px;
+      height: 10px;
+      border-radius: 40% 60% 60% 40% / 50% 50% 50% 50%;
+      background: radial-gradient(circle at 30% 30%, #fef3c7 0%, #fde68a 40%, #d97706 90%);
+      box-shadow: 1px 2px 3px rgba(0,0,0,0.85);
+      border: 0.5px solid rgba(0,0,0,0.4);
+      display: inline-block;
+      margin: 1px;
+    }
+  </style>
+</head>
+<body class="h-full w-full flex flex-col justify-between p-2 sm:p-4 max-w-2xl mx-auto box-border overflow-hidden">
+
+  <!-- Top Header Bar -->
+  <header class="w-full shrink-0 flex items-center justify-between bg-emerald-950/40 border border-emerald-500/30 px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl shadow-xl backdrop-blur-md">
+    <div class="flex items-center gap-2">
+      <span class="text-xl">🇳🇬</span>
+      <div>
+        <h1 class="cinzel font-black text-xs sm:text-sm text-emerald-300 tracking-wider flex items-center gap-1.5 leading-none">
+          AYO OLOPON
+        </h1>
+        <span class="text-[9.5px] sm:text-[10px] text-emerald-400/80 font-bold uppercase tracking-widest">Yoruba Traditional Mancala</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="flex items-center gap-1.5 sm:gap-2">
+      <select id="modeSelect" class="bg-black/60 border border-emerald-500/50 text-emerald-200 text-xs font-bold rounded-lg px-2 py-1 outline-none cursor-pointer">
+        <option value="ai">vs Lagos AI 🤖</option>
+        <option value="pass">Pass & Play 👥</option>
+      </select>
+      <button onclick="resetGame()" class="px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs flex items-center gap-1 transition-all shadow-md active:scale-95">
+        <i class="fa-solid fa-rotate-right text-[10px]"></i>
+        <span class="hidden sm:inline">New</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Player 2 / AI Status Bar (North) -->
+  <div class="w-full shrink-0 flex items-center justify-between px-3 py-1.5 rounded-xl bg-black/40 border border-emerald-900/40">
+    <div class="flex items-center gap-2">
+      <div id="p2Avatar" class="w-6 h-6 rounded-full bg-emerald-700/80 border border-emerald-400 flex items-center justify-center text-xs font-black shadow">
+        🤖
+      </div>
+      <div>
+        <span id="p2Name" class="text-xs font-bold text-emerald-200">Lagos Street Master (North)</span>
+        <div class="text-[10px] text-gray-400 font-medium">Captured: <span id="p2Score" class="font-extrabold text-amber-400 text-xs">0</span> / 25</div>
+      </div>
+    </div>
+    <div id="p2TurnBadge" class="hidden px-2 py-0.5 rounded-full text-[10px] font-black tracking-wide bg-amber-400 text-black uppercase animate-pulse shadow">
+      Calculating...
+    </div>
+  </div>
+
+  <!-- Center Ayo Wood Board -->
+  <main class="flex-1 w-full flex items-center justify-center my-2 overflow-hidden">
+    <div class="ayo-board w-full rounded-3xl p-3 sm:p-5 flex flex-col justify-between gap-3 border-2 border-emerald-600/60 shadow-2xl relative">
+      
+      <!-- North Row (Pits 11 downto 6, Player 2 / AI) -->
+      <div class="flex flex-col gap-1">
+        <div class="flex items-center justify-between px-2 text-[10px] font-bold text-emerald-400/70 uppercase">
+          <span>AI / North Pits</span>
+          <span class="text-gray-400">f ➔ a</span>
+        </div>
+        <div class="grid grid-cols-6 gap-2 sm:gap-3.5" id="northPits">
+          <!-- Pits 11, 10, 9, 8, 7, 6 -->
+        </div>
+      </div>
+
+      <!-- Center Yoruba Divider Banner -->
+      <div class="flex items-center justify-between px-3 py-1 bg-black/40 rounded-xl border border-emerald-800/40 text-[10px] text-emerald-300 font-bold">
+        <span class="flex items-center gap-1">
+          <i class="fa-solid fa-arrow-left text-[9px] text-emerald-400"></i>
+          <span>North Counter-Clockwise</span>
+        </span>
+        <span id="gameStatusText" class="text-amber-300 font-extrabold tracking-wide uppercase text-xs">OYA! YOUR TURN</span>
+        <span class="flex items-center gap-1">
+          <span>South Counter-Clockwise</span>
+          <i class="fa-solid fa-arrow-right text-[9px] text-emerald-400"></i>
+        </span>
+      </div>
+
+      <!-- South Row (Pits 0 to 5, Player 1 / You) -->
+      <div class="flex flex-col gap-1">
+        <div class="grid grid-cols-6 gap-2 sm:gap-3.5" id="southPits">
+          <!-- Pits 0, 1, 2, 3, 4, 5 -->
+        </div>
+        <div class="flex items-center justify-between px-2 text-[10px] font-bold text-amber-300/80 uppercase">
+          <span>Your Pits (South)</span>
+          <span class="text-gray-400">A ➔ F</span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Player 1 Status Bar (South) -->
+  <div class="w-full shrink-0 flex items-center justify-between px-3 py-1.5 rounded-xl bg-black/40 border border-emerald-900/40">
+    <div class="flex items-center gap-2">
+      <div class="w-6 h-6 rounded-full bg-emerald-500/80 border border-emerald-300 flex items-center justify-center text-xs font-black shadow">
+        👤
+      </div>
+      <div>
+        <span class="text-xs font-bold text-emerald-300">You (South)</span>
+        <div class="text-[10px] text-gray-400 font-medium">Captured: <span id="p1Score" class="font-extrabold text-amber-400 text-xs">0</span> / 25</div>
+      </div>
+    </div>
+    <div id="p1TurnBadge" class="px-2 py-0.5 rounded-full text-[10px] font-black tracking-wide bg-emerald-400 text-black uppercase shadow">
+      Your Move
+    </div>
+  </div>
+
+  <!-- Bottom Instructions -->
+  <footer class="w-full shrink-0 mt-2 py-1.5 px-3 rounded-xl bg-black/50 border border-white/5 text-[10px] sm:text-xs text-emerald-200/80 text-center flex items-center justify-center gap-2">
+    <span>💡 <b>Yoruba Rule:</b> Pick all seeds from any of your pits. Sow 1 seed per pit counter-clockwise. Score points by making <b>2 or 3</b> in opponent pits!</span>
+  </footer>
+
+  <!-- Win Modal Dialog -->
+  <div id="winModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-emerald-950 to-stone-950 border-2 border-emerald-400 p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl space-y-4">
+      <div id="winEmoji" class="text-5xl">👑</div>
+      <h2 id="winTitle" class="cinzel text-xl font-black text-emerald-300">OYA NA! YOU WIN!</h2>
+      <p id="winDesc" class="text-xs text-emerald-100 font-medium leading-relaxed">
+        You captured 25 cowrie seeds and became the Ayo Grandmaster!
+      </p>
+      <div class="py-2 px-4 rounded-xl bg-black/40 border border-emerald-600/40 flex justify-around text-xs font-bold">
+        <div>You: <span id="finalP1Score" class="text-emerald-400 font-black text-sm">0</span></div>
+        <div class="text-gray-500">|</div>
+        <div>Opponent: <span id="finalP2Score" class="text-amber-400 font-black text-sm">0</span></div>
+      </div>
+      <button onclick="resetGame()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-300 hover:to-green-400 text-black font-black text-xs tracking-wider uppercase shadow-lg active:scale-95 transition-all">
+        Play Next Round
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // --- SYNTHETIC AUDIO ---
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    function playSfx(type) {
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const t = audioCtx.currentTime;
+
+        if (type === 'drop') {
+          osc.frequency.setValueAtTime(380 + Math.random() * 100, t);
+          gain.gain.setValueAtTime(0.18, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+          osc.start(t);
+          osc.stop(t + 0.08);
+        } else if (type === 'capture') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(580, t);
+          osc.frequency.exponentialRampToValueAtTime(920, t + 0.22);
+          gain.gain.setValueAtTime(0.35, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+          osc.start(t);
+          osc.stop(t + 0.25);
+        } else if (type === 'win') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523, t);
+          osc.frequency.linearRampToValueAtTime(659, t + 0.15);
+          osc.frequency.linearRampToValueAtTime(784, t + 0.3);
+          gain.gain.setValueAtTime(0.3, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+          osc.start(t);
+          osc.stop(t + 0.5);
+        }
+      } catch (e) {}
+    }
+
+    let board = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
+    let p1Score = 0;
+    let p2Score = 0;
+    let currentPlayer = 1;
+    let isSowing = false;
+    let gameOver = false;
+
+    const northPitsEl = document.getElementById('northPits');
+    const southPitsEl = document.getElementById('southPits');
+    const modeSelect = document.getElementById('modeSelect');
+
+    function initBoard() {
+      board = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
+      p1Score = 0;
+      p2Score = 0;
+      currentPlayer = 1;
+      isSowing = false;
+      gameOver = false;
+      document.getElementById('winModal').classList.add('hidden');
+      render();
+    }
+
+    function render() {
+      document.getElementById('p1Score').textContent = p1Score;
+      document.getElementById('p2Score').textContent = p2Score;
+
+      const p1Badge = document.getElementById('p1TurnBadge');
+      const p2Badge = document.getElementById('p2TurnBadge');
+      const statusText = document.getElementById('gameStatusText');
+
+      if (currentPlayer === 1) {
+        p1Badge.classList.remove('hidden');
+        p2Badge.classList.add('hidden');
+        statusText.textContent = "OYA! YOUR TURN";
+        statusText.className = "text-emerald-300 font-extrabold tracking-wide uppercase text-xs";
+      } else {
+        p1Badge.classList.add('hidden');
+        p2Badge.classList.remove('hidden');
+        const isAi = modeSelect.value === 'ai';
+        p2Badge.textContent = isAi ? "Thinking..." : "Player 2 Move";
+        statusText.textContent = isAi ? "LAGOS MASTER IS PLAYING..." : "PLAYER 2 TURN";
+        statusText.className = "text-amber-300 font-extrabold tracking-wide uppercase text-xs";
+      }
+
+      northPitsEl.innerHTML = '';
+      for (let i = 11; i >= 6; i--) {
+        northPitsEl.appendChild(createPitElement(i, currentPlayer === 2 && !isSowing && !gameOver));
+      }
+
+      southPitsEl.innerHTML = '';
+      for (let i = 0; i <= 5; i++) {
+        southPitsEl.appendChild(createPitElement(i, currentPlayer === 1 && !isSowing && !gameOver));
+      }
+    }
+
+    function createPitElement(index, isClickable) {
+      const count = board[index];
+      const pit = document.createElement('div');
+      pit.id = `pit-${index}`;
+      pit.className = `ayo-pit aspect-square rounded-2xl flex flex-col items-center justify-center p-1.5 relative select-none ${isClickable && count > 0 ? 'active-turn' : 'opacity-90'}`;
+
+      if (isClickable && count > 0) {
+        pit.onclick = () => handlePitClick(index);
+      }
+
+      const badge = document.createElement('span');
+      badge.className = `text-xs sm:text-sm font-black ${count > 0 ? 'text-amber-200' : 'text-gray-600'} drop-shadow leading-none`;
+      badge.textContent = count;
+      pit.appendChild(badge);
+
+      const cluster = document.createElement('div');
+      cluster.className = "flex flex-wrap items-center justify-center gap-0.5 max-w-[42px] mt-1";
+      const displaySeeds = Math.min(count, 12);
+      for (let s = 0; s < displaySeeds; s++) {
+        const dot = document.createElement('span');
+        dot.className = "cowrie-shell";
+        cluster.appendChild(dot);
+      }
+      pit.appendChild(cluster);
+
+      return pit;
+    }
+
+    async function handlePitClick(index) {
+      if (isSowing || gameOver) return;
+      if (currentPlayer === 1 && (index < 0 || index > 5)) return;
+      if (currentPlayer === 2 && (index < 6 || index > 11)) return;
+      if (board[index] === 0) return;
+
+      isSowing = true;
+      render();
+
+      let seeds = board[index];
+      board[index] = 0;
+      let curr = index;
+
+      playSfx('drop');
+
+      while (seeds > 0) {
+        curr = (curr + 1) % 12;
+        if (curr === index) continue;
+        board[curr]++;
+        seeds--;
+
+        const pitEl = document.getElementById(`pit-${curr}`);
+        if (pitEl) pitEl.classList.add('sowing-highlight');
+        playSfx('drop');
+        render();
+
+        await new Promise(r => setTimeout(r, 160));
+        if (pitEl) pitEl.classList.remove('sowing-highlight');
+      }
+
+      // Capture on opponent's pits
+      let captured = 0;
+      if (currentPlayer === 1 && curr >= 6 && curr <= 11) {
+        let check = curr;
+        while (check >= 6 && check <= 11 && (board[check] === 2 || board[check] === 3)) {
+          captured += board[check];
+          board[check] = 0;
+          check--;
+        }
+        if (captured > 0) {
+          p1Score += captured;
+          playSfx('capture');
+        }
+      } else if (currentPlayer === 2 && curr >= 0 && curr <= 5) {
+        let check = curr;
+        while (check >= 0 && check <= 5 && (board[check] === 2 || board[check] === 3)) {
+          captured += board[check];
+          board[check] = 0;
+          check--;
+        }
+        if (captured > 0) {
+          p2Score += captured;
+          playSfx('capture');
+        }
+      }
+
+      if (p1Score >= 25 || p2Score >= 25) {
+        endGame();
+        return;
+      }
+
+      currentPlayer = currentPlayer === 1 ? 2 : 1;
+      isSowing = false;
+      render();
+
+      if (currentPlayer === 2 && modeSelect.value === 'ai' && !gameOver) {
+        setTimeout(playAiTurn, 600);
+      }
+    }
+
+    function playAiTurn() {
+      if (gameOver || currentPlayer !== 2) return;
+
+      const validMoves = [];
+      for (let i = 6; i <= 11; i++) {
+        if (board[i] > 0) validMoves.push(i);
+      }
+      if (validMoves.length === 0) {
+        endGame();
+        return;
+      }
+
+      let bestMove = validMoves[0];
+      let bestScore = -999;
+
+      for (const move of validMoves) {
+        const count = board[move];
+        const dest = (move + count) % 12;
+        let score = 0;
+
+        if (dest >= 0 && dest <= 5) {
+          const projectedCount = board[dest] + 1;
+          if (projectedCount === 2 || projectedCount === 3) {
+            score += projectedCount * 12;
+          }
+        }
+        score += count;
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestMove = move;
+        }
+      }
+
+      handlePitClick(bestMove);
+    }
+
+    function endGame() {
+      gameOver = true;
+      playSfx('win');
+      const modal = document.getElementById('winModal');
+      const title = document.getElementById('winTitle');
+      const desc = document.getElementById('winDesc');
+      const emoji = document.getElementById('winEmoji');
+
+      document.getElementById('finalP1Score').textContent = p1Score;
+      document.getElementById('finalP2Score').textContent = p2Score;
+
+      if (p1Score > p2Score) {
+        emoji.textContent = "🏆";
+        title.textContent = "OYA NA! YOU WIN!";
+        title.className = "cinzel text-xl font-black text-emerald-400";
+        desc.textContent = `You dominated with ${p1Score} cowries! Real Lagos Ayo Champion!`;
+      } else if (p2Score > p1Score) {
+        emoji.textContent = "👑";
+        title.textContent = "LAGOS AI WINS!";
+        title.className = "cinzel text-xl font-black text-amber-400";
+        desc.textContent = `The Lagos Master prevailed with ${p2Score} cowries!`;
+      } else {
+        emoji.textContent = "🤝";
+        title.textContent = "DRAW MATCH!";
+        title.className = "cinzel text-xl font-black text-yellow-300";
+        desc.textContent = "Even balance at 24 cowries each!";
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function resetGame() {
+      initBoard();
+    }
+
+    initBoard();
+  </script>
+</body>
+</html>

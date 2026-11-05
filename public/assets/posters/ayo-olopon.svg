@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b" />
+      <stop offset="50%" stop-color="#022c22" />
+      <stop offset="100%" stop-color="#01140e" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="brightGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <rect width="300" height="300" fill="url(#bgGrad)" />
+  <circle cx="150" cy="140" r="110" fill="#10b981" opacity="0.15" filter="url(#brightGlow)" />
+
+  <!-- Nigeria Flag Tag -->
+  <g transform="translate(18, 20)">
+    <rect width="12" height="21" fill="#16a34a" rx="2" />
+    <rect x="12" width="12" height="21" fill="#ffffff" />
+    <rect x="24" width="12" height="21" fill="#16a34a" rx="2" />
+  </g>
+
+  <!-- Yoruba Opon Ayo Carved Board -->
+  <g transform="translate(150, 140)">
+    <rect x="-115" y="-60" width="230" height="120" rx="24" fill="#78350f" stroke="#10b981" stroke-width="3" filter="url(#glow)"/>
+    
+    <!-- 12 Pits -->
+    <!-- Top Row -->
+    <circle cx="-85" cy="-28" r="14" fill="#1c0a03" stroke="#451a03" stroke-width="2"/>
+    <circle cx="-51" cy="-28" r="14" fill="#1c0a03" stroke="#451a03" stroke-width="2"/>
+    <circle cx="-17" cy="-28" r="14" fill="#1c0a03" stroke="#451a03" stroke-width="2"/>
+    <circle cx="17" cy="-28" r="14" fill="#1c0a03" stroke="#451a03" stroke-width="2"/>
+    <circle cx="51" cy="-28" r="14" fill="#1c0a03" stroke="#451a03" stroke-width="2"/>
+    <circle cx="85" cy="-28" r="14" fill="#1c0a03" stroke="#451a03" stroke-width="2"/>
+
+    <!-- Bottom Row -->
+    <circle cx="-85" cy="28" r="14" fill="#1c0a03" stroke="#451a03" stroke-width="2"/>
+    <circle cx="-51" cy="28" r="14" fill="#1c0a03" stroke="#451a03" stroke-width="2"/>
+    <circle cx="-17" cy="28" r="14" fill="#1c0a03" stroke="#451a03" stroke-width="2"/>
+    <circle cx="17" cy="28" r="14" fill="#1c0a03" stroke="#451a03" stroke-width="2"/>
+    <circle cx="51" cy="28" r="14" fill="#1c0a03" stroke="#451a03" stroke-width="2"/>
+    <circle cx="85" cy="28" r="14" fill="#1c0a03" stroke="#451a03" stroke-width="2"/>
+
+    <!-- Cowrie Shells -->
+    <ellipse cx="-51" cy="28" rx="6" ry="4" fill="#fef08a" stroke="#d97706" stroke-width="1" filter="url(#glow)"/>
+    <ellipse cx="-47" cy="31" rx="5" ry="3.5" fill="#fef08a"/>
+    <ellipse cx="17" cy="-28" rx="6" ry="4" fill="#fef08a" stroke="#d97706" stroke-width="1" filter="url(#brightGlow)"/>
+  </g>
+
+  <!-- Title Badge -->
+  <g transform="translate(150, 260)">
+    <rect x="-85" y="-14" width="170" height="26" rx="13" fill="#064e3b" stroke="#34d399" stroke-width="1.5" filter="url(#glow)"/>
+    <text x="0" y="4" font-family="'Orbitron', sans-serif" font-weight="900" font-size="12" fill="#a7f3d0" text-anchor="middle" letter-spacing="2">AYO OLOPON</text>
+  </g>
+</svg>

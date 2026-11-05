@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Togyz Kumalak — Central Asian Nomadic Strategy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700;800&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 20%, #064047 0%, #082329 50%, #020f12 100%);
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .cinzel { font-family: 'Cinzel', serif; }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+
+    /* Central Asian Nomadic Steppe Board */
+    .togyz-board {
+      background: linear-gradient(135deg, #0e4e5b 0%, #08333c 60%, #031c22 100%);
+      box-shadow: inset 0 2px 8px rgba(255,255,255,0.15), 0 16px 40px rgba(0,0,0,0.9), 0 0 0 3px #14b8a6;
+    }
+    .otau-pit {
+      background: radial-gradient(circle at 45% 45%, #051d23 0%, #020d10 100%);
+      box-shadow: inset 0 5px 12px rgba(0,0,0,0.95), 0 1px 1px rgba(255,255,255,0.08);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .otau-pit:active {
+      transform: scale(0.94);
+    }
+    .otau-pit.active-turn {
+      border: 2px solid #2dd4bf;
+      box-shadow: inset 0 4px 10px rgba(0,0,0,0.8), 0 0 16px rgba(45, 212, 191, 0.5);
+      cursor: pointer;
+    }
+    .otau-pit.active-turn:hover {
+      border-color: #5eead4;
+      box-shadow: inset 0 4px 10px rgba(0,0,0,0.8), 0 0 22px rgba(94, 234, 212, 0.8);
+    }
+    .otau-pit.sowing-highlight {
+      border: 2px solid #facc15 !important;
+      box-shadow: 0 0 18px rgba(250, 204, 21, 0.9) !important;
+    }
+    .otau-pit.tuzdyk-pit {
+      background: radial-gradient(circle at 40% 40%, #854d0e 0%, #451a03 100%) !important;
+      border: 2px solid #eab308 !important;
+    }
+
+    .kazan-store {
+      background: linear-gradient(180deg, #042f2e 0%, #021716 100%);
+      border: 2px solid #14b8a6;
+      box-shadow: inset 0 4px 10px rgba(0,0,0,0.9), 0 0 12px rgba(20, 184, 166, 0.3);
+    }
+  </style>
+</head>
+<body class="h-full w-full flex flex-col justify-between p-2 sm:p-4 max-w-3xl mx-auto box-border overflow-hidden">
+
+  <!-- Header -->
+  <header class="w-full shrink-0 flex items-center justify-between bg-teal-950/50 border border-teal-500/30 px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl shadow-xl backdrop-blur-md">
+    <div class="flex items-center gap-2">
+      <span class="text-xl">🇰🇿</span>
+      <div>
+        <h1 class="cinzel font-black text-xs sm:text-sm text-teal-300 tracking-wider flex items-center gap-1.5 leading-none">
+          TOGYZ KUMALAK
+        </h1>
+        <span class="text-[9.5px] sm:text-[10px] text-teal-400/80 font-bold uppercase tracking-widest">Algebra of Nomads • Central Asia</span>
+      </div>
+    </div>
+
+    <!-- Mode & Reset -->
+    <div class="flex items-center gap-1.5 sm:gap-2">
+      <select id="modeSelect" class="bg-black/60 border border-teal-500/50 text-teal-200 text-xs font-bold rounded-lg px-2 py-1 outline-none cursor-pointer">
+        <option value="ai">vs Steppe AI 🤖</option>
+        <option value="pass">Pass & Play 👥</option>
+      </select>
+      <button onclick="resetGame()" class="px-2.5 py-1 rounded-lg bg-teal-500 hover:bg-teal-400 text-black font-extrabold text-xs flex items-center gap-1 transition-all shadow-md active:scale-95">
+        <i class="fa-solid fa-rotate-right text-[10px]"></i>
+        <span class="hidden sm:inline">New</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Player 2 / AI Status Bar (North) -->
+  <div class="w-full shrink-0 flex items-center justify-between px-3 py-1.5 rounded-xl bg-black/40 border border-teal-900/40">
+    <div class="flex items-center gap-2">
+      <div class="w-6 h-6 rounded-full bg-cyan-700/80 border border-cyan-400 flex items-center justify-center text-xs font-black shadow">
+        🐎
+      </div>
+      <div>
+        <span id="p2Name" class="text-xs font-bold text-cyan-200">Nomad AI (North)</span>
+        <div class="text-[10px] text-gray-400 font-medium">Kazan (Treasury): <span id="p2Kazan" class="font-extrabold text-amber-300 text-xs">0</span> / 82</div>
+      </div>
+    </div>
+    <div id="p2TurnBadge" class="hidden px-2 py-0.5 rounded-full text-[10px] font-black tracking-wide bg-amber-400 text-black uppercase animate-pulse shadow">
+      Calculating...
+    </div>
+  </div>
+
+  <!-- Center Togyz Kumalak Board (9 Pits Each Side + Kazans) -->
+  <main class="flex-1 w-full flex items-center justify-center my-2 overflow-hidden">
+    <div class="togyz-board w-full rounded-3xl p-2.5 sm:p-4 flex flex-col justify-between gap-2.5 border-2 border-teal-600/60 shadow-2xl relative">
+      
+      <!-- North Row (Pits 17 down to 9, Player 2 / AI) -->
+      <div class="flex flex-col gap-1">
+        <div class="flex items-center justify-between px-2 text-[9.5px] font-bold text-cyan-400/80 uppercase">
+          <span>AI / North Otaus (9 ➔ 1)</span>
+          <span class="text-gray-400">f ➔ a</span>
+        </div>
+        <div class="grid grid-cols-9 gap-1 sm:gap-2" id="northPits">
+          <!-- 9 Pits (17 to 9) -->
+        </div>
+      </div>
+
+      <!-- Center Divider / Kazans -->
+      <div class="grid grid-cols-2 gap-3 px-1 py-1">
+        <div class="kazan-store rounded-xl py-1 px-3 flex items-center justify-between">
+          <span class="text-[10px] font-bold text-cyan-300">North Kazan:</span>
+          <span id="p2KazanMid" class="orbitron text-xs sm:text-sm font-black text-amber-300">0</span>
+        </div>
+        <div class="kazan-store rounded-xl py-1 px-3 flex items-center justify-between">
+          <span class="text-[10px] font-bold text-emerald-300">South Kazan:</span>
+          <span id="p1KazanMid" class="orbitron text-xs sm:text-sm font-black text-amber-300">0</span>
+        </div>
+      </div>
+
+      <!-- South Row (Pits 0 to 8, Player 1 / You) -->
+      <div class="flex flex-col gap-1">
+        <div class="grid grid-cols-9 gap-1 sm:gap-2" id="southPits">
+          <!-- 9 Pits (0 to 8) -->
+        </div>
+        <div class="flex items-center justify-between px-2 text-[9.5px] font-bold text-emerald-400/80 uppercase">
+          <span>Your Otaus (1 ➔ 9)</span>
+          <span class="text-gray-400">A ➔ I</span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Player 1 Status Bar (South) -->
+  <div class="w-full shrink-0 flex items-center justify-between px-3 py-1.5 rounded-xl bg-black/40 border border-teal-900/40">
+    <div class="flex items-center gap-2">
+      <div class="w-6 h-6 rounded-full bg-emerald-600/80 border border-emerald-400 flex items-center justify-center text-xs font-black shadow">
+        👤
+      </div>
+      <div>
+        <span class="text-xs font-bold text-emerald-300">You (South)</span>
+        <div class="text-[10px] text-gray-400 font-medium">Kazan (Treasury): <span id="p1Kazan" class="font-extrabold text-amber-300 text-xs">0</span> / 82</div>
+      </div>
+    </div>
+    <div id="p1TurnBadge" class="px-2 py-0.5 rounded-full text-[10px] font-black tracking-wide bg-teal-400 text-black uppercase shadow">
+      Your Turn
+    </div>
+  </div>
+
+  <!-- Footer Tip -->
+  <footer class="w-full shrink-0 mt-2 py-1.5 px-3 rounded-xl bg-black/50 border border-white/5 text-[9.5px] sm:text-xs text-teal-200/80 text-center flex items-center justify-center gap-2">
+    <span>💡 <b>Nomadic Rule:</b> Sow 9 balls counter-clockwise. Land in opponent otau to make an <b>EVEN</b> count (2, 4, 6...) and capture all balls! First to 82 wins!</span>
+  </footer>
+
+  <!-- Win Modal Dialog -->
+  <div id="winModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-teal-950 to-stone-950 border-2 border-teal-400 p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl space-y-4">
+      <div id="winEmoji" class="text-5xl">🏆</div>
+      <h2 id="winTitle" class="cinzel text-xl font-black text-teal-300">STEPPE VICTORY!</h2>
+      <p id="winDesc" class="text-xs text-teal-100 font-medium leading-relaxed">
+        You captured 82+ kumalaks and claimed the Nomadic Golden Crown!
+      </p>
+      <div class="py-2 px-4 rounded-xl bg-black/40 border border-teal-600/40 flex justify-around text-xs font-bold">
+        <div>You: <span id="finalP1Kazan" class="text-emerald-400 font-black text-sm">0</span></div>
+        <div class="text-gray-500">|</div>
+        <div>Opponent: <span id="finalP2Kazan" class="text-amber-400 font-black text-sm">0</span></div>
+      </div>
+      <button onclick="resetGame()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-300 hover:to-emerald-400 text-black font-black text-xs tracking-wider uppercase shadow-lg active:scale-95 transition-all">
+        Play Next Match
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    function playSfx(type) {
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const t = audioCtx.currentTime;
+
+        if (type === 'drop') {
+          osc.frequency.setValueAtTime(420 + Math.random() * 80, t);
+          gain.gain.setValueAtTime(0.15, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.06);
+          osc.start(t);
+          osc.stop(t + 0.06);
+        } else if (type === 'capture') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(620, t);
+          osc.frequency.exponentialRampToValueAtTime(980, t + 0.25);
+          gain.gain.setValueAtTime(0.35, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.28);
+          osc.start(t);
+          osc.stop(t + 0.28);
+        } else if (type === 'win') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(520, t);
+          osc.frequency.linearRampToValueAtTime(680, t + 0.15);
+          osc.frequency.linearRampToValueAtTime(860, t + 0.35);
+          gain.gain.setValueAtTime(0.35, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+          osc.start(t);
+          osc.stop(t + 0.5);
+        }
+      } catch (e) {}
+    }
+
+    // 18 pits: 0-8 South (P1), 9-17 North (P2)
+    // 9 kumalaks in each pit at start = 162 total!
+    let board = new Array(18).fill(9);
+    let p1Kazan = 0;
+    let p2Kazan = 0;
+    let currentPlayer = 1;
+    let isSowing = false;
+    let gameOver = false;
+
+    const northPitsEl = document.getElementById('northPits');
+    const southPitsEl = document.getElementById('southPits');
+    const modeSelect = document.getElementById('modeSelect');
+
+    function initBoard() {
+      board = new Array(18).fill(9);
+      p1Kazan = 0;
+      p2Kazan = 0;
+      currentPlayer = 1;
+      isSowing = false;
+      gameOver = false;
+      document.getElementById('winModal').classList.add('hidden');
+      render();
+    }
+
+    function render() {
+      document.getElementById('p1Kazan').textContent = p1Kazan;
+      document.getElementById('p2Kazan').textContent = p2Kazan;
+      document.getElementById('p1KazanMid').textContent = p1Kazan;
+      document.getElementById('p2KazanMid').textContent = p2Kazan;
+
+      const p1Badge = document.getElementById('p1TurnBadge');
+      const p2Badge = document.getElementById('p2TurnBadge');
+
+      if (currentPlayer === 1) {
+        p1Badge.classList.remove('hidden');
+        p2Badge.classList.add('hidden');
+      } else {
+        p1Badge.classList.add('hidden');
+        p2Badge.classList.remove('hidden');
+        const isAi = modeSelect.value === 'ai';
+        p2Badge.textContent = isAi ? "Steppe AI..." : "Player 2 Turn";
+      }
+
+      northPitsEl.innerHTML = '';
+      for (let i = 17; i >= 9; i--) {
+        northPitsEl.appendChild(createPit(i, currentPlayer === 2 && !isSowing && !gameOver));
+      }
+
+      southPitsEl.innerHTML = '';
+      for (let i = 0; i <= 8; i++) {
+        southPitsEl.appendChild(createPit(i, currentPlayer === 1 && !isSowing && !gameOver));
+      }
+    }
+
+    function createPit(index, isClickable) {
+      const count = board[index];
+      const pit = document.createElement('div');
+      pit.id = `otau-${index}`;
+      pit.className = `otau-pit aspect-square rounded-xl flex flex-col items-center justify-center p-1 relative select-none ${isClickable && count > 0 ? 'active-turn' : 'opacity-90'}`;
+
+      if (isClickable && count > 0) {
+        pit.onclick = () => handlePitClick(index);
+      }
+
+      const badge = document.createElement('span');
+      badge.className = `text-xs sm:text-sm font-black ${count > 0 ? 'text-teal-200' : 'text-gray-600'} drop-shadow leading-none`;
+      badge.textContent = count;
+      pit.appendChild(badge);
+
+      return pit;
+    }
+
+    async function handlePitClick(index) {
+      if (isSowing || gameOver) return;
+      if (currentPlayer === 1 && (index < 0 || index > 8)) return;
+      if (currentPlayer === 2 && (index < 9 || index > 17)) return;
+      if (board[index] === 0) return;
+
+      isSowing = true;
+      render();
+
+      let seeds = board[index];
+      let curr = index;
+
+      playSfx('drop');
+
+      if (seeds === 1) {
+        board[index] = 0;
+        curr = (curr + 1) % 18;
+        board[curr]++;
+      } else {
+        board[index] = 1;
+        seeds--;
+        while (seeds > 0) {
+          curr = (curr + 1) % 18;
+          board[curr]++;
+          seeds--;
+
+          const el = document.getElementById(`otau-${curr}`);
+          if (el) el.classList.add('sowing-highlight');
+          playSfx('drop');
+          render();
+
+          await new Promise(r => setTimeout(r, 120));
+          if (el) el.classList.remove('sowing-highlight');
+        }
+      }
+
+      // Capture Rule: If last seed lands in opponent pit and makes an EVEN number
+      if (currentPlayer === 1 && curr >= 9 && curr <= 17) {
+        if (board[curr] % 2 === 0) {
+          p1Kazan += board[curr];
+          board[curr] = 0;
+          playSfx('capture');
+        }
+      } else if (currentPlayer === 2 && curr >= 0 && curr <= 8) {
+        if (board[curr] % 2 === 0) {
+          p2Kazan += board[curr];
+          board[curr] = 0;
+          playSfx('capture');
+        }
+      }
+
+      // Check 82 Win Condition
+      if (p1Kazan >= 82 || p2Kazan >= 82) {
+        endGame();
+        return;
+      }
+
+      currentPlayer = currentPlayer === 1 ? 2 : 1;
+      isSowing = false;
+      render();
+
+      if (currentPlayer === 2 && modeSelect.value === 'ai' && !gameOver) {
+        setTimeout(playAiTurn, 500);
+      }
+    }
+
+    function playAiTurn() {
+      if (gameOver || currentPlayer !== 2) return;
+
+      const validMoves = [];
+      for (let i = 9; i <= 17; i++) {
+        if (board[i] > 0) validMoves.push(i);
+      }
+      if (validMoves.length === 0) {
+        endGame();
+        return;
+      }
+
+      let bestMove = validMoves[0];
+      let bestScore = -999;
+
+      for (const move of validMoves) {
+        const count = board[move];
+        const dest = count === 1 ? (move + 1) % 18 : (move + count - 1) % 18;
+        let score = 0;
+
+        if (dest >= 0 && dest <= 8) {
+          const projectedCount = board[dest] + 1;
+          if (projectedCount % 2 === 0) {
+            score += projectedCount * 10;
+          }
+        }
+        score += count;
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestMove = move;
+        }
+      }
+
+      handlePitClick(bestMove);
+    }
+
+    function endGame() {
+      gameOver = true;
+      playSfx('win');
+      const modal = document.getElementById('winModal');
+      const title = document.getElementById('winTitle');
+      const desc = document.getElementById('winDesc');
+      const emoji = document.getElementById('winEmoji');
+
+      document.getElementById('finalP1Kazan').textContent = p1Kazan;
+      document.getElementById('finalP2Kazan').textContent = p2Kazan;
+
+      if (p1Kazan > p2Kazan) {
+        emoji.textContent = "🏆";
+        title.textContent = "STEPPE VICTORY!";
+        title.className = "cinzel text-xl font-black text-emerald-400";
+        desc.textContent = `You gathered ${p1Kazan} kumalaks and claimed victory!`;
+      } else if (p2Kazan > p1Kazan) {
+        emoji.textContent = "🐎";
+        title.textContent = "NOMAD MASTER WINS!";
+        title.className = "cinzel text-xl font-black text-amber-400";
+        desc.textContent = `The Steppe Nomad won with ${p2Kazan} kumalaks!`;
+      } else {
+        emoji.textContent = "🤝";
+        title.textContent = "DEAD HEAT!";
+        title.className = "cinzel text-xl font-black text-teal-300";
+        desc.textContent = "Draw at 81 kumalaks each!";
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function resetGame() {
+      initBoard();
+    }
+
+    initBoard();
+  </script>
+</body>
+</html>

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Asyk Champion — Nomadic Knucklebones Physics Strike</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700;800&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #0f172a;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      user-select: none;
+      touch-action: none;
+    }
+    .cinzel { font-family: 'Cinzel', serif; }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+
+    #gameCanvas {
+      background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #0f172a 75%, #020617 100%);
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.7);
+    }
+  </style>
+</head>
+<body class="h-full w-full flex flex-col justify-between p-2 sm:p-3 max-w-xl mx-auto box-border overflow-hidden">
+
+  <!-- Header -->
+  <header class="w-full shrink-0 flex items-center justify-between bg-slate-900/80 border border-amber-500/30 px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-xl backdrop-blur-md">
+    <div class="flex items-center gap-2">
+      <span class="text-xl">🇰🇿</span>
+      <div>
+        <h1 class="cinzel font-black text-xs sm:text-sm text-amber-300 tracking-wider flex items-center gap-1.5 leading-none">
+          ASYK CHAMPION
+        </h1>
+        <span class="text-[9.5px] text-amber-400/80 font-bold uppercase tracking-widest">Nomadic Knucklebones • Central Asia</span>
+      </div>
+    </div>
+
+    <!-- Stats & Reset -->
+    <div class="flex items-center gap-3">
+      <div class="text-right">
+        <span class="text-[9.5px] text-gray-400 uppercase font-bold block leading-none">Score</span>
+        <span id="scoreDisplay" class="orbitron text-xs sm:text-sm font-black text-amber-400">0</span>
+      </div>
+      <div class="text-right">
+        <span class="text-[9.5px] text-gray-400 uppercase font-bold block leading-none">Shots</span>
+        <span id="shotsDisplay" class="orbitron text-xs sm:text-sm font-black text-cyan-400">5</span>
+      </div>
+      <button onclick="resetGame()" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs transition-all shadow-md active:scale-95">
+        <i class="fa-solid fa-rotate-right text-[10px]"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Interactive 2D Physics Canvas -->
+  <main class="flex-1 w-full my-1 relative flex items-center justify-center overflow-hidden">
+    <canvas id="gameCanvas" class="w-full h-full rounded-2xl border-2 border-amber-600/40 shadow-2xl"></canvas>
+  </main>
+
+  <!-- Footer Controls & Hints -->
+  <footer class="w-full shrink-0 py-1.5 px-3 rounded-xl bg-slate-900/90 border border-white/10 text-[10px] sm:text-xs text-amber-200/80 text-center flex items-center justify-between">
+    <span>🎯 <b>Aim:</b> Drag &amp; pull back the glowing <b>Golden Saka</b> bone, release to shoot!</span>
+    <span id="levelDisplay" class="font-bold text-amber-400">Level 1</span>
+  </footer>
+
+  <!-- Game Over Modal -->
+  <div id="gameOverModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-slate-900 to-indigo-950 border-2 border-amber-400 p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl space-y-4">
+      <div id="endEmoji" class="text-5xl">🏆</div>
+      <h2 id="endTitle" class="cinzel text-xl font-black text-amber-300">STAGE CLEARED!</h2>
+      <p id="endDesc" class="text-xs text-amber-100 font-medium leading-relaxed">
+        You knocked all asyks out of the nomadic circle!
+      </p>
+      <div class="py-2 px-4 rounded-xl bg-black/50 border border-amber-500/40 flex justify-around text-xs font-bold">
+        <div>Score: <span id="finalScore" class="text-amber-400 font-black text-base">0</span></div>
+      </div>
+      <button onclick="nextLevelOrReset()" id="modalActionBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-black text-xs tracking-wider uppercase shadow-lg active:scale-95 transition-all">
+        Next Stage
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    function playSfx(type) {
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const t = audioCtx.currentTime;
+
+        if (type === 'hit') {
+          osc.frequency.setValueAtTime(480 + Math.random() * 120, t);
+          gain.gain.setValueAtTime(0.2, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+          osc.start(t);
+          osc.stop(t + 0.08);
+        } else if (type === 'out') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(600, t);
+          osc.frequency.exponentialRampToValueAtTime(1000, t + 0.2);
+          gain.gain.setValueAtTime(0.3, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.22);
+          osc.start(t);
+          osc.stop(t + 0.22);
+        }
+      } catch (e) {}
+    }
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let W = 400;
+    let H = 600;
+    let circleRadius = 140;
+    let circleCenter = { x: 200, y: 220 };
+
+    let score = 0;
+    let shotsLeft = 5;
+    let currentLevel = 1;
+    let isAiming = false;
+    let dragStart = null;
+    let dragCurrent = null;
+
+    // Player's Saka Bone
+    let saka = {
+      x: 200,
+      y: 480,
+      vx: 0,
+      vy: 0,
+      radius: 16,
+      mass: 2.2,
+      color: '#facc15'
+    };
+
+    // Target Asyks
+    let asyks = [];
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      W = canvas.width = rect.width * window.devicePixelRatio;
+      H = canvas.height = rect.height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      W = rect.width;
+      H = rect.height;
+
+      circleCenter = { x: W / 2, y: H * 0.38 };
+      circleRadius = Math.min(W * 0.38, 150);
+
+      saka.x = W / 2;
+      saka.y = H * 0.82;
+    }
+
+    function spawnAsyks() {
+      asyks = [];
+      const count = 3 + currentLevel * 2;
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2;
+        const dist = (i % 2 === 0 ? 0.3 : 0.6) * (circleRadius * 0.7);
+        asyks.push({
+          x: circleCenter.x + Math.cos(angle) * dist,
+          y: circleCenter.y + Math.sin(angle) * dist,
+          vx: 0,
+          vy: 0,
+          radius: 12,
+          mass: 1.0,
+          alive: true
+        });
+      }
+    }
+
+    function initLevel() {
+      shotsLeft = 5 + currentLevel;
+      document.getElementById('shotsDisplay').textContent = shotsLeft;
+      document.getElementById('levelDisplay').textContent = `Level ${currentLevel}`;
+      saka.x = W / 2;
+      saka.y = H * 0.82;
+      saka.vx = 0;
+      saka.vy = 0;
+      spawnAsyks();
+    }
+
+    // --- TOUCH / MOUSE INPUT ---
+    function getPointerPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+
+    canvas.addEventListener('mousedown', onPointerDown);
+    canvas.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+
+    canvas.addEventListener('touchstart', onPointerDown, { passive: false });
+    canvas.addEventListener('touchmove', onPointerMove, { passive: false });
+    window.addEventListener('touchend', onPointerUp);
+
+    function onPointerDown(e) {
+      if (Math.hypot(saka.vx, saka.vy) > 0.1 || shotsLeft <= 0) return;
+      const pos = getPointerPos(e);
+      if (Math.hypot(pos.x - saka.x, pos.y - saka.y) < saka.radius * 3) {
+        isAiming = true;
+        dragStart = { x: saka.x, y: saka.y };
+        dragCurrent = pos;
+        e.preventDefault();
+      }
+    }
+
+    function onPointerMove(e) {
+      if (!isAiming) return;
+      dragCurrent = getPointerPos(e);
+      e.preventDefault();
+    }
+
+    function onPointerUp() {
+      if (!isAiming) return;
+      isAiming = false;
+
+      const dx = dragStart.x - dragCurrent.x;
+      const dy = dragStart.y - dragCurrent.y;
+      const power = Math.min(Math.hypot(dx, dy), 120) * 0.22;
+
+      const angle = Math.atan2(dy, dx);
+      saka.vx = Math.cos(angle) * power;
+      saka.vy = Math.sin(angle) * power;
+
+      shotsLeft--;
+      document.getElementById('shotsDisplay').textContent = shotsLeft;
+      playSfx('hit');
+    }
+
+    // --- PHYSICS LOOP ---
+    function update() {
+      const friction = 0.982;
+
+      // Update Saka
+      saka.x += saka.vx;
+      saka.y += saka.vy;
+      saka.vx *= friction;
+      saka.vy *= friction;
+      if (Math.hypot(saka.vx, saka.vy) < 0.05) {
+        saka.vx = 0;
+        saka.vy = 0;
+      }
+
+      // Walls for Saka
+      if (saka.x < saka.radius) { saka.x = saka.radius; saka.vx *= -0.7; }
+      if (saka.x > W - saka.radius) { saka.x = W - saka.radius; saka.vx *= -0.7; }
+      if (saka.y < saka.radius) { saka.y = saka.radius; saka.vy *= -0.7; }
+      if (saka.y > H - saka.radius) { saka.y = H - saka.radius; saka.vy *= -0.7; }
+
+      // Update Asyks
+      for (const a of asyks) {
+        if (!a.alive) continue;
+        a.x += a.vx;
+        a.y += a.vy;
+        a.vx *= friction;
+        a.y *= friction;
+
+        // Collision with Saka
+        const dx = a.x - saka.x;
+        const dy = a.y - saka.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < a.radius + saka.radius) {
+          const nx = dx / dist;
+          const ny = dy / dist;
+          const kx = saka.vx - a.vx;
+          const ky = saka.vy - a.vy;
+          const p = 2 * (nx * kx + ny * ky) / (saka.mass + a.mass);
+
+          saka.vx -= p * a.mass * nx;
+          saka.vy -= p * a.mass * ny;
+          a.vx += p * saka.mass * nx;
+          a.y += p * saka.mass * ny;
+          playSfx('hit');
+        }
+
+        // Check if knocked out of circle!
+        const distFromCenter = Math.hypot(a.x - circleCenter.x, a.y - circleCenter.y);
+        if (distFromCenter > circleRadius + a.radius) {
+          a.alive = false;
+          score += 100;
+          document.getElementById('scoreDisplay').textContent = score;
+          playSfx('out');
+        }
+      }
+
+      // Check level status
+      const remaining = asyks.filter(a => a.alive).length;
+      if (remaining === 0) {
+        levelComplete(true);
+      } else if (shotsLeft <= 0 && Math.hypot(saka.vx, saka.vy) === 0) {
+        levelComplete(false);
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      // Draw Nomadic Yurt Ring / Target Circle
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(circleCenter.x, circleCenter.y, circleRadius, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(217, 119, 6, 0.08)';
+      ctx.fill();
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 6]);
+      ctx.stroke();
+      ctx.restore();
+
+      // Draw Target Asyks
+      for (const a of asyks) {
+        if (!a.alive) continue;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(a.x, a.y, a.radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fill();
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Bone indent
+        ctx.beginPath();
+        ctx.arc(a.x, a.y, a.radius * 0.45, 0, Math.PI * 2);
+        ctx.fillStyle = '#64748b';
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Draw Aiming Guide Line
+      if (isAiming && dragCurrent && dragStart) {
+        const dx = dragStart.x - dragCurrent.x;
+        const dy = dragStart.y - dragCurrent.y;
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(saka.x, saka.y);
+        ctx.lineTo(saka.x + dx * 1.5, saka.y + dy * 1.5);
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([6, 4]);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Draw Saka (Player's Gold Knucklebone)
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(saka.x, saka.y, saka.radius, 0, Math.PI * 2);
+      ctx.fillStyle = saka.color;
+      ctx.shadowColor = '#eab308';
+      ctx.shadowBlur = 15;
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    function levelComplete(won) {
+      const modal = document.getElementById('gameOverModal');
+      const title = document.getElementById('endTitle');
+      const desc = document.getElementById('endDesc');
+      const emoji = document.getElementById('endEmoji');
+      const btn = document.getElementById('modalActionBtn');
+
+      document.getElementById('finalScore').textContent = score;
+
+      if (won) {
+        emoji.textContent = "🏆";
+        title.textContent = "STAGE CLEARED!";
+        desc.textContent = "You knocked all asyks out of the nomadic circle!";
+        btn.textContent = "Next Stage";
+        btn.onclick = () => {
+          currentLevel++;
+          modal.classList.add('hidden');
+          initLevel();
+        };
+      } else {
+        emoji.textContent = "💀";
+        title.textContent = "OUT OF SHOTS!";
+        desc.textContent = "Better luck next time on the steppe!";
+        btn.textContent = "Try Again";
+        btn.onclick = () => {
+          currentLevel = 1;
+          score = 0;
+          document.getElementById('scoreDisplay').textContent = score;
+          modal.classList.add('hidden');
+          initLevel();
+        };
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function resetGame() {
+      currentLevel = 1;
+      score = 0;
+      document.getElementById('scoreDisplay').textContent = score;
+      document.getElementById('gameOverModal').classList.add('hidden');
+      initLevel();
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    initLevel();
+    loop();
+  </script>
+</body>
+</html>

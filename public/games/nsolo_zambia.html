@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Nsolo — Traditional Zambian 4-Row Strategy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700;800&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 20%, #451a03 0%, #200b02 50%, #0d0401 100%);
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .cinzel { font-family: 'Cinzel', serif; }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+
+    /* Zambian Teak & Copper Board */
+    .nsolo-board {
+      background: linear-gradient(135deg, #78350f 0%, #451a03 60%, #1c0a03 100%);
+      box-shadow: inset 0 2px 8px rgba(255,255,255,0.15), 0 16px 40px rgba(0,0,0,0.9), 0 0 0 3px #ea580c;
+    }
+    .nsolo-pit {
+      background: radial-gradient(circle at 45% 45%, #1c0a03 0%, #080301 100%);
+      box-shadow: inset 0 4px 10px rgba(0,0,0,0.95), 0 1px 1px rgba(255,255,255,0.06);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .nsolo-pit:active {
+      transform: scale(0.95);
+    }
+    .nsolo-pit.active-turn {
+      border: 2px solid #f97316;
+      box-shadow: inset 0 3px 8px rgba(0,0,0,0.8), 0 0 14px rgba(249, 115, 22, 0.5);
+      cursor: pointer;
+    }
+    .nsolo-pit.active-turn:hover {
+      border-color: #fb923c;
+      box-shadow: inset 0 3px 8px rgba(0,0,0,0.8), 0 0 20px rgba(251, 146, 60, 0.7);
+    }
+    .nsolo-pit.sowing-highlight {
+      border: 2px solid #22c55e !important;
+      box-shadow: 0 0 16px rgba(34, 197, 94, 0.8) !important;
+    }
+  </style>
+</head>
+<body class="h-full w-full flex flex-col justify-between p-2 sm:p-4 max-w-2xl mx-auto box-border overflow-hidden">
+
+  <!-- Header -->
+  <header class="w-full shrink-0 flex items-center justify-between bg-amber-950/50 border border-orange-500/30 px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl shadow-xl backdrop-blur-md">
+    <div class="flex items-center gap-2">
+      <span class="text-xl">🇿🇲</span>
+      <div>
+        <h1 class="cinzel font-black text-xs sm:text-sm text-orange-300 tracking-wider flex items-center gap-1.5 leading-none">
+          NSOLO ZAMBIA
+        </h1>
+        <span class="text-[9.5px] sm:text-[10px] text-orange-400/80 font-bold uppercase tracking-widest">Savannah 4-Row Mancala</span>
+      </div>
+    </div>
+
+    <!-- Mode & Reset -->
+    <div class="flex items-center gap-1.5 sm:gap-2">
+      <select id="modeSelect" class="bg-black/60 border border-orange-500/50 text-orange-200 text-xs font-bold rounded-lg px-2 py-1 outline-none cursor-pointer">
+        <option value="ai">vs Zambian AI 🤖</option>
+        <option value="pass">Pass & Play 👥</option>
+      </select>
+      <button onclick="resetGame()" class="px-2.5 py-1 rounded-lg bg-orange-500 hover:bg-orange-400 text-black font-extrabold text-xs flex items-center gap-1 transition-all shadow-md active:scale-95">
+        <i class="fa-solid fa-rotate-right text-[10px]"></i>
+        <span class="hidden sm:inline">New</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Player 2 / AI Status Bar -->
+  <div class="w-full shrink-0 flex items-center justify-between px-3 py-1.5 rounded-xl bg-black/40 border border-orange-900/40">
+    <div class="flex items-center gap-2">
+      <div class="w-6 h-6 rounded-full bg-red-600/80 border border-red-400 flex items-center justify-center text-xs font-black shadow">
+        🦁
+      </div>
+      <div>
+        <span id="p2Name" class="text-xs font-bold text-orange-200">Lusaka Master AI (North)</span>
+        <div class="text-[10px] text-gray-400 font-medium">Captured: <span id="p2Score" class="font-extrabold text-amber-300 text-xs">0</span></div>
+      </div>
+    </div>
+    <div id="p2TurnBadge" class="hidden px-2 py-0.5 rounded-full text-[10px] font-black tracking-wide bg-amber-400 text-black uppercase animate-pulse shadow">
+      Planning...
+    </div>
+  </div>
+
+  <!-- Center Nsolo 4-Row Board -->
+  <main class="flex-1 w-full flex items-center justify-center my-2 overflow-hidden">
+    <div class="nsolo-board w-full rounded-3xl p-2.5 sm:p-4 flex flex-col justify-between gap-2 border-2 border-orange-600/60 shadow-2xl relative">
+      
+      <!-- North Outer Row (Pits 18 to 23) -->
+      <div class="flex flex-col gap-0.5">
+        <span class="px-2 text-[9px] font-bold text-gray-400 uppercase">AI Outer Row</span>
+        <div class="grid grid-cols-6 gap-1.5 sm:gap-2.5" id="rowNorthOuter"></div>
+      </div>
+
+      <!-- North Inner Row (Pits 12 to 17) -->
+      <div class="flex flex-col gap-0.5">
+        <span class="px-2 text-[9px] font-bold text-orange-400/70 uppercase">AI Inner Row</span>
+        <div class="grid grid-cols-6 gap-1.5 sm:gap-2.5" id="rowNorthInner"></div>
+      </div>
+
+      <!-- Center Divider -->
+      <div class="py-0.5 px-3 bg-black/40 rounded-xl border border-orange-900/30 text-[9.5px] text-orange-300 font-bold flex items-center justify-between">
+        <span>⚔️ Frontlines ⚔️</span>
+        <span id="gameStatusText" class="text-orange-200 font-extrabold tracking-wider uppercase text-xs">YOUR MOVE</span>
+        <span>2 Seeds Per Pit</span>
+      </div>
+
+      <!-- South Inner Row (Pits 6 to 11) -->
+      <div class="flex flex-col gap-0.5">
+        <span class="px-2 text-[9px] font-bold text-emerald-400/80 uppercase">Your Inner Row</span>
+        <div class="grid grid-cols-6 gap-1.5 sm:gap-2.5" id="rowSouthInner"></div>
+      </div>
+
+      <!-- South Outer Row (Pits 0 to 5) -->
+      <div class="flex flex-col gap-0.5">
+        <span class="px-2 text-[9px] font-bold text-gray-400 uppercase">Your Outer Row</span>
+        <div class="grid grid-cols-6 gap-1.5 sm:gap-2.5" id="rowSouthOuter"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Player 1 Status Bar -->
+  <div class="w-full shrink-0 flex items-center justify-between px-3 py-1.5 rounded-xl bg-black/40 border border-emerald-900/40">
+    <div class="flex items-center gap-2">
+      <div class="w-6 h-6 rounded-full bg-emerald-600/80 border border-emerald-400 flex items-center justify-center text-xs font-black shadow">
+        👤
+      </div>
+      <div>
+        <span class="text-xs font-bold text-emerald-300">You (South)</span>
+        <div class="text-[10px] text-gray-400 font-medium">Captured: <span id="p1Score" class="font-extrabold text-amber-300 text-xs">0</span></div>
+      </div>
+    </div>
+    <div id="p1TurnBadge" class="px-2 py-0.5 rounded-full text-[10px] font-black tracking-wide bg-orange-400 text-black uppercase shadow">
+      Your Turn
+    </div>
+  </div>
+
+  <!-- Footer Tip -->
+  <footer class="w-full shrink-0 mt-2 py-1 px-3 rounded-xl bg-black/50 border border-white/5 text-[9.5px] sm:text-xs text-orange-200/80 text-center">
+    💡 <b>Zambian Rule:</b> Sow seeds around your 2 rows. Land in your inner row to capture opponent seeds standing directly opposite!
+  </footer>
+
+  <!-- Win Modal Dialog -->
+  <div id="winModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-amber-950 to-stone-950 border-2 border-orange-500 p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl space-y-4">
+      <div id="winEmoji" class="text-5xl">🏆</div>
+      <h2 id="winTitle" class="cinzel text-xl font-black text-orange-300">ZAMBIAN CHAMPION!</h2>
+      <p id="winDesc" class="text-xs text-orange-100 font-medium leading-relaxed">
+        You captured all enemy pits and claimed the Nsolo Shield!
+      </p>
+      <div class="py-2 px-4 rounded-xl bg-black/40 border border-orange-600/40 flex justify-around text-xs font-bold">
+        <div>You: <span id="finalP1Score" class="text-emerald-400 font-black text-sm">0</span></div>
+        <div class="text-gray-500">|</div>
+        <div>Opponent: <span id="finalP2Score" class="text-orange-400 font-black text-sm">0</span></div>
+      </div>
+      <button onclick="resetGame()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-400 to-amber-500 hover:from-orange-300 hover:to-amber-400 text-black font-black text-xs tracking-wider uppercase shadow-lg active:scale-95 transition-all">
+        Play Next Match
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    function playSfx(type) {
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const t = audioCtx.currentTime;
+
+        if (type === 'drop') {
+          osc.frequency.setValueAtTime(360 + Math.random() * 80, t);
+          gain.gain.setValueAtTime(0.18, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.07);
+          osc.start(t);
+          osc.stop(t + 0.07);
+        } else if (type === 'capture') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(540, t);
+          osc.frequency.exponentialRampToValueAtTime(880, t + 0.22);
+          gain.gain.setValueAtTime(0.35, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+          osc.start(t);
+          osc.stop(t + 0.25);
+        } else if (type === 'win') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(440, t);
+          osc.frequency.linearRampToValueAtTime(587, t + 0.15);
+          osc.frequency.linearRampToValueAtTime(784, t + 0.35);
+          gain.gain.setValueAtTime(0.35, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+          osc.start(t);
+          osc.stop(t + 0.5);
+        }
+      } catch (e) {}
+    }
+
+    // 24 pits (2 seeds each = 48 total)
+    // P1 (South): Outer 0-5, Inner 6-11
+    // P2 (North): Inner 12-17, Outer 18-23
+    let board = new Array(24).fill(2);
+    let p1Score = 0;
+    let p2Score = 0;
+    let currentPlayer = 1;
+    let isSowing = false;
+    let gameOver = false;
+
+    const rowNorthOuter = document.getElementById('rowNorthOuter');
+    const rowNorthInner = document.getElementById('rowNorthInner');
+    const rowSouthInner = document.getElementById('rowSouthInner');
+    const rowSouthOuter = document.getElementById('rowSouthOuter');
+    const modeSelect = document.getElementById('modeSelect');
+
+    function initBoard() {
+      board = new Array(24).fill(2);
+      p1Score = 0;
+      p2Score = 0;
+      currentPlayer = 1;
+      isSowing = false;
+      gameOver = false;
+      document.getElementById('winModal').classList.add('hidden');
+      render();
+    }
+
+    function render() {
+      document.getElementById('p1Score').textContent = p1Score;
+      document.getElementById('p2Score').textContent = p2Score;
+
+      const p1Badge = document.getElementById('p1TurnBadge');
+      const p2Badge = document.getElementById('p2TurnBadge');
+      const statusText = document.getElementById('gameStatusText');
+
+      if (currentPlayer === 1) {
+        p1Badge.classList.remove('hidden');
+        p2Badge.classList.add('hidden');
+        statusText.textContent = "YOUR TURN (SOUTH)";
+      } else {
+        p1Badge.classList.add('hidden');
+        p2Badge.classList.remove('hidden');
+        const isAi = modeSelect.value === 'ai';
+        p2Badge.textContent = isAi ? "Thinking..." : "Player 2 Move";
+        statusText.textContent = isAi ? "LUSAKA AI IS PLAYING..." : "PLAYER 2 TURN";
+      }
+
+      // Render 4 Rows
+      rowNorthOuter.innerHTML = '';
+      for (let i = 23; i >= 18; i--) {
+        rowNorthOuter.appendChild(createPit(i, currentPlayer === 2 && !isSowing && !gameOver));
+      }
+
+      rowNorthInner.innerHTML = '';
+      for (let i = 17; i >= 12; i--) {
+        rowNorthInner.appendChild(createPit(i, currentPlayer === 2 && !isSowing && !gameOver));
+      }
+
+      rowSouthInner.innerHTML = '';
+      for (let i = 6; i <= 11; i++) {
+        rowSouthInner.appendChild(createPit(i, currentPlayer === 1 && !isSowing && !gameOver));
+      }
+
+      rowSouthOuter.innerHTML = '';
+      for (let i = 0; i <= 5; i++) {
+        rowSouthOuter.appendChild(createPit(i, currentPlayer === 1 && !isSowing && !gameOver));
+      }
+    }
+
+    function createPit(index, isClickable) {
+      const count = board[index];
+      const pit = document.createElement('div');
+      pit.id = `nsolo-${index}`;
+      pit.className = `nsolo-pit aspect-square rounded-xl flex flex-col items-center justify-center p-1 relative select-none ${isClickable && count > 0 ? 'active-turn' : 'opacity-90'}`;
+
+      if (isClickable && count > 0) {
+        pit.onclick = () => handlePitClick(index);
+      }
+
+      const badge = document.createElement('span');
+      badge.className = `text-xs sm:text-sm font-black ${count > 0 ? 'text-orange-200' : 'text-gray-600'} drop-shadow leading-none`;
+      badge.textContent = count;
+      pit.appendChild(badge);
+
+      return pit;
+    }
+
+    async function handlePitClick(index) {
+      if (isSowing || gameOver) return;
+      if (currentPlayer === 1 && (index < 0 || index > 11)) return;
+      if (currentPlayer === 2 && (index < 12 || index > 23)) return;
+      if (board[index] === 0) return;
+
+      isSowing = true;
+      render();
+
+      let seeds = board[index];
+      board[index] = 0;
+      let curr = index;
+
+      playSfx('drop');
+
+      // Loop sowing across the player's 12 pits
+      // P1: 0..11
+      // P2: 12..23
+      while (seeds > 0) {
+        if (currentPlayer === 1) {
+          curr = (curr + 1) % 12;
+        } else {
+          curr = 12 + ((curr - 12 + 1) % 12);
+        }
+        board[curr]++;
+        seeds--;
+
+        const el = document.getElementById(`nsolo-${curr}`);
+        if (el) el.classList.add('sowing-highlight');
+        playSfx('drop');
+        render();
+
+        await new Promise(r => setTimeout(r, 140));
+        if (el) el.classList.remove('sowing-highlight');
+      }
+
+      // Capture Rule:
+      // If last seed lands in occupied inner pit, capture opposite opponent's inner (and outer) pit!
+      let captured = 0;
+      if (currentPlayer === 1 && curr >= 6 && curr <= 11) {
+        const col = curr - 6;
+        const oppInner = 12 + col;
+        const oppOuter = 18 + col;
+        if (board[oppInner] > 0) {
+          captured += board[oppInner];
+          board[oppInner] = 0;
+          if (board[oppOuter] > 0) {
+            captured += board[oppOuter];
+            board[oppOuter] = 0;
+          }
+          p1Score += captured;
+          playSfx('capture');
+        }
+      } else if (currentPlayer === 2 && curr >= 12 && curr <= 17) {
+        const col = curr - 12;
+        const oppInner = 6 + col;
+        const oppOuter = col;
+        if (board[oppInner] > 0) {
+          captured += board[oppInner];
+          board[oppInner] = 0;
+          if (board[oppOuter] > 0) {
+            captured += board[oppOuter];
+            board[oppOuter] = 0;
+          }
+          p2Score += captured;
+          playSfx('capture');
+        }
+      }
+
+      // Check if all opponent pits empty
+      const p1Remaining = board.slice(0, 12).reduce((a, b) => a + b, 0);
+      const p2Remaining = board.slice(12, 24).reduce((a, b) => a + b, 0);
+
+      if (p1Remaining === 0 || p2Remaining === 0 || p1Score >= 25 || p2Score >= 25) {
+        endGame();
+        return;
+      }
+
+      currentPlayer = currentPlayer === 1 ? 2 : 1;
+      isSowing = false;
+      render();
+
+      if (currentPlayer === 2 && modeSelect.value === 'ai' && !gameOver) {
+        setTimeout(playAiTurn, 550);
+      }
+    }
+
+    function playAiTurn() {
+      if (gameOver || currentPlayer !== 2) return;
+
+      const validMoves = [];
+      for (let i = 12; i <= 23; i++) {
+        if (board[i] > 0) validMoves.push(i);
+      }
+      if (validMoves.length === 0) {
+        endGame();
+        return;
+      }
+
+      let bestMove = validMoves[0];
+      let bestScore = -999;
+
+      for (const move of validMoves) {
+        const count = board[move];
+        const dest = 12 + ((move - 12 + count) % 12);
+        let score = 0;
+
+        if (dest >= 12 && dest <= 17) {
+          const col = dest - 12;
+          const oppInner = 6 + col;
+          const oppOuter = col;
+          score += (board[oppInner] + board[oppOuter]) * 10;
+        }
+        score += count;
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestMove = move;
+        }
+      }
+
+      handlePitClick(bestMove);
+    }
+
+    function endGame() {
+      gameOver = true;
+      playSfx('win');
+      const modal = document.getElementById('winModal');
+      const title = document.getElementById('winTitle');
+      const desc = document.getElementById('winDesc');
+      const emoji = document.getElementById('winEmoji');
+
+      document.getElementById('finalP1Score').textContent = p1Score;
+      document.getElementById('finalP2Score').textContent = p2Score;
+
+      if (p1Score > p2Score) {
+        emoji.textContent = "🏆";
+        title.textContent = "ZAMBIAN CHAMPION!";
+        title.className = "cinzel text-xl font-black text-emerald-400";
+        desc.textContent = `You captured ${p1Score} seeds and outwitted the Zambian savannah master!`;
+      } else if (p2Score > p1Score) {
+        emoji.textContent = "🦁";
+        title.textContent = "LUSAKA AI WINS!";
+        title.className = "cinzel text-xl font-black text-orange-400";
+        desc.textContent = `The Lusaka Grandmaster secured victory with ${p2Score} seeds!`;
+      } else {
+        emoji.textContent = "🤝";
+        title.textContent = "HONORABLE DRAW!";
+        title.className = "cinzel text-xl font-black text-yellow-300";
+        desc.textContent = "A fiercely matched deadlock!";
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function resetGame() {
+      initBoard();
+    }
+
+    initBoard();
+  </script>
+</body>
+</html>

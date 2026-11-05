@@ -467,6 +467,14 @@ function populateCarouselZones(games) {
   if (rapidContainer) {
     rapidContainer.innerHTML = rapidGames.map(g => renderPosterCard(g, false)).join('');
   }
+
+  // 4. Curate African & Central Asian Champions (New Games: Nigeria, Ghana, Zambia, Central Asia)
+  const newGamesContainer = document.getElementById('newGamesRow');
+  const regionalSlugs = ['oware-master', 'ayo-olopon', 'togyz-kumalak', 'nsolo-zambia', 'asyk-strike', 'african-penalty-cup'];
+  const regionalGames = games.filter(g => regionalSlugs.includes(g.slug));
+  if (newGamesContainer && regionalGames.length > 0) {
+    newGamesContainer.innerHTML = regionalGames.map(g => renderPosterCard(g, false)).join('');
+  }
 }
 
 // Render the main filterable explorer grid
@@ -840,6 +848,19 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
     playUrl = '/play/cars-arena';
   } else if (slug === 'penalty-shooters-2') {
     playUrl = '/play/penalty-shooters-2';
+
+  } else if (slug === 'oware-master') {
+    playUrl = '/games/oware_master.html';
+  } else if (slug === 'ayo-olopon') {
+    playUrl = '/games/ayo_olopon.html';
+  } else if (slug === 'togyz-kumalak') {
+    playUrl = '/games/togyz_kumalak.html';
+  } else if (slug === 'nsolo-zambia') {
+    playUrl = '/games/nsolo_zambia.html';
+  } else if (slug === 'asyk-strike') {
+    playUrl = '/games/asyk_strike.html';
+  } else if (slug === 'african-penalty-cup') {
+    playUrl = '/games/african_penalty_cup.html';
 
   } else if (slug === 'cut-the-rope-experiments' || slug === 'cut-the-rope-magic' || slug === 'om-nom-run' || slug === 'om-nom-bubbles' || slug === 'drift-cup-racing' || slug === 'table-tennis-world-tour' || slug === 'cannon-balls-3d' || slug === 'tower-crash-3d' || slug === 'tnt-bomb' || slug === 'archery-world-tour') {
     playUrl = `/play/${slug}`;
@@ -1292,6 +1313,78 @@ const GAME_HOW_TO_PLAY = {
 3. Beat the goalkeeper's reaction time and score consecutive goals to earn maximum points!`,
     tips: `• Aim for the top corners (crossbar) where goalkeepers have the hardest time reaching.
 • Add sudden spin to trick the goalkeeper into diving early.`
+  },
+  'oware-master': {
+    title: 'Oware Master (Ghana)',
+    category: 'African Strategy & Mancala',
+    objective: 'Sow seeds counter-clockwise around the carved wooden board and capture 25+ seeds to win!',
+    controls: '👆 Touch / 🖱️ Click: Tap any pit on your side containing seeds to sow them one-by-one.',
+    rules: `1. Pick all seeds from any of your 6 pits and sow 1 seed per pit counter-clockwise.
+2. If the last seed lands in an opponent pit and makes the count 2 or 3, you capture all seeds in that pit!
+3. Preceding opponent pits with 2 or 3 are also captured in a chain.
+4. First to 25 captured seeds wins!`,
+    tips: `• Build up large seed clusters to execute long multi-lap sowings into enemy territory.
+• Defend your back pits so your opponent cannot capture multiple 2s and 3s in a row.`
+  },
+  'ayo-olopon': {
+    title: 'Ayo Olopon (Nigeria)',
+    category: 'Yoruba Traditional Mancala',
+    objective: 'Outwit your opponent in the royal Yoruba game of strategy and capture 25 cowries!',
+    controls: '👆 Touch / 🖱️ Click: Select your pit to pick and sow cowrie shells counter-clockwise.',
+    rules: `1. Select any pit on your side with cowries.
+2. Sow one shell into each consecutive pit counter-clockwise.
+3. Land in opponent territory to make 2 or 3 shells and capture them instantly!
+4. Reach 25 captured shells to become the Lagos Ayo Champion!`,
+    tips: `• Watch opponent pit counts carefully—never leave a pit with 1 or 2 shells vulnerable to capture.
+• Force opponent into starved pits while hoarding deep reserves.`
+  },
+  'togyz-kumalak': {
+    title: 'Togyz Kumalak (Central Asia)',
+    category: 'Nomadic Intellectual Strategy',
+    objective: 'Collect 82 or more kumalaks in your Kazan treasury across 18 steppe otaus!',
+    controls: '👆 Touch / 🖱️ Click: Tap any otau on your side to sow kumalaks counter-clockwise.',
+    rules: `1. Each otau starts with 9 kumalaks (162 total).
+2. Sowing leaves 1 ball in the starting pit and sows the rest consecutively.
+3. If your last kumalak lands in an opponent otau making an EVEN count (2, 4, 6, 8...), you capture all of them!
+4. First player to collect 82 kumalaks in their Kazan wins!`,
+    tips: `• Target opponent pits with odd counts (1, 3, 5) so adding your last kumalak makes them even and capturable.
+• Protect your own even-numbered otaus.`
+  },
+  'nsolo-zambia': {
+    title: 'Nsolo Zambia (Savannah)',
+    category: 'Savannah 4-Row Mancala',
+    objective: 'Sow seeds across your inner and outer rows to capture opponent frontline pieces!',
+    controls: '👆 Touch / 🖱️ Click: Tap your pit to pick up seeds and sow around your 2 rows.',
+    rules: `1. You control the 2 rows on your side of the board.
+2. Sow seeds continuously around your own territory.
+3. If the last seed lands in your occupied inner row, capture all opposing seeds in the enemy inner (and outer) row opposite!
+4. Wipe out all enemy seeds to claim victory!`,
+    tips: `• Use outer row reserves to feed high-count inner row attacks.
+• Clear opposing heavy pits before they can launch counter-strikes.`
+  },
+  'asyk-strike': {
+    title: 'Asyk Strike (Central Asia)',
+    category: 'Nomadic Physics Arcade',
+    objective: 'Aim and flick your Golden Saka knucklebone to knock target asyks out of the yurt circle!',
+    controls: '👆 Drag & Pull / 🖱️ Click & Drag: Pull back from the Golden Saka to set angle and power; release to shoot!',
+    rules: `1. Pull back to adjust trajectory power and line.
+2. Release to fire the heavy Saka knucklebone into the cluster.
+3. Knock asyks completely outside the dashed circle boundary to score 100 points each!
+4. Clear the circle before your shots expire to advance stages!`,
+    tips: `• Aim at the edge bones first for clean corner knockouts.
+• Use bank shots off the outer cushions for split clusters.`
+  },
+  'african-penalty-cup': {
+    title: 'African Penalty Cup',
+    category: 'Pan-African Soccer Championship',
+    objective: 'Flick penalty kicks past the keeper for Nigeria, Ghana, or Zambia to lift the cup!',
+    controls: '👆 Swipe / 🖱️ Flick: Swipe from the soccer ball towards the goal corners to curl your shot.',
+    rules: `1. Choose your country (Nigeria 🇳🇬, Ghana 🇬🇭, or Zambia 🇿🇲).
+2. Swipe upwards smoothly towards the goalpost corners.
+3. Curve your swipe to bend the shot away from the diving goalkeeper!
+4. Score at least 3 out of 5 penalties to win the championship!`,
+    tips: `• Fast swipes generate high-velocity shots under the crossbar.
+• Aim for the top postage-stamp corners where the goalkeeper cannot reach.`
   }
 };
 
