@@ -3259,6 +3259,44 @@ const handleGameFrame = async (req, res) => {
       );
     }
 
+    // Fix Steam Whacker (Whack-a-Mole) missing hammer icon and invisible mouse cursor
+    if (html.includes('whack-a-mole') || finalUrl.includes('whack-a-mole') || targetUrl.includes('whack-a-mole') || req.internalSlug === 'steam-whacker') {
+      html = html.replace('<div id="hammer"></div>', '<div id="hammer">🔨</div>');
+      html = html.replace(
+        "function showHammer(){hammer.style.display='block';document.body.style.cursor='none'}",
+        "function showHammer(){hammer.style.display='block';hammer.textContent='🔨';document.body.style.cursor='crosshair'}"
+      );
+      html = html.replace(
+        "function hideHammer(){hammer.style.display='none';document.body.style.cursor=''}",
+        "function hideHammer(){hammer.style.display='none';document.body.style.cursor='default'}"
+      );
+      html = html.replace(
+        "cursor:none;",
+        "cursor:crosshair;"
+      );
+      html += `
+        <style>
+          #hammer {
+            position: fixed !important;
+            z-index: 999999 !important;
+            pointer-events: none !important;
+            font-size: clamp(36px, 7vw, 54px) !important;
+            line-height: 1 !important;
+            transform: rotate(-30deg) !important;
+            transition: transform 50ms ease !important;
+            user-select: none !important;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.7)) !important;
+          }
+          #hammer.smash {
+            transform: rotate(15deg) scale(1.3) !important;
+          }
+          .hole, #grid {
+            cursor: crosshair !important;
+          }
+        </style>
+      `;
+    }
+
     // Fix Kitchen Rush / Burger Joint tutorial deadlock and missing initial customer
     if (html.includes('Burger Joint') || finalUrl.includes('kitchen-rush') || targetUrl.includes('kitchen-rush')) {
       // 1. Remove click-blocking tutorial deadlock so all taps register
