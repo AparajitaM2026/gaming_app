@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Suwe — African Street Hopscotch &amp; Territory</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700;800&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #1e1b4b;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .cinzel { font-family: 'Cinzel', serif; }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+
+    .suwe-box {
+      border: 3px solid rgba(255, 255, 255, 0.4);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .suwe-box:hover {
+      background: rgba(34, 197, 94, 0.25);
+      border-color: #22c55e;
+      transform: scale(1.04);
+    }
+    .suwe-box.owned-p1 {
+      background: rgba(16, 185, 129, 0.45) !important;
+      border-color: #10b981 !important;
+    }
+    .suwe-box.stone-here {
+      box-shadow: 0 0 16px #facc15;
+      border-color: #facc15 !important;
+    }
+  </style>
+</head>
+<body class="h-full w-full flex flex-col justify-between p-2 sm:p-3 max-w-md mx-auto box-border overflow-hidden">
+
+  <!-- Header -->
+  <header class="w-full shrink-0 flex items-center justify-between bg-slate-900/80 border border-emerald-500/30 px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-xl backdrop-blur-md">
+    <div class="flex items-center gap-2">
+      <span class="text-2xl">🇳🇬</span>
+      <div>
+        <h1 class="cinzel font-black text-xs sm:text-sm text-emerald-300 tracking-wider leading-none">
+          SUWE HOPSCOTCH
+        </h1>
+        <span class="text-[9.5px] text-emerald-400 font-bold uppercase tracking-widest">African Street Grid Strategy</span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="flex items-center gap-2">
+      <div class="text-right">
+        <span class="text-[9px] text-gray-400 uppercase font-bold block">Houses</span>
+        <span id="housesDisplay" class="orbitron text-xs sm:text-sm font-black text-amber-300">0 / 3</span>
+      </div>
+      <button onclick="resetGame()" class="px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs transition-all shadow-md active:scale-95">
+        <i class="fa-solid fa-rotate-right text-[10px]"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Turn Banner -->
+  <div class="w-full shrink-0 px-3 py-1 rounded-xl bg-black/40 border border-emerald-900/40 text-center">
+    <span id="turnComment" class="text-xs font-bold text-amber-300">Toss your stone into Box 1!</span>
+  </div>
+
+  <!-- Chalk Grid (10 Boxes) -->
+  <main class="flex-1 w-full my-1 flex flex-col items-center justify-center p-2 rounded-3xl bg-slate-950/70 border-2 border-emerald-600/30 shadow-2xl relative overflow-hidden">
+    
+    <!-- Top Heaven Semi-Circle (Box 10) -->
+    <div onclick="handleBoxClick(10)" id="box-10" class="suwe-box w-2/3 h-12 flex items-center justify-center font-black text-sm text-amber-300 my-0.5">
+      10 • HEAVEN ☀️
+    </div>
+
+    <!-- Row 7 & 8 Pair -->
+    <div class="grid grid-cols-2 gap-2 w-3/4 my-0.5">
+      <div onclick="handleBoxClick(7)" id="box-7" class="suwe-box h-12 flex items-center justify-center font-black text-sm">7</div>
+      <div onclick="handleBoxClick(8)" id="box-8" class="suwe-box h-12 flex items-center justify-center font-black text-sm">8</div>
+    </div>
+
+    <!-- Box 6 Single -->
+    <div onclick="handleBoxClick(6)" id="box-6" class="suwe-box w-1/3 h-12 flex items-center justify-center font-black text-sm my-0.5">
+      6
+    </div>
+
+    <!-- Row 4 & 5 Pair -->
+    <div class="grid grid-cols-2 gap-2 w-3/4 my-0.5">
+      <div onclick="handleBoxClick(4)" id="box-4" class="suwe-box h-12 flex items-center justify-center font-black text-sm">4</div>
+      <div onclick="handleBoxClick(5)" id="box-5" class="suwe-box h-12 flex items-center justify-center font-black text-sm">5</div>
+    </div>
+
+    <!-- Box 3 Single -->
+    <div onclick="handleBoxClick(3)" id="box-3" class="suwe-box w-1/3 h-12 flex items-center justify-center font-black text-sm my-0.5">3</div>
+    <!-- Box 2 Single -->
+    <div onclick="handleBoxClick(2)" id="box-2" class="suwe-box w-1/3 h-12 flex items-center justify-center font-black text-sm my-0.5">2</div>
+    <!-- Box 1 Single -->
+    <div onclick="handleBoxClick(1)" id="box-1" class="suwe-box w-1/3 h-12 flex items-center justify-center font-black text-sm my-0.5 stone-here">1 🪨</div>
+
+  </main>
+
+  <!-- Footer Tip -->
+  <footer class="w-full shrink-0 py-1 px-3 rounded-xl bg-black/50 border border-white/5 text-[9.5px] sm:text-xs text-emerald-200/80 text-center">
+    💡 <b>Suwe Rule:</b> Hop through the grid, pick up your stone, and claim 3 boxes as your Houses!
+  </footer>
+
+  <!-- End Game Modal -->
+  <div id="endModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-emerald-950 to-stone-950 border-2 border-emerald-400 p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl space-y-4">
+      <div id="endEmoji" class="text-5xl">👑</div>
+      <h2 id="endTitle" class="cinzel text-xl font-black text-emerald-300">SUWE GRANDMASTER!</h2>
+      <p id="endDesc" class="text-xs text-emerald-100 font-medium leading-relaxed">
+        You claimed 3 houses and won the Nigerian street grid challenge!
+      </p>
+      <button onclick="resetGame()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 text-black font-black text-xs tracking-wider uppercase shadow-lg active:scale-95 transition-all">
+        Play Next Round
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    function playSfx(type) {
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const t = audioCtx.currentTime;
+
+        if (type === 'hop') {
+          osc.frequency.setValueAtTime(360, t);
+          gain.gain.setValueAtTime(0.25, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+          osc.start(t);
+          osc.stop(t + 0.08);
+        } else if (type === 'house') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(520, t);
+          osc.frequency.linearRampToValueAtTime(1040, t + 0.3);
+          gain.gain.setValueAtTime(0.35, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.35);
+          osc.start(t);
+          osc.stop(t + 0.35);
+        }
+      } catch (e) {}
+    }
+
+    let currentTargetBox = 1;
+    let currentHop = 1;
+    let housesWon = 0;
+    let ownedBoxes = new Set();
+
+    function handleBoxClick(num) {
+      if (housesWon >= 3) return;
+
+      playSfx('hop');
+
+      // If tapping next box in sequence
+      if (num === currentHop) {
+        currentHop++;
+        document.getElementById('turnComment').innerHTML = `<span class="text-emerald-400 font-bold">Hopped into Box ${num}! Keep hopping up! 🦶</span>`;
+
+        if (currentHop > 10) {
+          // Reached heaven! Claim a house
+          housesWon++;
+          ownedBoxes.add(currentTargetBox);
+          const el = document.getElementById(`box-${currentTargetBox}`);
+          if (el) el.classList.add('owned-p1');
+
+          playSfx('house');
+          document.getElementById('housesDisplay').textContent = `${housesWon} / 3`;
+
+          if (housesWon >= 3) {
+            document.getElementById('endModal').classList.remove('hidden');
+          } else {
+            currentTargetBox++;
+            currentHop = 1;
+            document.getElementById('turnComment').innerHTML = `<span class="text-amber-300 font-black">HOUSE CLAIMED! 🏠 Now toss into Box ${currentTargetBox}!</span>`;
+            updateStoneBadge();
+          }
+        }
+      } else {
+        document.getElementById('turnComment').innerHTML = `<span class="text-red-400 font-bold">Hop to Box ${currentHop} next!</span>`;
+      }
+    }
+
+    function updateStoneBadge() {
+      for (let i = 1; i <= 10; i++) {
+        const el = document.getElementById(`box-${i}`);
+        if (!el) continue;
+        el.classList.remove('stone-here');
+        if (i === currentTargetBox) {
+          el.classList.add('stone-here');
+          el.innerHTML = `${i === 10 ? '10 • HEAVEN ☀️' : i} 🪨`;
+        } else {
+          el.innerHTML = `${i === 10 ? '10 • HEAVEN ☀️' : i}`;
+        }
+      }
+    }
+
+    function resetGame() {
+      currentTargetBox = 1;
+      currentHop = 1;
+      housesWon = 0;
+      ownedBoxes.clear();
+      document.getElementById('housesDisplay').textContent = "0 / 3";
+      document.getElementById('turnComment').textContent = "Toss your stone into Box 1!";
+      document.getElementById('endModal').classList.add('hidden');
+      for (let i = 1; i <= 10; i++) {
+        const el = document.getElementById(`box-${i}`);
+        if (el) el.classList.remove('owned-p1');
+      }
+      updateStoneBadge();
+    }
+  </script>
+</body>
+</html>

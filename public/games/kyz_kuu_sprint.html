@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kyz Kuu — Central Asian Steppe Horse Sprint</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700;800&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #022c22;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      user-select: none;
+      touch-action: none;
+    }
+    .cinzel { font-family: 'Cinzel', serif; }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+
+    #kyzCanvas {
+      background: linear-gradient(180deg, #0284c7 0%, #38bdf8 45%, #059669 46%, #047857 100%);
+      box-shadow: inset 0 0 50px rgba(0,0,0,0.7);
+    }
+  </style>
+</head>
+<body class="h-full w-full flex flex-col justify-between p-2 sm:p-3 max-w-md mx-auto box-border overflow-hidden">
+
+  <!-- Header -->
+  <header class="w-full shrink-0 flex items-center justify-between bg-teal-950/80 border border-teal-500/30 px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-xl backdrop-blur-md">
+    <div class="flex items-center gap-2">
+      <span class="text-2xl">🇰🇿</span>
+      <div>
+        <h1 class="cinzel font-black text-xs sm:text-sm text-teal-300 tracking-wider leading-none">
+          KYZ KUU SPRINT
+        </h1>
+        <span class="text-[9.5px] text-teal-400 font-bold uppercase tracking-widest">Catch the Maiden • Central Asia</span>
+      </div>
+    </div>
+
+    <!-- Distance Left -->
+    <div class="text-right">
+      <span class="text-[9px] text-gray-400 uppercase font-bold block">Finish Line</span>
+      <span id="distDisplay" class="orbitron text-xs sm:text-sm font-black text-amber-300">500 m</span>
+    </div>
+  </header>
+
+  <!-- Interactive 2D Canvas -->
+  <main class="flex-1 w-full my-1 relative flex items-center justify-center overflow-hidden">
+    <canvas id="kyzCanvas" class="w-full h-full rounded-2xl border-2 border-teal-500/40 shadow-2xl"></canvas>
+  </main>
+
+  <!-- Big Gallop Button -->
+  <footer class="w-full shrink-0 py-2 px-3 rounded-xl bg-teal-950/90 border border-white/10 flex items-center justify-between gap-3">
+    <div class="text-left">
+      <span class="text-[9px] text-gray-400 uppercase font-bold block">Speed</span>
+      <span id="speedDisplay" class="orbitron text-xs sm:text-sm font-black text-teal-300">0 km/h</span>
+    </div>
+    <button onclick="gallopSprint()" id="gallopBtn" class="flex-1 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:scale-105 active:scale-95 text-black font-black text-sm uppercase tracking-wider shadow-xl flex items-center justify-center gap-2 transition-all">
+      <span>TAP TO GALLOP! 🐎💨</span>
+    </button>
+  </footer>
+
+  <!-- End Game Modal -->
+  <div id="endModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-teal-950 to-stone-950 border-2 border-teal-400 p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl space-y-4">
+      <div id="endEmoji" class="text-5xl">🏆</div>
+      <h2 id="endTitle" class="cinzel text-xl font-black text-teal-300">CAUGHT THE MAIDEN!</h2>
+      <p id="endDesc" class="text-xs text-teal-100 font-medium leading-relaxed">
+        Sensational riding across the great Kazakh steppe!
+      </p>
+      <button onclick="resetGame()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-emerald-500 text-black font-black text-xs tracking-wider uppercase shadow-lg active:scale-95 transition-all">
+        Ride Again
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    function playSfx(type) {
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const t = audioCtx.currentTime;
+
+        if (type === 'gallop') {
+          osc.frequency.setValueAtTime(160 + Math.random() * 40, t);
+          gain.gain.setValueAtTime(0.2, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.07);
+          osc.start(t);
+          osc.stop(t + 0.07);
+        } else if (type === 'win') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(520, t);
+          osc.frequency.linearRampToValueAtTime(1040, t + 0.35);
+          gain.gain.setValueAtTime(0.35, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+          osc.start(t);
+          osc.stop(t + 0.4);
+        }
+      } catch (e) {}
+    }
+
+    const canvas = document.getElementById('kyzCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let W = 360;
+    let H = 540;
+
+    let distanceLeft = 500;
+    let playerSpeed = 0;
+    let maidenDist = 80; // Starts 80m ahead
+    let raceOver = false;
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      W = canvas.width = rect.width * window.devicePixelRatio;
+      H = canvas.height = rect.height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      W = rect.width;
+      H = rect.height;
+    }
+
+    function gallopSprint() {
+      if (raceOver) return;
+      playerSpeed = Math.min(65, playerSpeed + 8);
+      playSfx('gallop');
+    }
+
+    // Touch on canvas gallops
+    canvas.addEventListener('pointerdown', gallopSprint);
+
+    function update() {
+      if (raceOver) return;
+
+      // Natural drag
+      playerSpeed = Math.max(0, playerSpeed * 0.985);
+      document.getElementById('speedDisplay').textContent = `${Math.round(playerSpeed)} km/h`;
+
+      const maidenSpeed = 38; // Constant gallop
+      const dt = 0.08;
+
+      distanceLeft -= playerSpeed * dt;
+      maidenDist += (maidenSpeed - playerSpeed) * dt;
+
+      document.getElementById('distDisplay').textContent = `${Math.max(0, Math.round(distanceLeft))} m`;
+
+      // Check if caught!
+      if (maidenDist <= 0) {
+        endRace(true);
+      } else if (distanceLeft <= 0) {
+        endRace(false);
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      // Draw Sky & Mountains
+      ctx.save();
+      ctx.fillStyle = '#0f766e';
+      ctx.beginPath();
+      ctx.moveTo(0, H * 0.46);
+      ctx.lineTo(W * 0.3, H * 0.28);
+      ctx.lineTo(W * 0.7, H * 0.35);
+      ctx.lineTo(W, H * 0.25);
+      ctx.lineTo(W, H * 0.46);
+      ctx.fill();
+      ctx.restore();
+
+      // Draw Steppe Grass Track
+      ctx.fillStyle = '#047857';
+      ctx.fillRect(0, H * 0.46, W, H * 0.54);
+
+      // Track Lines
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, H * 0.65); ctx.lineTo(W, H * 0.65);
+      ctx.moveTo(0, H * 0.85); ctx.lineTo(W, H * 0.85);
+      ctx.stroke();
+
+      // Draw Maiden Horse (Rival)
+      ctx.save();
+      const maidenX = W * 0.5 + Math.min(W * 0.35, maidenDist * 1.5);
+      const maidenY = H * 0.6;
+      ctx.font = "32px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("🐎", maidenX, maidenY);
+      ctx.fillText("💃", maidenX - 4, maidenY - 14);
+      ctx.restore();
+
+      // Draw Player Horse (Hero)
+      ctx.save();
+      const playerX = W * 0.28;
+      const playerY = H * 0.78;
+      ctx.font = "40px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("🐎", playerX, playerY);
+      ctx.fillText("🏇", playerX - 4, playerY - 16);
+      ctx.restore();
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    function endRace(won) {
+      raceOver = true;
+      playSfx('win');
+      const modal = document.getElementById('endModal');
+      const title = document.getElementById('endTitle');
+      const desc = document.getElementById('endDesc');
+      const emoji = document.getElementById('endEmoji');
+
+      if (won) {
+        emoji.textContent = "🏆";
+        title.textContent = "CAUGHT THE MAIDEN!";
+        desc.textContent = "You caught up before the finish line and claimed steppe glory!";
+      } else {
+        emoji.textContent = "🏇";
+        title.textContent = "MAIDEN ESCAPED!";
+        desc.textContent = "She reached the finish line first! Gallop faster next time!";
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function resetGame() {
+      distanceLeft = 500;
+      playerSpeed = 0;
+      maidenDist = 80;
+      raceOver = false;
+      document.getElementById('endModal').classList.add('hidden');
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    loop();
+  </script>
+</body>
+</html>

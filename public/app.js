@@ -472,7 +472,8 @@ function populateCarouselZones(games) {
   const newGamesContainer = document.getElementById('newGamesRow');
   const regionalSlugs = [
     'oware-master', 'ayo-olopon', 'togyz-kumalak', 'nsolo-zambia', 'asyk-strike', 'african-penalty-cup',
-    'ampe-rhythm', 'naija-whist-24', 'chiyato-stone-toss', 'silk-road-nardi', 'naija-street-dam', 'kokpar-nomad-rider'
+    'ampe-rhythm', 'naija-whist-24', 'chiyato-stone-toss', 'silk-road-nardi', 'naija-street-dam', 'kokpar-nomad-rider',
+    'lagos-danfo-rush', 'chaskele-ghana', 'kyz-kuu-sprint', 'suwe-hopscotch', 'audaryspak-duel'
   ];
   const regionalGames = games.filter(g => regionalSlugs.includes(g.slug));
   if (newGamesContainer && regionalGames.length > 0) {
@@ -876,6 +877,16 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
     playUrl = '/games/naija_street_dam.html';
   } else if (slug === 'kokpar-nomad-rider') {
     playUrl = '/games/kokpar_nomad_rider.html';
+  } else if (slug === 'lagos-danfo-rush') {
+    playUrl = '/games/lagos_danfo_rush.html';
+  } else if (slug === 'chaskele-ghana') {
+    playUrl = '/games/chaskele_ghana.html';
+  } else if (slug === 'kyz-kuu-sprint') {
+    playUrl = '/games/kyz_kuu_sprint.html';
+  } else if (slug === 'suwe-hopscotch') {
+    playUrl = '/games/suwe_hopscotch.html';
+  } else if (slug === 'audaryspak-duel') {
+    playUrl = '/games/audaryspak_duel.html';
 
   } else if (slug === 'cut-the-rope-experiments' || slug === 'cut-the-rope-magic' || slug === 'om-nom-run' || slug === 'om-nom-bubbles' || slug === 'drift-cup-racing' || slug === 'table-tennis-world-tour' || slug === 'cannon-balls-3d' || slug === 'tower-crash-3d' || slug === 'tnt-bomb' || slug === 'archery-world-tour') {
     playUrl = `/play/${slug}`;
@@ -1471,6 +1482,64 @@ const GAME_HOW_TO_PLAY = {
 3. Jump over steppe boulders to prevent crashing!`,
     tips: `• Keep your rider centered so you can react quickly to either lane.
 • Time jumps right as the boulder enters the middle zone.`
+  },
+  'lagos-danfo-rush': {
+    title: 'Lagos Danfo Rush (Nigeria)',
+    category: 'Nigerian Street Traffic Racer',
+    objective: 'Drive the iconic yellow Danfo bus through heavy Lagos highway traffic!',
+    controls: '⌨️ Arrow Keys / 👆 Buttons: Steer Left / Right; tap HONK to clear the way.',
+    rules: `1. Switch lanes to dodge okada motorbikes, keke napeps, and road barriers.
+2. Pick up waiting passengers and green Naira bills for big score bonuses.
+3. Survive high speeds across the Third Mainland Bridge!`,
+    tips: `• Watch for sudden braking vehicles in the middle lane.
+• Honk frequently to alert oncoming obstacles.`
+  },
+  'chaskele-ghana': {
+    title: 'Chaskele Street Cricket (Ghana)',
+    category: 'Ghanaian Street Can Cricket',
+    objective: 'Time your swing with the wooden plank to smash the pitched tin can for boundaries!',
+    controls: '👆 Tap / 🖱️ Click / Button: Tap SWING right as the can enters the green strike zone.',
+    rules: `1. Wait for the pitcher to launch the crushed tin can.
+2. Swing your wooden bat at the perfect split-second.
+3. Smash the can into the boundary for 4 or over the fence for a 6!
+4. 3 missed strikes means you are bowled out!`,
+    tips: `• Don't swing too early—wait until the can fully enters the bright green box.
+• Center-box hits trigger maximum sixers!`
+  },
+  'kyz-kuu-sprint': {
+    title: 'Kyz Kuu Steppe Sprint (Central Asia)',
+    category: 'Central Asian Horseback Race',
+    objective: 'Mash to gallop your steppe stallion and catch the maiden before the finish line!',
+    controls: '👆 Rapid Tap / 🖱️ Click: Mash the gallop button as fast as you can to build sprint speed.',
+    rules: `1. The maiden starts with an 80m head start.
+2. Tap rapidly to accelerate your horse stride up to 60+ km/h.
+3. Catch up and overtake the maiden before the 500m finish line flag!`,
+    tips: `• Build up steady cadence rather than frantic erratic taps.
+• Maintain maximum speed during the final 100 meters.`
+  },
+  'suwe-hopscotch': {
+    title: 'Suwe African Hopscotch (Nigeria & Ghana)',
+    category: 'African Schoolyard Grid Strategy',
+    objective: 'Hop through the chalk-drawn 10-box grid and claim 3 boxes as your personal Houses!',
+    controls: '👆 Touch / 🖱️ Click: Tap the numbered boxes in sequence to hop across the sand grid.',
+    rules: `1. Toss your marker stone into Box 1.
+2. Hop through all 10 boxes consecutively on one foot (double feet on paired boxes).
+3. Reach Box 10 (Heaven) and pick up your stone to claim a House!
+4. First player to own 3 houses wins!`,
+    tips: `• Always keep your eye on the numbered order so you don't step on lines.
+• Claim center houses first to dominate the board.`
+  },
+  'audaryspak-duel': {
+    title: 'Audaryspak Horseback Duel (Central Asia)',
+    category: 'Steppe Horseback Wrestling',
+    objective: 'Tug, push, and out-muscle the rival nomad warrior to unseat him from his saddle!',
+    controls: '👆 Tap / 🖱️ Click: Mash PUSH & COUNTER PULL to drive the balance meter past 100%.',
+    rules: `1. Two mounted warriors grip each other's belts on horseback.
+2. The AI constantly pulls the balance meter towards defeat.
+3. Mash PUSH and PULL to overwhelm the opponent's grip.
+4. Win 2 rounds to be crowned Steppe Champion!`,
+    tips: `• Alternate between PUSH and PULL rapidly to break the AI's resistance.
+• When the meter enters the green zone, mash with maximum intensity!`
   }
 };
 

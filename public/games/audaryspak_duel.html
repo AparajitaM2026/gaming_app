@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Audaryspak Duel — Central Asian Horseback Wrestling</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700;800&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #0f172a;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .cinzel { font-family: 'Cinzel', serif; }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+
+    @keyframes riderTug {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(3deg); }
+    }
+    .tugging {
+      animation: riderTug 0.3s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="h-full w-full flex flex-col justify-between p-2 sm:p-3 max-w-md mx-auto box-border overflow-hidden">
+
+  <!-- Header -->
+  <header class="w-full shrink-0 flex items-center justify-between bg-teal-950/80 border border-teal-500/30 px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-xl backdrop-blur-md">
+    <div class="flex items-center gap-2">
+      <span class="text-2xl">🇰🇿</span>
+      <div>
+        <h1 class="cinzel font-black text-xs sm:text-sm text-teal-300 tracking-wider leading-none">
+          AUDARYSPAK DUEL
+        </h1>
+        <span class="text-[9.5px] text-teal-400 font-bold uppercase tracking-widest">Horseback Wrestling • Central Asia</span>
+      </div>
+    </div>
+
+    <!-- Rounds Won -->
+    <div class="flex items-center gap-2">
+      <div class="text-right">
+        <span class="text-[9px] text-gray-400 uppercase font-bold block">Rounds</span>
+        <span id="roundsDisplay" class="orbitron text-xs sm:text-sm font-black text-amber-300">0 / 2</span>
+      </div>
+      <button onclick="resetGame()" class="px-2.5 py-1 rounded-lg bg-teal-500 hover:bg-teal-400 text-black font-extrabold text-xs transition-all shadow-md active:scale-95">
+        <i class="fa-solid fa-rotate-right text-[10px]"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Balance Tug-of-War Bar -->
+  <div class="w-full shrink-0 px-3 py-2 rounded-2xl bg-black/50 border border-teal-600/30 my-1">
+    <div class="flex items-center justify-between text-[10px] font-bold text-gray-400 uppercase mb-1">
+      <span class="text-emerald-400">Your Grip</span>
+      <span id="balancePercent" class="orbitron text-xs text-amber-300 font-black">50%</span>
+      <span class="text-red-400">Nomad Rival</span>
+    </div>
+    <!-- Meter Bar -->
+    <div class="w-full h-4 rounded-full bg-slate-900 border border-white/20 overflow-hidden relative p-0.5">
+      <div id="balanceFill" class="h-full rounded-full bg-gradient-to-r from-emerald-500 via-yellow-400 to-red-500 transition-all duration-75" style="width: 50%;"></div>
+      <div class="absolute top-0 bottom-0 left-1/2 w-0.5 bg-white/60"></div>
+    </div>
+  </div>
+
+  <!-- Center Arena Graphic -->
+  <main class="flex-1 w-full my-1 rounded-3xl bg-gradient-to-b from-teal-900/40 via-emerald-950/80 to-black/80 border-2 border-teal-500/40 p-4 flex flex-col items-center justify-center relative shadow-2xl overflow-hidden">
+    
+    <!-- Yurt Background Tag -->
+    <div class="absolute top-2 px-3 py-0.5 rounded-full bg-black/60 border border-teal-500/40 text-[9.5px] text-teal-300 uppercase font-bold">
+      World Nomad Games Arena
+    </div>
+
+    <!-- Two Locked Mounted Riders -->
+    <div class="flex items-center justify-around w-full my-auto tugging">
+      <!-- Player Rider -->
+      <div class="flex flex-col items-center">
+        <span class="text-5xl sm:text-6xl">🏇</span>
+        <span class="text-xs font-black text-emerald-400 uppercase mt-1">You</span>
+      </div>
+
+      <!-- Gripping Arms Clash -->
+      <div class="flex flex-col items-center">
+        <span class="text-3xl animate-pulse">⚔️</span>
+        <span id="clashComment" class="text-[10px] font-bold text-amber-300 mt-1 uppercase">TAP TO PUSH!</span>
+      </div>
+
+      <!-- Rival Nomad Rider -->
+      <div class="flex flex-col items-center">
+        <span class="text-5xl sm:text-6xl" style="transform: scaleX(-1);">🏇</span>
+        <span class="text-xs font-black text-red-400 uppercase mt-1">Steppe Warrior</span>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Big Wrestling Push & Pull Action Buttons -->
+  <div class="w-full shrink-0 grid grid-cols-2 gap-3 my-1">
+    <button onclick="balancePush(12)" class="py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 hover:scale-105 active:scale-95 text-black font-black text-xs sm:text-sm tracking-wider uppercase shadow-xl flex items-center justify-center gap-1.5 transition-all">
+      <span>💪 PUSH SADDLE!</span>
+    </button>
+    <button onclick="balancePush(10)" class="py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:scale-105 active:scale-95 text-black font-black text-xs sm:text-sm tracking-wider uppercase shadow-xl flex items-center justify-center gap-1.5 transition-all">
+      <span>⚡ COUNTER PULL!</span>
+    </button>
+  </div>
+
+  <!-- Footer Tip -->
+  <footer class="w-full shrink-0 py-1 px-3 rounded-xl bg-black/50 border border-white/5 text-[9.5px] sm:text-xs text-teal-200/80 text-center">
+    💡 <b>Rule:</b> Mash PUSH &amp; PULL to overcome the rival warrior's balance meter and unseat him!
+  </footer>
+
+  <!-- End Game Modal -->
+  <div id="endModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-teal-950 to-stone-950 border-2 border-teal-400 p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl space-y-4">
+      <div id="endEmoji" class="text-5xl">🏆</div>
+      <h2 id="endTitle" class="cinzel text-xl font-black text-teal-300">STEPPE GLORY!</h2>
+      <p id="endDesc" class="text-xs text-teal-100 font-medium leading-relaxed">
+        You unseated the rival nomad warrior and conquered the Audaryspak ring!
+      </p>
+      <button onclick="resetGame()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-emerald-500 text-black font-black text-xs tracking-wider uppercase shadow-lg active:scale-95 transition-all">
+        Next Duel
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    function playSfx(type) {
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const t = audioCtx.currentTime;
+
+        if (type === 'grunt') {
+          osc.frequency.setValueAtTime(140 + Math.random() * 60, t);
+          gain.gain.setValueAtTime(0.25, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+          osc.start(t);
+          osc.stop(t + 0.08);
+        } else if (type === 'win') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(520, t);
+          osc.frequency.linearRampToValueAtTime(1040, t + 0.35);
+          gain.gain.setValueAtTime(0.35, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+          osc.start(t);
+          osc.stop(t + 0.4);
+        }
+      } catch (e) {}
+    }
+
+    let balance = 50; // 0 = Player lost, 100 = Player won
+    let roundsWon = 0;
+    let duelOver = false;
+
+    // AI constantly pushes back towards 0
+    setInterval(() => {
+      if (duelOver) return;
+      balance = Math.max(0, balance - 1.2);
+      updateBalance();
+
+      if (balance <= 0) {
+        endDuel(false);
+      }
+    }, 80);
+
+    function balancePush(amount) {
+      if (duelOver) return;
+      balance = Math.min(100, balance + amount);
+      playSfx('grunt');
+      updateBalance();
+
+      if (balance >= 100) {
+        roundsWon++;
+        document.getElementById('roundsDisplay').textContent = `${roundsWon} / 2`;
+        playSfx('win');
+
+        if (roundsWon >= 2) {
+          endDuel(true);
+        } else {
+          balance = 50;
+          document.getElementById('clashComment').innerHTML = "<span class='text-emerald-400 font-black'>ROUND WON! ROUND 2 BEGINS!</span>";
+        }
+      }
+    }
+
+    function updateBalance() {
+      document.getElementById('balanceFill').style.width = `${balance}%`;
+      document.getElementById('balancePercent').textContent = `${Math.round(balance)}%`;
+    }
+
+    function endDuel(won) {
+      duelOver = true;
+      const modal = document.getElementById('endModal');
+      const title = document.getElementById('endTitle');
+      const desc = document.getElementById('endDesc');
+      if (won) {
+        title.textContent = "STEPPE GLORY!";
+        desc.textContent = "You unseated the rival nomad warrior and conquered the Audaryspak ring!";
+      } else {
+        title.textContent = "UNSEATED!";
+        desc.textContent = "The nomadic warrior knocked you off balance! Mash faster!";
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function resetGame() {
+      balance = 50;
+      roundsWon = 0;
+      duelOver = false;
+      document.getElementById('roundsDisplay').textContent = "0 / 2";
+      document.getElementById('endModal').classList.add('hidden');
+      updateBalance();
+    }
+  </script>
+</body>
+</html>

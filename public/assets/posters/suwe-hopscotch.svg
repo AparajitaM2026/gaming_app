@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b" />
+      <stop offset="50%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="brightGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <rect width="300" height="300" fill="url(#bgGrad)" />
+  <circle cx="150" cy="140" r="110" fill="#10b981" opacity="0.15" filter="url(#brightGlow)" />
+
+  <!-- Nigeria & Ghana Flag Tag -->
+  <g transform="translate(18, 20)">
+    <rect width="8" height="18" fill="#16a34a" />
+    <rect x="8" width="8" height="18" fill="#ffffff" />
+    <rect x="16" width="8" height="18" fill="#16a34a" />
+  </g>
+
+  <!-- Hopscotch Grid Graphic -->
+  <g transform="translate(150, 140)">
+    <!-- Heaven semi-circle -->
+    <path d="M -30,-50 A 30,30 0 0,1 30,-50 Z" fill="none" stroke="#facc15" stroke-width="2.5" filter="url(#glow)"/>
+    <text x="0" y="-55" font-family="'Orbitron', sans-serif" font-weight="900" font-size="10" fill="#fde68a" text-anchor="middle">10 ☀️</text>
+
+    <!-- Boxes 7-8 -->
+    <rect x="-30" y="-50" width="30" height="25" fill="none" stroke="#22c55e" stroke-width="2"/>
+    <rect x="0" y="-50" width="30" height="25" fill="none" stroke="#22c55e" stroke-width="2"/>
+    <text x="-15" y="-34" font-size="11" fill="#fff" text-anchor="middle">7</text>
+    <text x="15" y="-34" font-size="11" fill="#fff" text-anchor="middle">8</text>
+
+    <!-- Box 6 -->
+    <rect x="-15" y="-25" width="30" height="25" fill="none" stroke="#22c55e" stroke-width="2"/>
+    <text x="0" y="-9" font-size="11" fill="#fff" text-anchor="middle">6</text>
+
+    <!-- Boxes 4-5 -->
+    <rect x="-30" y="0" width="30" height="25" fill="none" stroke="#22c55e" stroke-width="2"/>
+    <rect x="0" y="0" width="30" height="25" fill="none" stroke="#22c55e" stroke-width="2"/>
+    <text x="-15" y="16" font-size="11" fill="#fff" text-anchor="middle">4</text>
+    <text x="15" y="16" font-size="11" fill="#fff" text-anchor="middle">5</text>
+
+    <!-- Box 1 with Stone -->
+    <rect x="-15" y="25" width="30" height="25" fill="rgba(34, 197, 94, 0.3)" stroke="#22c55e" stroke-width="2"/>
+    <circle cx="0" cy="37" r="5" fill="#facc15" filter="url(#brightGlow)"/>
+  </g>
+
+  <!-- Title Badge -->
+  <g transform="translate(150, 260)">
+    <rect x="-85" y="-14" width="170" height="26" rx="13" fill="#0f172a" stroke="#10b981" stroke-width="1.5" filter="url(#glow)"/>
+    <text x="0" y="4" font-family="'Orbitron', sans-serif" font-weight="900" font-size="12" fill="#a7f3d0" text-anchor="middle" letter-spacing="2">SUWE HOPSCOTCH</text>
+  </g>
+</svg>

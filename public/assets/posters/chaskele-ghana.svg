@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#451a03" />
+      <stop offset="50%" stop-color="#1c0a03" />
+      <stop offset="100%" stop-color="#080301" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="brightGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <rect width="300" height="300" fill="url(#bgGrad)" />
+  <circle cx="150" cy="140" r="110" fill="#f59e0b" opacity="0.15" filter="url(#brightGlow)" />
+
+  <!-- Ghana Tag -->
+  <g transform="translate(18, 20)">
+    <rect width="30" height="6" fill="#ef4444" rx="1.5" />
+    <rect y="6" width="30" height="6" fill="#eab308" />
+    <rect y="12" width="30" height="6" fill="#22c55e" rx="1.5" />
+  </g>
+
+  <!-- Wooden Plank Bat & Crushed Tin Can -->
+  <g transform="translate(150, 140)">
+    <!-- Wooden Bat -->
+    <rect x="-10" y="-70" width="20" height="110" rx="4" transform="rotate(-35)" fill="#78350f" stroke="#f59e0b" stroke-width="2.5" filter="url(#glow)"/>
+    
+    <!-- Crushed Tin Can flying -->
+    <g transform="translate(35, -20) rotate(20)">
+      <rect x="-15" y="-10" width="30" height="20" rx="3" fill="#cbd5e1" stroke="#475569" stroke-width="2" filter="url(#brightGlow)"/>
+      <rect x="-11" y="-7" width="22" height="4" fill="#ef4444"/>
+    </g>
+
+    <!-- Impact Flash Sparks -->
+    <text x="15" y="-40" font-size="24" fill="#facc15" filter="url(#brightGlow)">💥</text>
+  </g>
+
+  <!-- Title Badge -->
+  <g transform="translate(150, 260)">
+    <rect x="-85" y="-14" width="170" height="26" rx="13" fill="#1c0a03" stroke="#f59e0b" stroke-width="1.5" filter="url(#glow)"/>
+    <text x="0" y="4" font-family="'Orbitron', sans-serif" font-weight="900" font-size="12" fill="#fde68a" text-anchor="middle" letter-spacing="2">CHASKELE</text>
+  </g>
+</svg>

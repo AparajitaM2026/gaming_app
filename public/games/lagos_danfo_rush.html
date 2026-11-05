@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Lagos Danfo Rush — Nigerian Highway Traffic Runner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700;800&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #0f172a;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      user-select: none;
+      touch-action: none;
+    }
+    .cinzel { font-family: 'Cinzel', serif; }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+
+    #danfoCanvas {
+      background: #1e293b;
+      box-shadow: inset 0 0 50px rgba(0,0,0,0.85);
+    }
+  </style>
+</head>
+<body class="h-full w-full flex flex-col justify-between p-2 sm:p-3 max-w-md mx-auto box-border overflow-hidden">
+
+  <!-- Header -->
+  <header class="w-full shrink-0 flex items-center justify-between bg-amber-950/80 border border-amber-500/30 px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-xl backdrop-blur-md">
+    <div class="flex items-center gap-2">
+      <span class="text-2xl">🇳🇬</span>
+      <div>
+        <h1 class="cinzel font-black text-xs sm:text-sm text-amber-300 tracking-wider leading-none">
+          LAGOS DANFO RUSH
+        </h1>
+        <span class="text-[9.5px] text-amber-400 font-bold uppercase tracking-widest">Highway Traffic Hustle</span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="flex items-center gap-3">
+      <div class="text-right">
+        <span class="text-[9px] text-gray-400 uppercase font-bold block">Score</span>
+        <span id="scoreDisplay" class="orbitron text-xs sm:text-sm font-black text-amber-300">0</span>
+      </div>
+      <div class="text-right">
+        <span class="text-[9px] text-gray-400 uppercase font-bold block">Passengers</span>
+        <span id="passDisplay" class="orbitron text-xs sm:text-sm font-black text-emerald-400">0</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Interactive 2D Highway Canvas -->
+  <main class="flex-1 w-full my-1 relative flex items-center justify-center overflow-hidden">
+    <canvas id="danfoCanvas" class="w-full h-full rounded-2xl border-2 border-amber-500/40 shadow-2xl"></canvas>
+  </main>
+
+  <!-- Footer Touch Navigation Buttons -->
+  <footer class="w-full shrink-0 py-1.5 px-3 rounded-xl bg-slate-900/90 border border-white/10 text-[10px] sm:text-xs text-amber-200/80 flex items-center justify-between gap-2">
+    <button onclick="changeLane(-1)" class="w-1/3 py-2.5 rounded-xl bg-amber-600/80 hover:bg-amber-500 active:scale-95 text-black font-black text-sm flex items-center justify-center gap-1 shadow">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span>LEFT</span>
+    </button>
+    <button onclick="honkHorn()" class="w-1/3 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 active:scale-95 text-black font-black text-sm flex items-center justify-center gap-1 shadow">
+      <span>HONK 📢</span>
+    </button>
+    <button onclick="changeLane(1)" class="w-1/3 py-2.5 rounded-xl bg-amber-600/80 hover:bg-amber-500 active:scale-95 text-black font-black text-sm flex items-center justify-center gap-1 shadow">
+      <span>RIGHT</span>
+      <i class="fa-solid fa-arrow-right"></i>
+    </button>
+  </footer>
+
+  <!-- End Game Modal -->
+  <div id="endModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-amber-950 to-stone-950 border-2 border-amber-400 p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl space-y-4">
+      <div id="endEmoji" class="text-5xl">🚌</div>
+      <h2 id="endTitle" class="cinzel text-xl font-black text-amber-300">LAGOS TRAFFIC JAM!</h2>
+      <p id="endDesc" class="text-xs text-amber-100 font-medium leading-relaxed">
+        You dashed across the Third Mainland Bridge and picked up passengers!
+      </p>
+      <div class="py-2 px-4 rounded-xl bg-black/50 border border-amber-500/40 flex justify-around text-xs font-bold">
+        <div>Score: <span id="finalScore" class="text-amber-400 font-black text-base">0</span></div>
+      </div>
+      <button onclick="resetGame()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-black text-xs tracking-wider uppercase shadow-lg active:scale-95 transition-all">
+        Hustle Again
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    function playSfx(type) {
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const t = audioCtx.currentTime;
+
+        if (type === 'horn') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(380, t);
+          osc.frequency.setValueAtTime(450, t + 0.1);
+          gain.gain.setValueAtTime(0.3, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+          osc.start(t);
+          osc.stop(t + 0.25);
+        } else if (type === 'coin') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(660, t);
+          osc.frequency.linearRampToValueAtTime(990, t + 0.12);
+          gain.gain.setValueAtTime(0.3, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.18);
+          osc.start(t);
+          osc.stop(t + 0.18);
+        } else if (type === 'crash') {
+          osc.frequency.setValueAtTime(110, t);
+          gain.gain.setValueAtTime(0.4, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+          osc.start(t);
+          osc.stop(t + 0.25);
+        }
+      } catch (e) {}
+    }
+
+    const canvas = document.getElementById('danfoCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let W = 360;
+    let H = 540;
+    let score = 0;
+    let passengers = 0;
+    let gameOver = false;
+
+    // 3 Lanes
+    let currentLane = 1; // 0 = Left, 1 = Center, 2 = Right
+    let laneX = [90, 180, 270];
+
+    // Danfo Bus
+    let bus = {
+      x: 180,
+      y: 430,
+      width: 44,
+      height: 70
+    };
+
+    let traffic = [];
+    let speed = 4.5;
+    let spawnTimer = 0;
+    let roadStripeOffset = 0;
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      W = canvas.width = rect.width * window.devicePixelRatio;
+      H = canvas.height = rect.height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      W = rect.width;
+      H = rect.height;
+
+      laneX = [W * 0.22, W * 0.5, W * 0.78];
+      bus.x = laneX[currentLane];
+      bus.y = H * 0.8;
+      bus.width = W * 0.14;
+      bus.height = H * 0.13;
+    }
+
+    function changeLane(dir) {
+      if (gameOver) return;
+      currentLane = Math.max(0, Math.min(2, currentLane + dir));
+      playSfx('horn');
+    }
+
+    function honkHorn() {
+      playSfx('horn');
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') changeLane(-1);
+      if (e.key === 'ArrowRight' || e.key === 'd') changeLane(1);
+      if (e.key === ' ' || e.key === 'ArrowUp') honkHorn();
+    });
+
+    function spawnTraffic() {
+      const lane = Math.floor(Math.random() * 3);
+      const rand = Math.random();
+
+      if (rand < 0.35) {
+        // Passenger / Naira Bonus
+        traffic.push({ type: 'passenger', lane, x: laneX[lane], y: -40, radius: 14 });
+      } else if (rand < 0.65) {
+        // Red Keke Napep Tricycle
+        traffic.push({ type: 'keke', lane, x: laneX[lane], y: -50, width: bus.width * 0.75, height: bus.height * 0.7 });
+      } else {
+        // Yellow Taxi / Okada
+        traffic.push({ type: 'taxi', lane, x: laneX[lane], y: -60, width: bus.width * 0.85, height: bus.height * 0.85 });
+      }
+    }
+
+    function update() {
+      if (gameOver) return;
+
+      // Smooth horizontal bus motion
+      bus.x += (laneX[currentLane] - bus.x) * 0.25;
+
+      // Road stripes animation
+      roadStripeOffset = (roadStripeOffset + speed) % 40;
+
+      spawnTimer++;
+      if (spawnTimer > 40) {
+        spawnTimer = 0;
+        spawnTraffic();
+      }
+
+      speed = Math.min(9, 4.5 + score * 0.002);
+
+      // Update Traffic
+      for (let i = traffic.length - 1; i >= 0; i--) {
+        const item = traffic[i];
+        item.y += speed;
+
+        // Check collision
+        if (item.type === 'passenger') {
+          const dist = Math.hypot(item.x - bus.x, item.y - bus.y);
+          if (dist < item.radius + bus.width * 0.5) {
+            passengers++;
+            score += 100;
+            document.getElementById('passDisplay').textContent = passengers;
+            document.getElementById('scoreDisplay').textContent = score;
+            playSfx('coin');
+            traffic.splice(i, 1);
+            continue;
+          }
+        } else {
+          // Vehicle collision bounding box
+          if (Math.abs(item.x - bus.x) < (item.width + bus.width) * 0.45 &&
+              Math.abs(item.y - bus.y) < (item.height + bus.height) * 0.45) {
+            gameOver = true;
+            playSfx('crash');
+            endGame();
+            return;
+          }
+        }
+
+        // Off screen
+        if (item.y > H + 60) {
+          traffic.splice(i, 1);
+          score += 15;
+          document.getElementById('scoreDisplay').textContent = score;
+        }
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      // Draw Highway Lanes & Dashes
+      ctx.save();
+      ctx.strokeStyle = '#facc15';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([20, 20]);
+      ctx.lineDashOffset = -roadStripeOffset;
+
+      ctx.beginPath();
+      ctx.moveTo(W * 0.36, 0); ctx.lineTo(W * 0.36, H);
+      ctx.moveTo(W * 0.64, 0); ctx.lineTo(W * 0.64, H);
+      ctx.stroke();
+      ctx.restore();
+
+      // Draw Traffic Objects
+      for (const item of traffic) {
+        ctx.save();
+        if (item.type === 'passenger') {
+          ctx.beginPath();
+          ctx.arc(item.x, item.y, item.radius, 0, Math.PI * 2);
+          ctx.fillStyle = '#22c55e';
+          ctx.shadowColor = '#4ade80';
+          ctx.shadowBlur = 10;
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.fillStyle = '#ffffff';
+          ctx.font = "bold 12px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("₦", item.x, item.y + 4);
+        } else if (item.type === 'keke') {
+          // Red Keke Napep
+          ctx.fillStyle = '#dc2626';
+          ctx.fillRect(item.x - item.width/2, item.y - item.height/2, item.width, item.height);
+          ctx.fillStyle = '#fef08a';
+          ctx.fillRect(item.x - item.width/2 + 2, item.y - item.height/2 + 2, item.width - 4, 6);
+        } else if (item.type === 'taxi') {
+          // Blue / Yellow Taxi
+          ctx.fillStyle = '#2563eb';
+          ctx.fillRect(item.x - item.width/2, item.y - item.height/2, item.width, item.height);
+          ctx.fillStyle = '#facc15';
+          ctx.fillRect(item.x - 4, item.y - item.height/2, 8, item.height);
+        }
+        ctx.restore();
+      }
+
+      // Draw Player Danfo Bus (Iconic Yellow with Black Stripes)
+      ctx.save();
+      const bx = bus.x - bus.width / 2;
+      const by = bus.y - bus.height / 2;
+
+      // Yellow Body
+      ctx.fillStyle = '#facc15';
+      ctx.shadowColor = '#eab308';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.roundRect(bx, by, bus.width, bus.height, 8);
+      ctx.fill();
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Black Danfo Racing Stripes
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(bx + bus.width * 0.28, by, bus.width * 0.15, bus.height);
+      ctx.fillRect(bx + bus.width * 0.58, by, bus.width * 0.15, bus.height);
+
+      // Windshield
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(bx + 4, by + 4, bus.width - 8, bus.height * 0.25);
+
+      // Headlights
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(bx + 3, by, 6, 3);
+      ctx.fillRect(bx + bus.width - 9, by, 6, 3);
+      ctx.restore();
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    function endGame() {
+      document.getElementById('finalScore').textContent = score;
+      document.getElementById('endModal').classList.remove('hidden');
+    }
+
+    function resetGame() {
+      score = 0;
+      passengers = 0;
+      gameOver = false;
+      traffic = [];
+      currentLane = 1;
+      document.getElementById('scoreDisplay').textContent = 0;
+      document.getElementById('passDisplay').textContent = 0;
+      document.getElementById('endModal').classList.add('hidden');
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    loop();
+  </script>
+</body>
+</html>
