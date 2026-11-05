@@ -1373,10 +1373,18 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
       text = text.replaceAll('this.apple_btn=null', `this.apple_btn=${dummyBtn}`);
       text = text.replaceAll('i.google_btn=null', `i.google_btn=${dummyBtn}`);
       text = text.replaceAll('i.apple_btn=null', `i.apple_btn=${dummyBtn}`);
-      text = text.replace(/this\.textVersion\s*=\s*new\s+[a-zA-Z0-9_.]+\([^)]*\)/g, 'this.textVersion=null');
+      text = text.replace(/this\.textVersion\s*=\s*new\s+[a-zA-Z0-9_.]+\([^)]*\)/g, `this.textVersion=${dummyBtn}`);
+      text = text.replaceAll('this.textVersion=null', `this.textVersion=${dummyBtn}`);
+      text = text.replaceAll('i.textVersion=null', `i.textVersion=${dummyBtn}`);
       text = text.replace(/this\.background\.addChild\(this\.google_btn\)/g, 'void 0');
       text = text.replace(/this\.background\.addChild\(this\.apple_btn\)/g, 'void 0');
       text = text.replace(/this\.background3\.addChild\(this\.textVersion\)/g, 'void 0');
+
+      // Wrap Menu resize in try-catch to prevent any unhandled null pointer from halting Phaser state lifecycle
+      text = text.replace('new l.default(this.game,0,null),this.resize()', 'new l.default(this.game,0,null);try{this.resize();}catch(e){console.warn("[MOTO RESIZE SAFE]",e);}');
+
+      // Add safety auto-fade/destruction to the LOADING... Graphic overlays so they never freeze the screen
+      text = text.replace('return r.to({alpha:0},100),r.onComplete.add(function(){null!==s&&s()}),r.start(),o', 'var _self=o;setTimeout(function(){try{if(_self&&_self.parent){_self.visible=false;_self.destroy();}}catch(e){}},500);return r.to({alpha:0},100),r.onComplete.add(function(){try{if(_self&&_self.parent){_self.visible=false;_self.destroy();}}catch(e){}null!==s&&s();}),r.start(),o');
 
       if (text.includes('Phaser.BOTTOM_CENTER') && text.includes('this.background.alignIn')) {
         const patchBlock = `(function(menu) {
@@ -1385,13 +1393,13 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
                 if (item) {
                   try { item.visible = false; } catch(e) {}
                   try { item.x = -9999; item.y = -9999; } catch(e) {}
-                  try { if (item.destroy) item.destroy(); } catch(e) {}
                 }
               });
-              if (isPortrait && menu.btn_play) {
-                menu.btn_play.scale.set(1.4);
-                menu.btn_play.x = menu.game.width / 2;
-                menu.btn_play.y = menu.game.height * 0.58;
+              var pBtn = menu.btn_play || menu.playBtn;
+              if (isPortrait && pBtn) {
+                pBtn.scale.set(1.4);
+                pBtn.x = menu.game.width / 2;
+                pBtn.y = menu.game.height * 0.58;
               }
             })(this);`;
         text = text.replace('this.background.alignIn(this.google_btn,Phaser.BOTTOM_CENTER,0,-50)', patchBlock);
@@ -4305,6 +4313,18 @@ const handleGameFrame = async (req, res) => {
                 try { loader.style.display = 'none'; loader.remove(); } catch(e) {}
               }
             }
+
+            // Resume audio and kick Phaser on first interaction
+            window.addEventListener('pointerdown', function() {
+              triggerGameStart();
+              try {
+                if (window.Phaser && window.Phaser.GAMES && window.Phaser.GAMES[0] && window.Phaser.GAMES[0].sound && window.Phaser.GAMES[0].sound.context) {
+                  if (window.Phaser.GAMES[0].sound.context.state === 'suspended') {
+                    window.Phaser.GAMES[0].sound.context.resume();
+                  }
+                }
+              } catch(e) {}
+            }, { passive: true });
 
             if (document.readyState === 'loading') {
               document.addEventListener('DOMContentLoaded', triggerGameStart);
