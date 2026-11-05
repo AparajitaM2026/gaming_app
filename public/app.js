@@ -468,12 +468,13 @@ function populateCarouselZones(games) {
     rapidContainer.innerHTML = rapidGames.map(g => renderPosterCard(g, false)).join('');
   }
 
-  // 4. Curate African & Central Asian Champions (New Games: Nigeria, Ghana, Zambia, Central Asia)
+  // 4. Curate African & Central Asian Champions (100% IP-Safe Traditional Folk Games)
   const newGamesContainer = document.getElementById('newGamesRow');
   const regionalSlugs = [
-    'oware-master', 'ayo-olopon', 'togyz-kumalak', 'nsolo-zambia', 'asyk-strike', 'african-penalty-cup',
-    'ampe-rhythm', 'naija-whist-24', 'chiyato-stone-toss', 'silk-road-nardi', 'naija-street-dam', 'kokpar-nomad-rider',
-    'lagos-danfo-rush', 'chaskele-ghana', 'kyz-kuu-sprint', 'suwe-hopscotch', 'audaryspak-duel'
+    'ayo-olopon', 'naija-whist-24', 'naija-street-dam', 'suwe-hopscotch',
+    'ampe-rhythm', 'chaskele-ghana',
+    'nsolo-zambia',
+    'togyz-kumalak', 'asyk-strike', 'kokpar-nomad-rider', 'kyz-kuu-sprint', 'audaryspak-duel'
   ];
   const regionalGames = games.filter(g => regionalSlugs.includes(g.slug));
   if (newGamesContainer && regionalGames.length > 0) {
@@ -853,8 +854,6 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
   } else if (slug === 'penalty-shooters-2') {
     playUrl = '/play/penalty-shooters-2';
 
-  } else if (slug === 'oware-master') {
-    playUrl = '/games/oware_master.html';
   } else if (slug === 'ayo-olopon') {
     playUrl = '/games/ayo_olopon.html';
   } else if (slug === 'togyz-kumalak') {
@@ -863,22 +862,14 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
     playUrl = '/games/nsolo_zambia.html';
   } else if (slug === 'asyk-strike') {
     playUrl = '/games/asyk_strike.html';
-  } else if (slug === 'african-penalty-cup') {
-    playUrl = '/games/african_penalty_cup.html';
   } else if (slug === 'ampe-rhythm') {
     playUrl = '/games/ampe_rhythm.html';
   } else if (slug === 'naija-whist-24') {
     playUrl = '/games/naija_whist_24.html';
-  } else if (slug === 'chiyato-stone-toss') {
-    playUrl = '/games/chiyato_stone_toss.html';
-  } else if (slug === 'silk-road-nardi') {
-    playUrl = '/games/silk_road_nardi.html';
   } else if (slug === 'naija-street-dam') {
     playUrl = '/games/naija_street_dam.html';
   } else if (slug === 'kokpar-nomad-rider') {
     playUrl = '/games/kokpar_nomad_rider.html';
-  } else if (slug === 'lagos-danfo-rush') {
-    playUrl = '/games/lagos_danfo_rush.html';
   } else if (slug === 'chaskele-ghana') {
     playUrl = '/games/chaskele_ghana.html';
   } else if (slug === 'kyz-kuu-sprint') {
@@ -1340,18 +1331,6 @@ const GAME_HOW_TO_PLAY = {
     tips: `• Aim for the top corners (crossbar) where goalkeepers have the hardest time reaching.
 • Add sudden spin to trick the goalkeeper into diving early.`
   },
-  'oware-master': {
-    title: 'Oware Master (Ghana)',
-    category: 'African Strategy & Mancala',
-    objective: 'Sow seeds counter-clockwise around the carved wooden board and capture 25+ seeds to win!',
-    controls: '👆 Touch / 🖱️ Click: Tap any pit on your side containing seeds to sow them one-by-one.',
-    rules: `1. Pick all seeds from any of your 6 pits and sow 1 seed per pit counter-clockwise.
-2. If the last seed lands in an opponent pit and makes the count 2 or 3, you capture all seeds in that pit!
-3. Preceding opponent pits with 2 or 3 are also captured in a chain.
-4. First to 25 captured seeds wins!`,
-    tips: `• Build up large seed clusters to execute long multi-lap sowings into enemy territory.
-• Defend your back pits so your opponent cannot capture multiple 2s and 3s in a row.`
-  },
   'ayo-olopon': {
     title: 'Ayo Olopon (Nigeria)',
     category: 'Yoruba Traditional Mancala',
@@ -1400,18 +1379,6 @@ const GAME_HOW_TO_PLAY = {
     tips: `• Aim at the edge bones first for clean corner knockouts.
 • Use bank shots off the outer cushions for split clusters.`
   },
-  'african-penalty-cup': {
-    title: 'African Penalty Cup',
-    category: 'Pan-African Soccer Championship',
-    objective: 'Flick penalty kicks past the keeper for Nigeria, Ghana, or Zambia to lift the cup!',
-    controls: '👆 Swipe / 🖱️ Flick: Swipe from the soccer ball towards the goal corners to curl your shot.',
-    rules: `1. Choose your country (Nigeria 🇳🇬, Ghana 🇬🇭, or Zambia 🇿🇲).
-2. Swipe upwards smoothly towards the goalpost corners.
-3. Curve your swipe to bend the shot away from the diving goalkeeper!
-4. Score at least 3 out of 5 penalties to win the championship!`,
-    tips: `• Fast swipes generate high-velocity shots under the crossbar.
-• Aim for the top postage-stamp corners where the goalkeeper cannot reach.`
-  },
   'ampe-rhythm': {
     title: 'Ampe African Rhythm (Ghana)',
     category: 'Ghanaian Dance & Rhythm',
@@ -1436,30 +1403,6 @@ const GAME_HOW_TO_PLAY = {
     tips: `• Save your highest trumps to cut opponent's high Aces.
 • Count cards played so you know when your Kings are good.`
   },
-  'chiyato-stone-toss': {
-    title: 'Chiyato Stone Toss (Zambia)',
-    category: 'Zambian Agility Arcade',
-    objective: 'Toss the lead stone high, scoop all ground pebbles, and catch the flyer before it lands!',
-    controls: '👆 Touch / 🖱️ Click: Tap flyer to toss; tap ground pebbles to scoop them; tap flyer to catch!',
-    rules: `1. Tap the glowing golden flyer stone to launch it upwards.
-2. While it flies, quickly scoop pebbles from inside the dirt circle.
-3. Catch the falling flyer before it touches the ground!
-4. If you miss the catch, you lose 1 life!`,
-    tips: `• Scoop the closest pebble immediately after launch.
-• Never let the flyer fall below the lower half before initiating your catch.`
-  },
-  'silk-road-nardi': {
-    title: 'Silk Road Nardi (Central Asia)',
-    category: 'Central Asian Backgammon',
-    objective: 'Roll the dice, advance checkers around the board, and bear off all 15 checkers!',
-    controls: '👆 Touch / 🖱️ Click: Roll dice button → Tap checker on any point to advance it by die steps.',
-    rules: `1. Roll two dice (look out for Shesh-Besh 6-5 or doubles!).
-2. Advance checkers according to dice numbers toward your home quadrant.
-3. Hit isolated enemy single checkers (blots).
-4. Bear off all 15 checkers from your home board to claim victory!`,
-    tips: `• Form secure blocks of 2 or more checkers so the opponent cannot land on your points.
-• Advance rear checkers early before the opponent builds a wall.`
-  },
   'naija-street-dam': {
     title: 'Naija Street Dam (Flying Kings)',
     category: 'West African Street Draughts',
@@ -1482,17 +1425,6 @@ const GAME_HOW_TO_PLAY = {
 3. Jump over steppe boulders to prevent crashing!`,
     tips: `• Keep your rider centered so you can react quickly to either lane.
 • Time jumps right as the boulder enters the middle zone.`
-  },
-  'lagos-danfo-rush': {
-    title: 'Lagos Danfo Rush (Nigeria)',
-    category: 'Nigerian Street Traffic Racer',
-    objective: 'Drive the iconic yellow Danfo bus through heavy Lagos highway traffic!',
-    controls: '⌨️ Arrow Keys / 👆 Buttons: Steer Left / Right; tap HONK to clear the way.',
-    rules: `1. Switch lanes to dodge okada motorbikes, keke napeps, and road barriers.
-2. Pick up waiting passengers and green Naira bills for big score bonuses.
-3. Survive high speeds across the Third Mainland Bridge!`,
-    tips: `• Watch for sudden braking vehicles in the middle lane.
-• Honk frequently to alert oncoming obstacles.`
   },
   'chaskele-ghana': {
     title: 'Chaskele Street Cricket (Ghana)',
