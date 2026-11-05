@@ -1024,7 +1024,7 @@ const INTERNAL_GAME_SOURCES = {
   'mahjong-solitaire': 'https://games.cdn.famobi.com/html5games/m/mahjong-classic/v390/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=a66e3ed1-52f6-4f12-b1c8-014320eaf150&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=343',
   'sliding-puzzle': 'https://games.ottsol.cloud/sliding-puzzle/',
   'trivia-crack': 'https://games.ottsol.cloud/trivia-crack/',
-  'cut-the-rope': 'https://play.famobi.com/cut-the-rope',
+  'cut-the-rope': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope/v100/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=4531b37c-a8e0-4a67-9ebd-e8d3190b6277&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=354',
   'drive-fury': 'https://gamezipper.com/drive-fury/?utm_source=embed',
   'escape-manor': 'https://games.ottsol.cloud/escape-manor/',
   'sand-balls': 'https://play.famobi.com/99-balls',
@@ -1105,6 +1105,7 @@ const RESOLVED_CDN_SOURCES = {
   'stunt-bike-mania': 'https://html5.gamedistribution.com/rvvASMiM/f804d079d19f44d3b951ead4588e974a/',
   'sand-balls': 'https://games.cdn.famobi.com/html5games/0/99-balls/v130/',
   'mahjong-solitaire': 'https://games.cdn.famobi.com/html5games/m/mahjong-classic/v390/',
+  'cut-the-rope': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope/v100/',
   'classic-minesweeper': 'https://gamezipper.com/minesweeper/'
 };
 
@@ -2334,12 +2335,52 @@ const handleGameFrame = async (req, res) => {
                 }, 50);
               }
             },
-            showInterstitialAd: function(cb) { if(typeof cb === 'function') setTimeout(cb, 10); },
-            showInterstitial: function(cb) { if(typeof cb === 'function') setTimeout(cb, 10); },
+            showInterstitialAd: function() {
+              for (var i = 0; i < arguments.length; i++) {
+                if (typeof arguments[i] === 'function') {
+                  setTimeout(arguments[i], 10);
+                  return Promise.resolve(true);
+                }
+              }
+              return Promise.resolve(true);
+            },
+            showInterstitial: function() {
+              for (var i = 0; i < arguments.length; i++) {
+                if (typeof arguments[i] === 'function') {
+                  setTimeout(arguments[i], 10);
+                  return Promise.resolve(true);
+                }
+              }
+              return Promise.resolve(true);
+            },
             hasRewardedAd: function() { return false; },
-            rewardedAd: function(cb) { if(typeof cb === 'function') setTimeout(cb, 10); },
-            forceAd: function(cb) { if(typeof cb === 'function') setTimeout(cb, 10); },
-            showAd: function(cb) { if(typeof cb === 'function') setTimeout(cb, 10); },
+            rewardedAd: function() {
+              for (var i = 0; i < arguments.length; i++) {
+                if (typeof arguments[i] === 'function') {
+                  setTimeout(arguments[i], 10);
+                  return Promise.resolve(true);
+                }
+              }
+              return Promise.resolve(true);
+            },
+            forceAd: function() {
+              for (var i = 0; i < arguments.length; i++) {
+                if (typeof arguments[i] === 'function') {
+                  setTimeout(arguments[i], 10);
+                  return Promise.resolve(true);
+                }
+              }
+              return Promise.resolve(true);
+            },
+            showAd: function() {
+              for (var i = 0; i < arguments.length; i++) {
+                if (typeof arguments[i] === 'function') {
+                  setTimeout(arguments[i], 10);
+                  return Promise.resolve(true);
+                }
+              }
+              return Promise.resolve(true);
+            },
             getVolume: function() { return 1; },
             setVolume: function() {},
             onVolumeChange: function() {},
