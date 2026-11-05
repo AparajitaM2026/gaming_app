@@ -55,7 +55,12 @@ process.on('unhandledRejection', (reason, promise) => {
 app.use(cors());
 app.use(express.json());
 app.use((req, res, next) => {
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  const p = (req.path || '').toLowerCase();
+  if (p.endsWith('.wasm') || p.endsWith('.unityweb') || p.endsWith('.data') || p.endsWith('.png') || p.endsWith('.jpg') || p.endsWith('.jpeg') || p.endsWith('.webp') || p.endsWith('.mp3') || p.endsWith('.ogg') || p.endsWith('.wav')) {
+    res.setHeader('Cache-Control', 'public, max-age=604800');
+  } else {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  }
   next();
 });
 app.use(express.static(path.join(__dirname, 'public')));
@@ -998,7 +1003,7 @@ const INTERNAL_GAME_SOURCES = {
   'brick-breaker': 'https://games.ottsol.cloud/brick-breaker/',
   't-rex-dino-runner': 'https://games.ottsol.cloud/t-rex/',
   'cyberpunk-flappy': 'https://games.ottsol.cloud/flappy-wings/',
-  'fruit-slash': 'https://play.famobi.com/katana-fruits',
+  'fruit-slash': 'https://games.cdn.famobi.com/html5games/k/katana-fruits/v140/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=35c37758-52d5-4802-86a9-d6110c41198b&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=298',
   'bubble-shooter': 'https://games.ottsol.cloud/bubble-shooter/',
   'steam-whacker': 'https://games.ottsol.cloud/whack-a-mole/',
   'classic-sudoku': 'https://games.ottsol.cloud/sudoku/',
@@ -1081,6 +1086,7 @@ const INTERNAL_GAME_SOURCES = {
 };
 
 const RESOLVED_CDN_SOURCES = {
+  'fruit-slash': 'https://games.cdn.famobi.com/html5games/k/katana-fruits/v140/',
   'stack-smash-3d': 'https://html5.gamedistribution.com/rvvASMiM/a81fd206711b48489fddfa7fd4aab621/',
   'cars-arena': 'https://games.cdn.famobi.com/html5games/c/cars-arena/v010/',
   'penalty-shooters-2': 'https://games.cdn.famobi.com/html5games/p/penalty-shooters-2/v350/',
@@ -1222,7 +1228,11 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
     } else if (cType) {
       res.setHeader('Content-Type', cType);
     }
-    res.setHeader('Cache-Control', 'public, max-age=3600');
+    if (assetPath.endsWith('.js') || assetPath.includes('.js?') || assetPath.endsWith('.json')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+    }
 
     // Handle missing Localization.json for Cars Arena
     if (assetPath.endsWith('Localization.json') && (!resp.ok || cType.includes('text/html'))) {
@@ -2801,21 +2811,92 @@ const handleGameFrame = async (req, res) => {
           left: 50% !important;
           transform: translate(-50%, -50%) !important;
         }
-        /* Compact game headers so board gets maximum screen height */
+        /* Unified Responsive Center Layout for Classic Minesweeper */
+        body:has(.ms-header),
+        body:has(#ms-canvas) {
+          display: flex !important;
+          flex-direction: column !important;
+          justify-content: center !important;
+          align-items: center !important;
+          min-height: 100vh !important;
+          height: 100% !important;
+          overflow: hidden !important;
+          background: #080c18 !important;
+        }
         .ms-header {
-          margin: 0 !important;
-          padding: 6px 12px 2px !important;
+          text-align: center !important;
+          margin: 0 auto 4px auto !important;
+          padding: 0 !important;
         }
         .ms-title {
-          font-size: 18px !important;
-          margin-bottom: 0 !important;
+          font-size: 22px !important;
+          font-weight: 900 !important;
+          letter-spacing: 2px !important;
+          color: #00f0ff !important;
+          margin-bottom: 2px !important;
         }
         .ms-subtitle {
           display: none !important;
         }
+        .ms-hud {
+          display: flex !important;
+          justify-content: space-between !important;
+          align-items: center !important;
+          width: 100% !important;
+          max-width: 440px !important;
+          margin: 4px auto 6px auto !important;
+          padding: 6px 14px !important;
+          background: rgba(15, 23, 42, 0.85) !important;
+          border: 1px solid rgba(255, 255, 255, 0.12) !important;
+          border-radius: 12px !important;
+          box-sizing: border-box !important;
+        }
+        .ms-controls {
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          gap: 6px !important;
+          margin: 0 auto 8px auto !important;
+        }
+        .ms-diff-btn {
+          padding: 5px 12px !important;
+          font-size: 11px !important;
+          font-weight: 700 !important;
+          border-radius: 8px !important;
+          border: 1px solid rgba(255, 255, 255, 0.15) !important;
+          background: rgba(15, 23, 42, 0.7) !important;
+          color: #94a3b8 !important;
+          cursor: pointer !important;
+        }
+        .ms-diff-btn.active {
+          background: #00ff88 !important;
+          color: #000000 !important;
+          border-color: #00ff88 !important;
+        }
+        .ms-canvas-wrap {
+          width: auto !important;
+          height: auto !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          margin: 0 auto !important;
+          padding: 0 !important;
+          border-radius: 8px !important;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8) !important;
+        }
+        canvas#ms-canvas {
+          display: block !important;
+          border-radius: 8px !important;
+          border: 2px solid rgba(255, 255, 255, 0.12) !important;
+        }
+        .ms-hint {
+          text-align: center !important;
+          font-size: 11px !important;
+          color: #64748b !important;
+          margin-top: 6px !important;
+        }
         /* Keep game canvas prominent, centered, and never squeezed */
         #content,
-        .ms-canvas-wrap,
         .canvas-wrap,
         #game-container {
           width: 100% !important;
@@ -3303,12 +3384,23 @@ const handleGameFrame = async (req, res) => {
           .hole, #grid {
             cursor: crosshair !important;
           }
+          /* Hide redundant CSS robot head box so high-res animal & golden sprites render cleanly without overlapping cards */
+          .mole-head {
+            display: none !important;
+          }
         </style>
       `;
     }
 
     // Fix Reversi viewport overflow: responsive 2-column difficulty menu & auto-fit board (no 67% zoom needed)
     if (html.includes('Classic Othello Strategy') || finalUrl.includes('reversi') || targetUrl.includes('reversi') || (req.internalSlug && req.internalSlug.includes('reversi'))) {
+      // 1. Guard against undefined board during initial resize
+      html = html.replace(
+        /function drawBoard\(\)\s*\{/,
+        'function drawBoard(){ if(typeof board==="undefined" || !board || !board.length || !board[0]) return;'
+      );
+
+      // 2. Responsive 2-column menu layout
       html += `
         <style>
           html, body {
@@ -3334,38 +3426,30 @@ const handleGameFrame = async (req, res) => {
             align-items: center !important;
           }
           .menu-title {
-            font-size: clamp(24px, 4.5vh, 40px) !important;
+            font-size: clamp(24px, 4vh, 36px) !important;
             margin-bottom: 0 !important;
           }
           .menu-subtitle {
-            font-size: clamp(12px, 2vh, 15px) !important;
+            font-size: clamp(11px, 1.8vh, 14px) !important;
             margin-top: -6px !important;
           }
-          .menu-section {
+          #menu-screen .menu-section {
             width: min(440px, 94vw) !important;
-            padding: 12px 14px !important;
+            padding: 10px 12px !important;
             margin: 0 !important;
-          }
-          .menu-section:first-of-type {
             display: grid !important;
             grid-template-columns: 1fr 1fr !important;
             gap: 8px !important;
           }
-          .menu-section:first-of-type h3 {
+          #menu-screen .menu-section h3 {
             grid-column: 1 / -1 !important;
-            margin-bottom: 4px !important;
+            margin: 0 0 4px 0 !important;
             font-size: 13px !important;
-          }
-          .menu-section:nth-of-type(2) {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 8px !important;
-            padding: 10px 14px !important;
           }
           .menu-btn {
             padding: 8px 10px !important;
             margin-bottom: 0 !important;
-            font-size: 14px !important;
+            font-size: 13px !important;
           }
           .menu-btn .diff-label {
             font-size: 10px !important;
@@ -3373,7 +3457,7 @@ const handleGameFrame = async (req, res) => {
           }
           .menu-stats {
             margin-top: 4px !important;
-            font-size: 12px !important;
+            font-size: 11px !important;
           }
 
           /* Game Screen scaling to always fit viewport without scrolling */
@@ -4262,6 +4346,7 @@ const handleGameFrame = async (req, res) => {
       // Strip extraneous third-party trackers
       html = html.replace(/<script[^>]*analytics_ubg[^>]*>.*?<\/script>/gi, '');
       html = html.replace(/<script[^>]*ubg235_client[^>]*>.*?<\/script>/gi, '');
+      html = html.replace(/src=["'](motox3m5\.min\.js(?:\?[^"']*)?)["']/g, `src="motox3m5.min.js?v=vx_${Date.now()}"`);
 
       const stuntMobileEnhancer = `
         <style>
