@@ -1059,6 +1059,7 @@ const INTERNAL_GAME_SOURCES = {
   'rope-cutter-deluxe': 'https://play.famobi.com/cut-the-rope-time-travel',
   'stickman-run-hardcore': 'https://games.ottsol.cloud/stickman-run-hardcore/',
   'fire-ice-temple': 'https://games.ottsol.cloud/fire-ice-temple/',
+  'football-strike': 'https://games.ottsol.cloud/fire-ice-temple/',
   'surf-and-shoot': 'https://games.ottsol.cloud/surf-and-shoot/',
   'spatial-block-master': 'https://games.ottsol.cloud/spatial-block-master/',
   'safari-block-pop': 'https://games.ottsol.cloud/safari-block-pop/',

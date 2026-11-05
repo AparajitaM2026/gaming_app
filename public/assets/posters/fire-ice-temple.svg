@@ -2,9 +2,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
   <defs>
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#130a21" />
-      <stop offset="100%" stop-color="#06020c" />
+      <stop offset="0%" stop-color="#064e3b" />
+      <stop offset="50%" stop-color="#022c22" />
+      <stop offset="100%" stop-color="#01140e" />
     </linearGradient>
+    <linearGradient id="ballGrad" x1="30%" y1="30%" x2="90%" y2="90%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="70%" stop-color="#e2e8f0" />
+      <stop offset="100%" stop-color="#64748b" />
+    </linearGradient>
+    <radialGradient id="fieldGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0" />
+    </radialGradient>
     <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
       <feGaussianBlur stdDeviation="5" result="blur" />
       <feComposite in="SourceGraphic" in2="blur" operator="over" />
@@ -15,43 +25,67 @@
       <feComposite in="SourceGraphic" in2="blur" operator="over" />
     </filter>
     <pattern id="gridPattern" width="25" height="25" patternUnits="userSpaceOnUse">
-      <path d="M 25 0 L 0 0 0 25" fill="none" stroke="#8b5cf6" stroke-width="1" stroke-opacity="0.12" />
+      <path d="M 25 0 L 0 0 0 25" fill="none" stroke="#10b981" stroke-width="1" stroke-opacity="0.15" />
     </pattern>
   </defs>
 
-  <!-- Background Layer -->
+  <!-- Stadium Field Background -->
   <rect width="300" height="300" fill="url(#bgGrad)" />
   <rect width="300" height="300" fill="url(#gridPattern)" />
-  <circle cx="150" cy="140" r="105" fill="#8b5cf6" opacity="0.18" filter="url(#brightGlow)" />
+  <circle cx="150" cy="140" r="115" fill="url(#fieldGlow)" />
 
   <!-- VIP Crown Badge Accent -->
   <g transform="translate(242, 18) scale(0.7)">
     <polygon points="12,0 16,10 24,4 20,20 4,20 0,4 8,10" fill="#eab308" filter="url(#brightGlow)"/>
   </g>
 
-  <!-- High-Def Custom 3D Vector Art -->
-  <g id="artwork">
-    <!-- Ancient Stone Temple Arch -->
-    <path d="M 60,210 L 60,95 Q 150,45 240,95 L 240,210" fill="none" stroke="#64748b" stroke-width="6" opacity="0.6"/>
-    <!-- Fireboy Character (Left) -->
-    <g transform="translate(100, 135)">
-      <!-- Fire Teardrop Body -->
-      <path d="M 0,-35 C 20,-10 25,18 0,28 C -25,18 -20,-10 0,-35 Z" fill="#ef4444" stroke="#f97316" stroke-width="3" filter="url(#brightGlow)"/>
-      <path d="M 0,-25 C 12,-5 15,12 0,20 C -15,12 -12,-5 0,-25 Z" fill="#facc15"/>
-      <!-- Eyes -->
-      <circle cx="-6" cy="4" r="3" fill="#0f172a"/>
-      <circle cx="6" cy="4" r="3" fill="#0f172a"/>
-    </g>
-    <!-- Watergirl Character (Right) -->
-    <g transform="translate(200, 135)">
-      <!-- Water Droplet Body -->
-      <path d="M 0,-35 C 20,-10 25,18 0,28 C -25,18 -20,-10 0,-35 Z" fill="#06b6d4" stroke="#38bdf8" stroke-width="3" filter="url(#brightGlow)"/>
-      <path d="M 0,-25 C 12,-5 15,12 0,20 C -15,12 -12,-5 0,-25 Z" fill="#e0f2fe"/>
-      <!-- Eyes -->
-      <circle cx="-6" cy="4" r="3" fill="#0f172a"/>
-      <circle cx="6" cy="4" r="3" fill="#0f172a"/>
-    </g>
-    <!-- Central Magic Gem -->
-    <polygon points="150,110 162,125 150,140 138,125" fill="#a855f7" stroke="#e9d5ff" stroke-width="2" filter="url(#brightGlow)"/>
+  <!-- Goal Post & Net -->
+  <g id="goal" filter="url(#glow)">
+    <polygon points="35,70 265,70 280,185 20,185" fill="#047857" fill-opacity="0.15" stroke="#34d399" stroke-width="3"/>
+    <!-- Goal Net Lines -->
+    <line x1="75" y1="70" x2="65" y2="185" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 3" stroke-opacity="0.6"/>
+    <line x1="115" y1="70" x2="110" y2="185" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 3" stroke-opacity="0.6"/>
+    <line x1="150" y1="70" x2="150" y2="185" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 3" stroke-opacity="0.6"/>
+    <line x1="185" y1="70" x2="190" y2="185" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 3" stroke-opacity="0.6"/>
+    <line x1="225" y1="70" x2="235" y2="185" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 3" stroke-opacity="0.6"/>
+    <line x1="30" y1="110" x2="270" y2="110" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 3" stroke-opacity="0.6"/>
+    <line x1="25" y1="150" x2="275" y2="150" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 3" stroke-opacity="0.6"/>
+  </g>
+
+  <!-- Speed Motion Streaks -->
+  <path d="M 60,250 Q 110,210 140,165" fill="none" stroke="#6ee7b7" stroke-width="4" stroke-linecap="round" opacity="0.8" filter="url(#brightGlow)"/>
+  <path d="M 75,260 Q 120,225 145,175" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- High-Def 3D Soccer Ball -->
+  <g transform="translate(150, 145)">
+    <!-- Ball Outer Glow -->
+    <circle cx="0" cy="0" r="46" fill="#10b981" opacity="0.35" filter="url(#brightGlow)"/>
+    <!-- Ball Sphere -->
+    <circle cx="0" cy="0" r="42" fill="url(#ballGrad)" stroke="#f8fafc" stroke-width="2.5"/>
+    
+    <!-- Soccer Hexagons / Pentagons -->
+    <!-- Center Pentagon -->
+    <polygon points="0,-16 15,-5 9,14 -9,14 -15,-5" fill="#1e293b"/>
+    <!-- Connected Seam Lines to Outer Edges -->
+    <line x1="0" y1="-16" x2="0" y2="-40" stroke="#334155" stroke-width="2.5"/>
+    <line x1="15" y1="-5" x2="38" y2="-12" stroke="#334155" stroke-width="2.5"/>
+    <line x1="9" y1="14" x2="26" y2="34" stroke="#334155" stroke-width="2.5"/>
+    <line x1="-9" y1="14" x2="-26" y2="34" stroke="#334155" stroke-width="2.5"/>
+    <line x1="-15" y1="-5" x2="-38" y2="-12" stroke="#334155" stroke-width="2.5"/>
+    <!-- Peripheral Patches -->
+    <polygon points="-12,-41 0,-40 12,-41 8,-28 -8,-28" fill="#1e293b"/>
+    <polygon points="38,-12 41,5 31,18 22,7 28,-7" fill="#1e293b"/>
+    <polygon points="-38,-12 -41,5 -31,18 -22,7 -28,-7" fill="#1e293b"/>
+    <!-- Ball Highlight Specular Reflection -->
+    <ellipse cx="-12" cy="-14" rx="14" ry="7" transform="rotate(-30, -12, -14)" fill="#ffffff" opacity="0.55"/>
+  </g>
+
+  <!-- Turf Base Shadow -->
+  <ellipse cx="150" cy="225" rx="70" ry="12" fill="#022c22" opacity="0.8"/>
+
+  <!-- Glowing Title Accent Badge -->
+  <g transform="translate(150, 260)">
+    <rect x="-85" y="-14" width="170" height="26" rx="13" fill="#064e3b" stroke="#34d399" stroke-width="1.5" filter="url(#glow)"/>
+    <text x="0" y="4" font-family="'Orbitron', sans-serif" font-weight="900" font-size="12" fill="#a7f3d0" text-anchor="middle" letter-spacing="2">FOOTBALL STRIKE</text>
   </g>
 </svg>

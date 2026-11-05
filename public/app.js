@@ -1270,6 +1270,28 @@ const GAME_HOW_TO_PLAY = {
 4. Pocketing the 8-ball early or scratching on the 8-ball results in an instant loss!`,
     tips: `• Use gentle tap shots when pieces are hovering over the pocket to keep the cue ball in position.
 • Plan 2 shots ahead to ensure a clear path for your next ball.`
+  },
+  'fire-ice-temple': {
+    title: 'Football Strike',
+    category: 'Sports & Arcade',
+    objective: 'Score penalty shootout goals and curve your shots past the goalkeeper to win matches!',
+    controls: '👆 Swipe / Drag: Swipe toward the goal to shoot and curve the soccer ball past the keeper.',
+    rules: `1. Aim your shot by swiping smoothly towards the target corners of the goalpost.
+2. Curve your swipe to bend the ball in mid-air around defensive walls.
+3. Beat the goalkeeper's reaction time and score consecutive goals to earn maximum points!`,
+    tips: `• Aim for the top corners (crossbar) where goalkeepers have the hardest time reaching.
+• Add sudden spin to trick the goalkeeper into diving early.`
+  },
+  'football-strike': {
+    title: 'Football Strike',
+    category: 'Sports & Arcade',
+    objective: 'Score penalty shootout goals and curve your shots past the goalkeeper to win matches!',
+    controls: '👆 Swipe / Drag: Swipe toward the goal to shoot and curve the soccer ball past the keeper.',
+    rules: `1. Aim your shot by swiping smoothly towards the target corners of the goalpost.
+2. Curve your swipe to bend the ball in mid-air around defensive walls.
+3. Beat the goalkeeper's reaction time and score consecutive goals to earn maximum points!`,
+    tips: `• Aim for the top corners (crossbar) where goalkeepers have the hardest time reaching.
+• Add sudden spin to trick the goalkeeper into diving early.`
   }
 };
 
@@ -1368,6 +1390,9 @@ function closeHowToPlayModal() {
 let theaterLoadTimeout = null;
 
 function openGameTheater(title, url, game = null) {
+  if (game?.slug === 'fire-ice-temple' || game?.slug === 'football-strike' || (typeof title === 'string' && title.toLowerCase().includes('fire & ice'))) {
+    title = 'Football Strike';
+  }
   const overlay = document.getElementById('gameTheaterOverlay');
   const frame = document.getElementById('gameTheaterFrame');
   const titleEl = document.getElementById('theaterGameTitle');
