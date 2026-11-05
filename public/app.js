@@ -1096,6 +1096,18 @@ const GAME_HOW_TO_PLAY = {
     tips: `• A '1' next to a single hidden corner tile means that tile is guaranteed to be a mine.
 • Flag known mines immediately so surrounding numbers can be cleared safely.`
   },
+  'sand-balls': {
+    title: 'Sand Balls',
+    category: 'Physics & Arcade',
+    objective: 'Aim and launch bouncing ball chains to break numbered blocks before they reach the bottom.',
+    controls: '🖱️ Mouse Drag or 👆 Touch & Pull: Aim the trajectory dotted line → Release to fire a stream of bouncy balls.',
+    rules: `1. Pull back to aim the trajectory guide at the numbered target blocks.
+2. Release to fire your cascade of balls — each bounce decrements a block\'s counter by 1.
+3. Collect circular bonus rings to permanently increase your ball count (+1 ball per ring)!
+4. Keep breaking blocks before the rows shift down to the danger line.`,
+    tips: `• Aim at high-angle wall bounces so balls ricochet continuously behind the top row of blocks.
+• Prioritize collecting extra ball rings early to build massive 50+ ball barrage combos!`
+  },
   'cars-arena': {
     title: 'Cars Arena 3D',
     category: 'Racing & Action',

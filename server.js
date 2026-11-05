@@ -1022,7 +1022,7 @@ const INTERNAL_GAME_SOURCES = {
   'cut-the-rope': 'https://play.famobi.com/cut-the-rope',
   'drive-fury': 'https://gamezipper.com/drive-fury/?utm_source=embed',
   'escape-manor': 'https://games.ottsol.cloud/escape-manor/',
-  'sand-balls': 'https://games.ottsol.cloud/sand-balls/',
+  'sand-balls': 'https://play.famobi.com/99-balls',
   'arrow-escape': 'https://gamezipper.com/tap-away/?utm_source=embed',
   'block-stacker': 'https://gamezipper.com/tower-stacker-3d/?utm_source=embed',
   'memory-master': 'https://games.ottsol.cloud/memory-match/',
@@ -1097,6 +1097,7 @@ const RESOLVED_CDN_SOURCES = {
   'spider-solitaire': 'https://games.cdn.famobi.com/html5games/s/spider-solitaire/v2/',
   'moto-x3m-pool-party': 'https://html5.gamedistribution.com/rvvASMiM/f804d079d19f44d3b951ead4588e974a/',
   'stunt-bike-mania': 'https://html5.gamedistribution.com/rvvASMiM/f804d079d19f44d3b951ead4588e974a/',
+  'sand-balls': 'https://games.cdn.famobi.com/html5games/0/99-balls/v130/',
   'classic-minesweeper': 'https://gamezipper.com/minesweeper/'
 };
 
@@ -4385,6 +4386,60 @@ const handleGameFrame = async (req, res) => {
         html = html.replace('</body>', `${gardenEnhancer}</body>`);
       } else {
         html += gardenEnhancer;
+      }
+    }
+
+    // Sand Balls (Famobi 99 Balls Arcade Physics): Full responsive canvas & mobile orientation
+    if (req.internalSlug === 'sand-balls' || (req.targetUrl && (req.targetUrl.includes('99-balls') || req.targetUrl.includes('sand-balls')))) {
+      const sandBallsEnhancer = `
+        <style>
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            overflow: hidden !important;
+            background: #230912 !important;
+          }
+          .gm4html5_div_class, #gm4html5_div_id {
+            width: 100vw !important;
+            height: 100vh !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          #canvas_parent {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            width: 100% !important;
+            height: 100% !important;
+          }
+          canvas#canvas {
+            display: block !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            width: auto !important;
+            height: auto !important;
+            margin: auto !important;
+            touch-action: none !important;
+          }
+          #more_games_button, #rotatescreen, #GM4HTML5_loadingscreen, #GM4HTML5_loadingbar {
+            display: none !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+          }
+        </style>
+      `;
+      if (html.includes('</body>')) {
+        html = html.replace('</body>', `${sandBallsEnhancer}</body>`);
+      } else {
+        html += sandBallsEnhancer;
       }
     }
 
