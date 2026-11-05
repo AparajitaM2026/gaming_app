@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#451a03" />
+      <stop offset="50%" stop-color="#1c0a03" />
+      <stop offset="100%" stop-color="#080301" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="brightGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <rect width="300" height="300" fill="url(#bgGrad)" />
+  <circle cx="150" cy="140" r="110" fill="#f59e0b" opacity="0.15" filter="url(#brightGlow)" />
+
+  <!-- Ghana Tag -->
+  <g transform="translate(18, 20)">
+    <rect width="36" height="7" fill="#ef4444" rx="2" />
+    <rect y="7" width="36" height="7" fill="#eab308" />
+    <rect y="14" width="36" height="7" fill="#22c55e" rx="2" />
+  </g>
+
+  <!-- Jumping Feet / Rhythm Drum Artwork -->
+  <g transform="translate(150, 140)">
+    <!-- African Drum -->
+    <path d="M -40,40 Q 0,65 40,40 L 25,-40 Q 0,-50 -25,-40 Z" fill="#78350f" stroke="#f59e0b" stroke-width="3" filter="url(#glow)"/>
+    <ellipse cx="0" cy="-40" rx="25" ry="10" fill="#fde68a" stroke="#d97706" stroke-width="2"/>
+    <line x1="-20" y1="-30" x2="-35" y2="35" stroke="#f59e0b" stroke-width="2"/>
+    <line x1="0" y1="-30" x2="0" y2="45" stroke="#f59e0b" stroke-width="2"/>
+    <line x1="20" y1="-30" x2="35" y2="35" stroke="#f59e0b" stroke-width="2"/>
+
+    <!-- Rhythm Notes -->
+    <text x="-55" y="-30" font-size="28" fill="#fbbf24" filter="url(#brightGlow)">♪</text>
+    <text x="45" y="-20" font-size="28" fill="#34d399" filter="url(#brightGlow)">♫</text>
+  </g>
+
+  <!-- Title Badge -->
+  <g transform="translate(150, 260)">
+    <rect x="-85" y="-14" width="170" height="26" rx="13" fill="#290f04" stroke="#f59e0b" stroke-width="1.5" filter="url(#glow)"/>
+    <text x="0" y="4" font-family="'Orbitron', sans-serif" font-weight="900" font-size="12" fill="#fde68a" text-anchor="middle" letter-spacing="2">AMPE RHYTHM</text>
+  </g>
+</svg>

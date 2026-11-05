@@ -470,7 +470,10 @@ function populateCarouselZones(games) {
 
   // 4. Curate African & Central Asian Champions (New Games: Nigeria, Ghana, Zambia, Central Asia)
   const newGamesContainer = document.getElementById('newGamesRow');
-  const regionalSlugs = ['oware-master', 'ayo-olopon', 'togyz-kumalak', 'nsolo-zambia', 'asyk-strike', 'african-penalty-cup'];
+  const regionalSlugs = [
+    'oware-master', 'ayo-olopon', 'togyz-kumalak', 'nsolo-zambia', 'asyk-strike', 'african-penalty-cup',
+    'ampe-rhythm', 'naija-whist-24', 'chiyato-stone-toss', 'silk-road-nardi', 'naija-street-dam', 'kokpar-nomad-rider'
+  ];
   const regionalGames = games.filter(g => regionalSlugs.includes(g.slug));
   if (newGamesContainer && regionalGames.length > 0) {
     newGamesContainer.innerHTML = regionalGames.map(g => renderPosterCard(g, false)).join('');
@@ -861,6 +864,18 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
     playUrl = '/games/asyk_strike.html';
   } else if (slug === 'african-penalty-cup') {
     playUrl = '/games/african_penalty_cup.html';
+  } else if (slug === 'ampe-rhythm') {
+    playUrl = '/games/ampe_rhythm.html';
+  } else if (slug === 'naija-whist-24') {
+    playUrl = '/games/naija_whist_24.html';
+  } else if (slug === 'chiyato-stone-toss') {
+    playUrl = '/games/chiyato_stone_toss.html';
+  } else if (slug === 'silk-road-nardi') {
+    playUrl = '/games/silk_road_nardi.html';
+  } else if (slug === 'naija-street-dam') {
+    playUrl = '/games/naija_street_dam.html';
+  } else if (slug === 'kokpar-nomad-rider') {
+    playUrl = '/games/kokpar_nomad_rider.html';
 
   } else if (slug === 'cut-the-rope-experiments' || slug === 'cut-the-rope-magic' || slug === 'om-nom-run' || slug === 'om-nom-bubbles' || slug === 'drift-cup-racing' || slug === 'table-tennis-world-tour' || slug === 'cannon-balls-3d' || slug === 'tower-crash-3d' || slug === 'tnt-bomb' || slug === 'archery-world-tour') {
     playUrl = `/play/${slug}`;
@@ -1385,6 +1400,77 @@ const GAME_HOW_TO_PLAY = {
 4. Score at least 3 out of 5 penalties to win the championship!`,
     tips: `• Fast swipes generate high-velocity shots under the crossbar.
 • Aim for the top postage-stamp corners where the goalkeeper cannot reach.`
+  },
+  'ampe-rhythm': {
+    title: 'Ampe African Rhythm (Ghana)',
+    category: 'Ghanaian Dance & Rhythm',
+    objective: 'Jump and clap to the high-energy Afrobeat tempo and score 10 matching foot points!',
+    controls: '👆 Touch / 🖱️ Click: Select LEFT FOOT (Simpa) or RIGHT FOOT (Onyina) on the rhythm beat.',
+    rules: `1. Jump in rhythm with your opponent.
+2. If your foot matches your opponent's foot, you score 1 point!
+3. If they are opposite feet, your opponent scores!
+4. First to 10 points wins the Ampe championship!`,
+    tips: `• Listen closely to the rhythmic drum tempo to time your leap.
+• Mix up patterns between left and right to keep the opponent guessing.`
+  },
+  'naija-whist-24': {
+    title: 'Naija Whist 24 (Nigeria)',
+    category: 'Nigerian Classic Card Game',
+    objective: 'Take the majority of tricks with trump suits and high-card play!',
+    controls: '👆 Touch / 🖱️ Click: Tap any valid card in your hand to play it into the center trick.',
+    rules: `1. 24 cards (Ace to 9 across 4 suits) with a random trump suit.
+2. Follow suit if you can; highest card of the led suit or highest trump wins the trick.
+3. Winner of each trick leads the next round.
+4. Win the most tricks out of 6 to take the round!`,
+    tips: `• Save your highest trumps to cut opponent's high Aces.
+• Count cards played so you know when your Kings are good.`
+  },
+  'chiyato-stone-toss': {
+    title: 'Chiyato Stone Toss (Zambia)',
+    category: 'Zambian Agility Arcade',
+    objective: 'Toss the lead stone high, scoop all ground pebbles, and catch the flyer before it lands!',
+    controls: '👆 Touch / 🖱️ Click: Tap flyer to toss; tap ground pebbles to scoop them; tap flyer to catch!',
+    rules: `1. Tap the glowing golden flyer stone to launch it upwards.
+2. While it flies, quickly scoop pebbles from inside the dirt circle.
+3. Catch the falling flyer before it touches the ground!
+4. If you miss the catch, you lose 1 life!`,
+    tips: `• Scoop the closest pebble immediately after launch.
+• Never let the flyer fall below the lower half before initiating your catch.`
+  },
+  'silk-road-nardi': {
+    title: 'Silk Road Nardi (Central Asia)',
+    category: 'Central Asian Backgammon',
+    objective: 'Roll the dice, advance checkers around the board, and bear off all 15 checkers!',
+    controls: '👆 Touch / 🖱️ Click: Roll dice button → Tap checker on any point to advance it by die steps.',
+    rules: `1. Roll two dice (look out for Shesh-Besh 6-5 or doubles!).
+2. Advance checkers according to dice numbers toward your home quadrant.
+3. Hit isolated enemy single checkers (blots).
+4. Bear off all 15 checkers from your home board to claim victory!`,
+    tips: `• Form secure blocks of 2 or more checkers so the opponent cannot land on your points.
+• Advance rear checkers early before the opponent builds a wall.`
+  },
+  'naija-street-dam': {
+    title: 'Naija Street Dam (Flying Kings)',
+    category: 'West African Street Draughts',
+    objective: 'Capture all opponent pieces using flying kings and backwards jumping men!',
+    controls: '👆 Touch / 🖱️ Click: Tap your piece to view highlighted green moves → Tap destination.',
+    rules: `1. Regular men can jump backwards to capture opposing pieces.
+2. Kings can fly across any number of unoccupied diagonal squares!
+3. Maximum multi-capture chains are mandatory.
+4. Clear all enemy pieces to win!`,
+    tips: `• Crown a flying king as early as possible—a single flying king can sweep 4 pieces in one turn!
+• Bait opponent men into trap jump lanes.`
+  },
+  'kokpar-nomad-rider': {
+    title: 'Kokpar Nomad Rider (Steppe Chase)',
+    category: 'Nomadic Steppe Action',
+    objective: 'Gallop across the great grasslands, leap over steppe rocks, and score in the Kazan!',
+    controls: '⌨️ Arrow Keys / 👆 Buttons: Move Left / Right; tap JUMP to clear boulders.',
+    rules: `1. Gallop across 3 lanes of the Central Asian steppe.
+2. Collect golden Tamga stars (+50 pts) and deliver the prize into Kazan rings (+200 pts)!
+3. Jump over steppe boulders to prevent crashing!`,
+    tips: `• Keep your rider centered so you can react quickly to either lane.
+• Time jumps right as the boulder enters the middle zone.`
   }
 };
 

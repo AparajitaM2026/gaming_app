@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Ampe African Rhythm — Traditional Ghanaian Jumping Game</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700;800&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 30%, #451a03 0%, #1c0a03 50%, #080301 100%);
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .cinzel { font-family: 'Cinzel', serif; }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+
+    @keyframes jumpBounce {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-30px) scale(1.05); }
+    }
+    .jumping {
+      animation: jumpBounce 0.45s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="h-full w-full flex flex-col justify-between p-2 sm:p-4 max-w-md mx-auto box-border overflow-hidden">
+
+  <!-- Header -->
+  <header class="w-full shrink-0 flex items-center justify-between bg-amber-950/60 border border-amber-500/30 px-3 py-2 rounded-2xl shadow-xl backdrop-blur-md">
+    <div class="flex items-center gap-2">
+      <span class="text-2xl">🇬🇭</span>
+      <div>
+        <h1 class="cinzel font-black text-xs sm:text-sm text-amber-300 tracking-wider leading-none">
+          AMPE RHYTHM
+        </h1>
+        <span class="text-[9.5px] text-amber-400 font-bold uppercase tracking-widest">Ghanaian Jumping Game</span>
+      </div>
+    </div>
+
+    <!-- Reset & Target -->
+    <div class="flex items-center gap-2">
+      <div class="text-right">
+        <span class="text-[9px] text-gray-400 uppercase font-bold block">First to</span>
+        <span class="orbitron text-xs font-black text-amber-400">10 Points</span>
+      </div>
+      <button onclick="resetGame()" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs transition-all shadow-md active:scale-95">
+        <i class="fa-solid fa-rotate-right text-[10px]"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Scoreboard -->
+  <div class="w-full shrink-0 grid grid-cols-2 gap-2 my-1">
+    <!-- Player 1 (You) -->
+    <div class="bg-emerald-950/50 border border-emerald-500/40 p-2 rounded-xl flex items-center justify-between">
+      <div class="flex items-center gap-1.5">
+        <span class="text-lg">👤</span>
+        <span class="text-xs font-bold text-emerald-300">You (Simpa)</span>
+      </div>
+      <span id="p1Score" class="orbitron font-black text-lg text-emerald-400">0</span>
+    </div>
+
+    <!-- Player 2 (Accra AI) -->
+    <div class="bg-red-950/50 border border-red-500/40 p-2 rounded-xl flex items-center justify-between">
+      <div class="flex items-center gap-1.5">
+        <span class="text-lg">💃</span>
+        <span class="text-xs font-bold text-red-300">Accra AI</span>
+      </div>
+      <span id="p2Score" class="orbitron font-black text-lg text-red-400">0</span>
+    </div>
+  </div>
+
+  <!-- Center Stage Arena -->
+  <main class="flex-1 w-full flex flex-col items-center justify-center relative my-1 rounded-3xl bg-gradient-to-b from-amber-900/30 to-black/60 border-2 border-amber-600/30 p-4 overflow-hidden shadow-2xl">
+    
+    <!-- Rhythm Pulse Indicator -->
+    <div class="absolute top-3 flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 border border-amber-500/40">
+      <i class="fa-solid fa-drum text-amber-400 animate-bounce text-xs"></i>
+      <span id="beatStatus" class="orbitron text-[10px] sm:text-xs font-extrabold text-amber-300 tracking-wider uppercase">JUMP ON THE BEAT!</span>
+    </div>
+
+    <!-- Animated Jump Dancers -->
+    <div class="flex items-center justify-around w-full mt-4">
+      <!-- AI Dancer -->
+      <div class="flex flex-col items-center gap-1">
+        <div id="aiDancer" class="w-20 h-24 sm:w-24 sm:h-28 rounded-2xl bg-gradient-to-t from-red-900 to-amber-700 border-2 border-red-400 flex flex-col items-center justify-center p-2 shadow-xl jumping">
+          <span class="text-3xl sm:text-4xl">💃</span>
+          <span id="aiFootBadge" class="mt-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-black/60 text-amber-300 border border-amber-400/30">?</span>
+        </div>
+        <span class="text-[10px] font-bold text-red-300 uppercase">Accra Rival</span>
+      </div>
+
+      <!-- VS Badge -->
+      <div class="orbitron font-black text-amber-400 text-sm opacity-80 px-2">
+        VS
+      </div>
+
+      <!-- Player Dancer -->
+      <div class="flex flex-col items-center gap-1">
+        <div id="playerDancer" class="w-20 h-24 sm:w-24 sm:h-28 rounded-2xl bg-gradient-to-t from-emerald-900 to-teal-700 border-2 border-emerald-400 flex flex-col items-center justify-center p-2 shadow-xl jumping">
+          <span class="text-3xl sm:text-4xl">🕺</span>
+          <span id="playerFootBadge" class="mt-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-black/60 text-emerald-300 border border-emerald-400/30">?</span>
+        </div>
+        <span class="text-[10px] font-bold text-emerald-300 uppercase">You (Challenger)</span>
+      </div>
+    </div>
+
+    <!-- Round Result Announcement Banner -->
+    <div id="roundResultBanner" class="mt-5 px-4 py-1.5 rounded-xl bg-black/70 border border-amber-500/50 text-center font-bold text-xs text-amber-200">
+      Tap Left or Right Foot to Jump!
+    </div>
+  </main>
+
+  <!-- Foot Selection Action Buttons -->
+  <div class="w-full shrink-0 grid grid-cols-2 gap-3 my-1">
+    <button onclick="playFoot('LEFT')" class="py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 text-white font-black text-xs sm:text-sm tracking-wider uppercase shadow-xl border border-emerald-300 flex items-center justify-center gap-2 transition-all">
+      <span>🦶</span>
+      <span>LEFT FOOT (SIMPA)</span>
+    </button>
+    <button onclick="playFoot('RIGHT')" class="py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 active:scale-95 text-white font-black text-xs sm:text-sm tracking-wider uppercase shadow-xl border border-amber-300 flex items-center justify-center gap-2 transition-all">
+      <span>🦶</span>
+      <span>RIGHT FOOT (ONYINA)</span>
+    </button>
+  </div>
+
+  <!-- Footer Tip -->
+  <footer class="w-full shrink-0 py-1 px-3 rounded-xl bg-black/50 border border-white/5 text-[9.5px] sm:text-xs text-amber-200/80 text-center">
+    💡 <b>Rule:</b> Jump and put a foot forward. If your foot matches opponent's foot, <b>You Score 1 pt</b>!
+  </footer>
+
+  <!-- Win Modal Dialog -->
+  <div id="winModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-amber-950 to-stone-950 border-2 border-amber-400 p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl space-y-4">
+      <div id="winEmoji" class="text-5xl">🏆</div>
+      <h2 id="winTitle" class="cinzel text-xl font-black text-amber-300">OSEEEE YEI!</h2>
+      <p id="winDesc" class="text-xs text-amber-100 font-medium leading-relaxed">
+        You scored 10 points and became the Ampe Dance Master of Ghana!
+      </p>
+      <div class="py-2 px-4 rounded-xl bg-black/50 border border-amber-500/40 flex justify-around text-xs font-bold">
+        <div>You: <span id="finalP1Score" class="text-emerald-400 font-black text-base">10</span></div>
+        <div class="text-gray-500">|</div>
+        <div>Accra AI: <span id="finalP2Score" class="text-red-400 font-black text-base">0</span></div>
+      </div>
+      <button onclick="resetGame()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-black text-xs tracking-wider uppercase shadow-lg active:scale-95 transition-all">
+        Play Next Dance
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    function playSfx(type) {
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const t = audioCtx.currentTime;
+
+        if (type === 'clap') {
+          osc.frequency.setValueAtTime(400, t);
+          gain.gain.setValueAtTime(0.25, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+          osc.start(t);
+          osc.stop(t + 0.08);
+        } else if (type === 'score') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(540, t);
+          osc.frequency.linearRampToValueAtTime(880, t + 0.18);
+          gain.gain.setValueAtTime(0.35, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+          osc.start(t);
+          osc.stop(t + 0.25);
+        } else if (type === 'miss') {
+          osc.frequency.setValueAtTime(220, t);
+          gain.gain.setValueAtTime(0.2, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+          osc.start(t);
+          osc.stop(t + 0.15);
+        } else if (type === 'win') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(520, t);
+          osc.frequency.linearRampToValueAtTime(780, t + 0.2);
+          osc.frequency.linearRampToValueAtTime(1040, t + 0.4);
+          gain.gain.setValueAtTime(0.4, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.6);
+          osc.start(t);
+          osc.stop(t + 0.6);
+        }
+      } catch (e) {}
+    }
+
+    let p1Score = 0;
+    let p2Score = 0;
+    let roundBusy = false;
+
+    function playFoot(playerChoice) {
+      if (roundBusy || p1Score >= 10 || p2Score >= 10) return;
+      roundBusy = true;
+
+      playSfx('clap');
+
+      // AI chooses
+      const choices = ['LEFT', 'RIGHT'];
+      const aiChoice = choices[Math.floor(Math.random() * choices.length)];
+
+      document.getElementById('playerFootBadge').textContent = playerChoice;
+      document.getElementById('aiFootBadge').textContent = aiChoice;
+
+      const isMatch = (playerChoice === aiChoice);
+      const banner = document.getElementById('roundResultBanner');
+
+      if (isMatch) {
+        // Player 1 wins round (Simpa Match!)
+        p1Score++;
+        document.getElementById('p1Score').textContent = p1Score;
+        playSfx('score');
+        banner.innerHTML = `<span class="text-emerald-400 font-extrabold">MATCH! SIMPA! +1 POINT TO YOU! 🎉</span>`;
+      } else {
+        // AI wins round (Onyina Opposites!)
+        p2Score++;
+        document.getElementById('p2Score').textContent = p2Score;
+        playSfx('miss');
+        banner.innerHTML = `<span class="text-red-400 font-extrabold">OPPOSITE FEET! +1 TO ACCRA AI!</span>`;
+      }
+
+      if (p1Score >= 10 || p2Score >= 10) {
+        setTimeout(endGame, 600);
+      } else {
+        setTimeout(() => {
+          roundBusy = false;
+        }, 650);
+      }
+    }
+
+    function endGame() {
+      playSfx('win');
+      const modal = document.getElementById('winModal');
+      const title = document.getElementById('winTitle');
+      const desc = document.getElementById('winDesc');
+      const emoji = document.getElementById('winEmoji');
+
+      document.getElementById('finalP1Score').textContent = p1Score;
+      document.getElementById('finalP2Score').textContent = p2Score;
+
+      if (p1Score > p2Score) {
+        emoji.textContent = "🏆";
+        title.textContent = "OSEEEE YEI! YOU WIN!";
+        title.className = "cinzel text-xl font-black text-emerald-400";
+        desc.textContent = "You out-danced and out-jumped the Accra champion!";
+      } else {
+        emoji.textContent = "💃";
+        title.textContent = "ACCRA AI WINS!";
+        title.className = "cinzel text-xl font-black text-red-400";
+        desc.textContent = "The street dancers of Accra kept the rhythm and won!";
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function resetGame() {
+      p1Score = 0;
+      p2Score = 0;
+      roundBusy = false;
+      document.getElementById('p1Score').textContent = 0;
+      document.getElementById('p2Score').textContent = 0;
+      document.getElementById('playerFootBadge').textContent = "?";
+      document.getElementById('aiFootBadge').textContent = "?";
+      document.getElementById('roundResultBanner').textContent = "Tap Left or Right Foot to Jump!";
+      document.getElementById('winModal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>

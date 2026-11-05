@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Naija Whist 24 — The King of Nigerian Card Games</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700;800&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 25%, #064e3b 0%, #022c22 45%, #01140e 100%);
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .cinzel { font-family: 'Cinzel', serif; }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+
+    .playing-card {
+      aspect-ratio: 5 / 7;
+      border-radius: 12px;
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.1);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+    .playing-card:hover {
+      transform: translateY(-8px) scale(1.05);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.6), 0 0 14px rgba(16, 185, 129, 0.8);
+    }
+    .card-red { color: #dc2626; }
+    .card-black { color: #0f172a; }
+  </style>
+</head>
+<body class="h-full w-full flex flex-col justify-between p-2 sm:p-3 max-w-xl mx-auto box-border overflow-hidden">
+
+  <!-- Header -->
+  <header class="w-full shrink-0 flex items-center justify-between bg-emerald-950/80 border border-emerald-500/30 px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-xl backdrop-blur-md">
+    <div class="flex items-center gap-2">
+      <span class="text-2xl">🇳🇬</span>
+      <div>
+        <h1 class="cinzel font-black text-xs sm:text-sm text-emerald-300 tracking-wider leading-none">
+          NAIJA WHIST 24
+        </h1>
+        <span class="text-[9.5px] text-emerald-400 font-bold uppercase tracking-widest">24-Card Nigerian Classic</span>
+      </div>
+    </div>
+
+    <!-- Trump Suit Indicator -->
+    <div class="flex items-center gap-2">
+      <div class="px-2.5 py-1 rounded-xl bg-black/60 border border-amber-500/50 flex items-center gap-1.5 shadow">
+        <span class="text-[9px] text-gray-400 uppercase font-bold">Trump:</span>
+        <span id="trumpBadge" class="text-sm font-black text-amber-300">♠ SPADES</span>
+      </div>
+      <button onclick="dealNewGame()" class="px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs transition-all shadow-md active:scale-95">
+        <i class="fa-solid fa-rotate-right text-[10px]"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- AI Opponent Hand (Face down) -->
+  <div class="w-full shrink-0 flex flex-col items-center justify-center my-0.5">
+    <div class="flex items-center gap-2 mb-1">
+      <span class="text-xs font-bold text-emerald-200">Lagos Don AI</span>
+      <span class="text-[10px] text-gray-400">Tricks: <span id="aiTricks" class="font-extrabold text-amber-300">0</span></span>
+    </div>
+    <div id="aiHand" class="flex gap-1 justify-center max-w-full overflow-hidden">
+      <!-- Face-down cards -->
+    </div>
+  </div>
+
+  <!-- Center Felt Trick Arena -->
+  <main class="flex-1 w-full my-1 rounded-3xl bg-gradient-to-b from-emerald-900/40 via-emerald-950/80 to-black/70 border-2 border-emerald-600/40 p-3 flex flex-col items-center justify-between relative shadow-2xl">
+    
+    <div class="text-[10px] text-emerald-300/80 uppercase font-black tracking-widest" id="trickStatus">
+      ROUND IN PROGRESS
+    </div>
+
+    <!-- Active Trick Played Cards -->
+    <div class="flex items-center justify-center gap-6 my-auto">
+      <!-- AI Played Card -->
+      <div class="flex flex-col items-center gap-1">
+        <span class="text-[9.5px] font-bold text-gray-400">AI Played</span>
+        <div id="aiPlayedSlot" class="w-16 h-24 sm:w-20 sm:h-28 rounded-xl border-2 border-dashed border-emerald-600/40 flex items-center justify-center">
+          <span class="text-xs text-emerald-600/60 font-bold">—</span>
+        </div>
+      </div>
+
+      <!-- Player Played Card -->
+      <div class="flex flex-col items-center gap-1">
+        <span class="text-[9.5px] font-bold text-emerald-400">Your Card</span>
+        <div id="playerPlayedSlot" class="w-16 h-24 sm:w-20 sm:h-28 rounded-xl border-2 border-dashed border-emerald-600/40 flex items-center justify-center">
+          <span class="text-xs text-emerald-600/60 font-bold">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trick Win Banner -->
+    <div id="trickBanner" class="py-1 px-4 rounded-xl bg-black/60 border border-emerald-500/30 text-xs font-bold text-amber-300 text-center">
+      Select a card from your hand below!
+    </div>
+  </main>
+
+  <!-- Player Status & Hand (Face up cards) -->
+  <div class="w-full shrink-0 flex flex-col items-center justify-center my-0.5">
+    <div class="flex items-center gap-3 mb-1">
+      <span class="text-xs font-bold text-emerald-300">Your Hand</span>
+      <span class="text-[10px] text-gray-300">Tricks Won: <span id="playerTricks" class="font-extrabold text-amber-300 text-sm">0</span></span>
+    </div>
+    <div id="playerHand" class="flex gap-1.5 sm:gap-2 justify-center max-w-full overflow-x-auto py-1 px-2">
+      <!-- Dynamic interactive cards -->
+    </div>
+  </div>
+
+  <!-- End Game Modal -->
+  <div id="winModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-emerald-950 to-stone-950 border-2 border-emerald-400 p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl space-y-4">
+      <div id="winEmoji" class="text-5xl">🏆</div>
+      <h2 id="winTitle" class="cinzel text-xl font-black text-emerald-300">NAIJA WHIST CHAMPION!</h2>
+      <p id="winDesc" class="text-xs text-emerald-100 font-medium leading-relaxed">
+        You won the match with superior trick tactics!
+      </p>
+      <div class="py-2 px-4 rounded-xl bg-black/50 border border-emerald-500/40 flex justify-around text-xs font-bold">
+        <div>Your Tricks: <span id="finalPlayerTricks" class="text-emerald-400 font-black text-base">0</span></div>
+        <div class="text-gray-500">|</div>
+        <div>AI Tricks: <span id="finalAiTricks" class="text-amber-400 font-black text-base">0</span></div>
+      </div>
+      <button onclick="dealNewGame()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 text-black font-black text-xs tracking-wider uppercase shadow-lg active:scale-95 transition-all">
+        Deal Next Hand
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    function playSfx(type) {
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const t = audioCtx.currentTime;
+
+        if (type === 'card') {
+          osc.frequency.setValueAtTime(450, t);
+          gain.gain.setValueAtTime(0.2, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+          osc.start(t);
+          osc.stop(t + 0.08);
+        } else if (type === 'win') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(520, t);
+          osc.frequency.linearRampToValueAtTime(880, t + 0.25);
+          gain.gain.setValueAtTime(0.35, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+          osc.start(t);
+          osc.stop(t + 0.4);
+        }
+      } catch (e) {}
+    }
+
+    // 24-Card Deck (9, 10, J, Q, K, A of 4 suits)
+    const SUITS = [
+      { name: 'SPADES', symbol: '♠', color: 'card-black' },
+      { name: 'HEARTS', symbol: '♥', color: 'card-red' },
+      { name: 'DIAMONDS', symbol: '♦', color: 'card-red' },
+      { name: 'CLUBS', symbol: '♣', color: 'card-black' }
+    ];
+    const RANKS = [
+      { label: '9', val: 9 },
+      { label: '10', val: 10 },
+      { label: 'J', val: 11 },
+      { label: 'Q', val: 12 },
+      { label: 'K', val: 13 },
+      { label: 'A', val: 14 }
+    ];
+
+    let playerHand = [];
+    let aiHand = [];
+    let trumpSuit = 'SPADES';
+    let playerTricks = 0;
+    let aiTricks = 0;
+    let trickBusy = false;
+
+    function createDeck() {
+      const deck = [];
+      for (const s of SUITS) {
+        for (const r of RANKS) {
+          deck.push({ ...r, suit: s.name, symbol: s.symbol, color: s.color });
+        }
+      }
+      // Shuffle
+      return deck.sort(() => Math.random() - 0.5);
+    }
+
+    function dealNewGame() {
+      const deck = createDeck();
+      trumpSuit = SUITS[Math.floor(Math.random() * SUITS.length)].name;
+      const trumpObj = SUITS.find(s => s.name === trumpSuit);
+      document.getElementById('trumpBadge').textContent = `${trumpObj.symbol} ${trumpObj.name}`;
+
+      // Deal 6 cards each for a rapid 6-trick hand
+      playerHand = deck.slice(0, 6);
+      aiHand = deck.slice(6, 12);
+
+      playerTricks = 0;
+      aiTricks = 0;
+      trickBusy = false;
+
+      document.getElementById('playerTricks').textContent = 0;
+      document.getElementById('aiTricks').textContent = 0;
+      document.getElementById('aiPlayedSlot').innerHTML = '<span class="text-xs text-emerald-600/60 font-bold">—</span>';
+      document.getElementById('playerPlayedSlot').innerHTML = '<span class="text-xs text-emerald-600/60 font-bold">—</span>';
+      document.getElementById('trickBanner').textContent = "Select a card from your hand below!";
+      document.getElementById('winModal').classList.add('hidden');
+
+      renderHands();
+    }
+
+    function renderHands() {
+      // AI hand back cards
+      const aiContainer = document.getElementById('aiHand');
+      aiContainer.innerHTML = '';
+      for (let i = 0; i < aiHand.length; i++) {
+        const card = document.createElement('div');
+        card.className = "w-9 h-14 sm:w-11 sm:h-16 rounded-lg bg-gradient-to-tr from-emerald-800 to-teal-900 border border-emerald-400/50 shadow flex items-center justify-center text-xs";
+        card.innerHTML = "🂠";
+        aiContainer.appendChild(card);
+      }
+
+      // Player hand
+      const playerContainer = document.getElementById('playerHand');
+      playerContainer.innerHTML = '';
+      playerHand.forEach((c, idx) => {
+        const card = document.createElement('div');
+        card.className = `playing-card w-12 h-18 sm:w-16 sm:h-22 p-1.5 flex flex-col justify-between select-none ${c.color}`;
+        card.innerHTML = `
+          <div class="font-black text-xs leading-none">${c.label} ${c.symbol}</div>
+          <div class="text-center font-bold text-sm sm:text-lg">${c.symbol}</div>
+          <div class="font-black text-xs leading-none text-right">${c.label}</div>
+        `;
+        card.onclick = () => playCard(idx);
+        playerContainer.appendChild(card);
+      });
+    }
+
+    function playCard(index) {
+      if (trickBusy || playerHand.length === 0) return;
+      trickBusy = true;
+
+      const playerCard = playerHand.splice(index, 1)[0];
+      playSfx('card');
+
+      // AI selects card to play
+      let aiIndex = 0;
+      // Try to follow suit if possible
+      const sameSuit = aiHand.findIndex(c => c.suit === playerCard.suit);
+      if (sameSuit !== -1) {
+        aiIndex = sameSuit;
+      } else {
+        // Try trump
+        const trumpIdx = aiHand.findIndex(c => c.suit === trumpSuit);
+        aiIndex = (trumpIdx !== -1) ? trumpIdx : 0;
+      }
+      const aiCard = aiHand.splice(aiIndex, 1)[0];
+
+      // Render Played Cards
+      document.getElementById('playerPlayedSlot').innerHTML = `
+        <div class="playing-card w-full h-full p-1.5 flex flex-col justify-between ${playerCard.color}">
+          <div class="font-black text-xs leading-none">${playerCard.label} ${playerCard.symbol}</div>
+          <div class="text-center font-bold text-base sm:text-lg">${playerCard.symbol}</div>
+          <div class="font-black text-xs leading-none text-right">${playerCard.label}</div>
+        </div>
+      `;
+      document.getElementById('aiPlayedSlot').innerHTML = `
+        <div class="playing-card w-full h-full p-1.5 flex flex-col justify-between ${aiCard.color}">
+          <div class="font-black text-xs leading-none">${aiCard.label} ${aiCard.symbol}</div>
+          <div class="text-center font-bold text-base sm:text-lg">${aiCard.symbol}</div>
+          <div class="font-black text-xs leading-none text-right">${aiCard.label}</div>
+        </div>
+      `;
+
+      renderHands();
+
+      // Determine Winner of the Trick
+      let playerWinsTrick = false;
+      if (playerCard.suit === aiCard.suit) {
+        playerWinsTrick = (playerCard.val > aiCard.val);
+      } else if (playerCard.suit === trumpSuit) {
+        playerWinsTrick = true;
+      } else if (aiCard.suit === trumpSuit) {
+        playerWinsTrick = false;
+      } else {
+        // Player led the trick
+        playerWinsTrick = true;
+      }
+
+      const banner = document.getElementById('trickBanner');
+      if (playerWinsTrick) {
+        playerTricks++;
+        document.getElementById('playerTricks').textContent = playerTricks;
+        playSfx('win');
+        banner.innerHTML = `<span class="text-emerald-400 font-extrabold">YOU WON THE TRICK! 🎉</span>`;
+      } else {
+        aiTricks++;
+        document.getElementById('aiTricks').textContent = aiTricks;
+        banner.innerHTML = `<span class="text-amber-400 font-extrabold">LAGOS DON TOOK THE TRICK!</span>`;
+      }
+
+      setTimeout(() => {
+        if (playerHand.length === 0) {
+          endHand();
+        } else {
+          document.getElementById('playerPlayedSlot').innerHTML = '<span class="text-xs text-emerald-600/60 font-bold">—</span>';
+          document.getElementById('aiPlayedSlot').innerHTML = '<span class="text-xs text-emerald-600/60 font-bold">—</span>';
+          document.getElementById('trickBanner').textContent = "Play your next card!";
+          trickBusy = false;
+        }
+      }, 1200);
+    }
+
+    function endHand() {
+      const modal = document.getElementById('winModal');
+      const title = document.getElementById('winTitle');
+      const desc = document.getElementById('winDesc');
+      const emoji = document.getElementById('winEmoji');
+
+      document.getElementById('finalPlayerTricks').textContent = playerTricks;
+      document.getElementById('finalAiTricks').textContent = aiTricks;
+
+      if (playerTricks > aiTricks) {
+        emoji.textContent = "🏆";
+        title.textContent = "NAIJA WHIST MASTER!";
+        desc.textContent = `You dominated with ${playerTricks} tricks! Real Nigerian Whist Champion!`;
+      } else if (aiTricks > playerTricks) {
+        emoji.textContent = "🃏";
+        title.textContent = "LAGOS DON WINS!";
+        desc.textContent = `The Lagos Don claimed the table with ${aiTricks} tricks!`;
+      } else {
+        emoji.textContent = "🤝";
+        title.textContent = "DRAW MATCH!";
+        desc.textContent = "Even at 3 tricks each!";
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    dealNewGame();
+  </script>
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Chiyato Stone Toss — Zambian Traditional Arcade</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700;800&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #1c0a03;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      user-select: none;
+      touch-action: none;
+    }
+    .cinzel { font-family: 'Cinzel', serif; }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+
+    #chiyatoCanvas {
+      background: radial-gradient(circle at 50% 60%, #78350f 0%, #451a03 50%, #1c0a03 100%);
+      box-shadow: inset 0 0 50px rgba(0,0,0,0.85);
+    }
+  </style>
+</head>
+<body class="h-full w-full flex flex-col justify-between p-2 sm:p-3 max-w-md mx-auto box-border overflow-hidden">
+
+  <!-- Header -->
+  <header class="w-full shrink-0 flex items-center justify-between bg-amber-950/80 border border-orange-500/30 px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-xl backdrop-blur-md">
+    <div class="flex items-center gap-2">
+      <span class="text-2xl">🇿🇲</span>
+      <div>
+        <h1 class="cinzel font-black text-xs sm:text-sm text-orange-300 tracking-wider leading-none">
+          CHIYATO ZAMBIA
+        </h1>
+        <span class="text-[9.5px] text-orange-400 font-bold uppercase tracking-widest">Stone Toss &amp; Catch</span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="flex items-center gap-3">
+      <div class="text-right">
+        <span class="text-[9px] text-gray-400 uppercase font-bold block">Score</span>
+        <span id="scoreDisplay" class="orbitron text-xs sm:text-sm font-black text-amber-300">0</span>
+      </div>
+      <div class="text-right">
+        <span class="text-[9px] text-gray-400 uppercase font-bold block">Lives</span>
+        <span id="livesDisplay" class="text-xs sm:text-sm font-black text-red-400">❤️❤️❤️</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Interactive 2D Canvas -->
+  <main class="flex-1 w-full my-1 relative flex items-center justify-center overflow-hidden">
+    <canvas id="chiyatoCanvas" class="w-full h-full rounded-2xl border-2 border-orange-600/40 shadow-2xl"></canvas>
+  </main>
+
+  <!-- Bottom Action Bar -->
+  <footer class="w-full shrink-0 py-1.5 px-3 rounded-xl bg-amber-950/90 border border-white/10 text-[10px] sm:text-xs text-orange-200/80 text-center flex items-center justify-between">
+    <span>🖐️ <b>Tap flyer to toss up!</b> Tap ground stones to scoop them before flyer falls!</span>
+    <button onclick="tossLeadStone()" id="tossBtn" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-black font-black text-xs uppercase tracking-wider shadow-md active:scale-95">
+      Toss Stone 🚀
+    </button>
+  </footer>
+
+  <!-- End Game Modal -->
+  <div id="endModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-amber-950 to-stone-950 border-2 border-orange-500 p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl space-y-4">
+      <div id="endEmoji" class="text-5xl">🏆</div>
+      <h2 id="endTitle" class="cinzel text-xl font-black text-orange-300">STAGE CLEARED!</h2>
+      <p id="endDesc" class="text-xs text-orange-100 font-medium leading-relaxed">
+        You scooped all pebbles and caught the falling stone!
+      </p>
+      <div class="py-2 px-4 rounded-xl bg-black/50 border border-orange-500/40 flex justify-around text-xs font-bold">
+        <div>Score: <span id="finalScore" class="text-amber-400 font-black text-base">0</span></div>
+      </div>
+      <button onclick="resetGame()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-400 to-amber-500 text-black font-black text-xs tracking-wider uppercase shadow-lg active:scale-95 transition-all">
+        Play Again
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    function playSfx(type) {
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const t = audioCtx.currentTime;
+
+        if (type === 'toss') {
+          osc.frequency.setValueAtTime(320, t);
+          osc.frequency.linearRampToValueAtTime(640, t + 0.15);
+          gain.gain.setValueAtTime(0.3, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+          osc.start(t);
+          osc.stop(t + 0.2);
+        } else if (type === 'scoop') {
+          osc.frequency.setValueAtTime(520, t);
+          gain.gain.setValueAtTime(0.25, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+          osc.start(t);
+          osc.stop(t + 0.08);
+        } else if (type === 'drop') {
+          osc.frequency.setValueAtTime(140, t);
+          gain.gain.setValueAtTime(0.35, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
+          osc.start(t);
+          osc.stop(t + 0.12);
+        }
+      } catch (e) {}
+    }
+
+    const canvas = document.getElementById('chiyatoCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let W = 360;
+    let H = 540;
+    let score = 0;
+    let lives = 3;
+    let circle = { x: 180, y: 380, r: 90 };
+
+    // Lead Flyer Stone
+    let flyer = {
+      x: 180,
+      y: 460,
+      vy: 0,
+      radius: 18,
+      inAir: false,
+      color: '#facc15'
+    };
+
+    // Ground Pebbles
+    let pebbles = [];
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      W = canvas.width = rect.width * window.devicePixelRatio;
+      H = canvas.height = rect.height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      W = rect.width;
+      H = rect.height;
+
+      circle = { x: W / 2, y: H * 0.68, r: Math.min(W * 0.35, 120) };
+      flyer.x = W / 2;
+      flyer.y = H * 0.88;
+
+      spawnPebbles();
+    }
+
+    function spawnPebbles() {
+      pebbles = [];
+      const count = 5;
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2;
+        const dist = 0.5 * circle.r;
+        pebbles.push({
+          x: circle.x + Math.cos(angle) * dist,
+          y: circle.y + Math.sin(angle) * dist,
+          radius: 12,
+          scooped: false
+        });
+      }
+    }
+
+    function tossLeadStone() {
+      if (flyer.inAir) return;
+      flyer.inAir = true;
+      flyer.vy = -14;
+      playSfx('toss');
+    }
+
+    // Touch / Click to scoop pebbles or catch flyer
+    canvas.addEventListener('pointerdown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+
+      // Check if tapping flyer to toss
+      if (!flyer.inAir && Math.hypot(px - flyer.x, py - flyer.y) < flyer.radius * 2.5) {
+        tossLeadStone();
+        return;
+      }
+
+      // Check if scooping a ground pebble while flyer is in air
+      if (flyer.inAir) {
+        // Did we tap to catch the falling flyer?
+        if (flyer.vy > 0 && Math.hypot(px - flyer.x, py - flyer.y) < flyer.radius * 2.5) {
+          // Caught flyer!
+          catchFlyer();
+          return;
+        }
+
+        // Check pebbles
+        for (const p of pebbles) {
+          if (!p.scooped && Math.hypot(px - p.x, py - p.y) < p.radius * 2.2) {
+            p.scooped = true;
+            score += 50;
+            document.getElementById('scoreDisplay').textContent = score;
+            playSfx('scoop');
+            break;
+          }
+        }
+      }
+    });
+
+    function catchFlyer() {
+      flyer.inAir = false;
+      flyer.y = H * 0.88;
+      flyer.vy = 0;
+      playSfx('scoop');
+
+      // Check if all scooped
+      const remaining = pebbles.filter(p => !p.scooped).length;
+      if (remaining === 0) {
+        score += 200;
+        document.getElementById('scoreDisplay').textContent = score;
+        spawnPebbles();
+      }
+    }
+
+    function update() {
+      if (flyer.inAir) {
+        flyer.y += flyer.vy;
+        flyer.vy += 0.38; // Gravity
+
+        // Fall below screen = Dropped stone!
+        if (flyer.y > H * 0.92) {
+          flyer.inAir = false;
+          flyer.y = H * 0.88;
+          flyer.vy = 0;
+          lives--;
+          playSfx('drop');
+          updateLives();
+
+          if (lives <= 0) {
+            endGame();
+          }
+        }
+      }
+    }
+
+    function updateLives() {
+      const hearts = '❤️'.repeat(Math.max(0, lives));
+      document.getElementById('livesDisplay').textContent = hearts || '💀';
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      // Draw Dirt Circle
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(circle.x, circle.y, circle.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(120, 53, 15, 0.25)';
+      ctx.fill();
+      ctx.strokeStyle = '#ea580c';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 6]);
+      ctx.stroke();
+      ctx.restore();
+
+      // Draw Ground Pebbles
+      for (const p of pebbles) {
+        if (p.scooped) continue;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#d97706';
+        ctx.shadowColor = '#000';
+        ctx.shadowBlur = 6;
+        ctx.fill();
+        ctx.strokeStyle = '#fde68a';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Draw Lead Flyer Stone
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(flyer.x, flyer.y, flyer.radius, 0, Math.PI * 2);
+      ctx.fillStyle = flyer.color;
+      ctx.shadowColor = '#eab308';
+      ctx.shadowBlur = 15;
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    function endGame() {
+      document.getElementById('finalScore').textContent = score;
+      document.getElementById('endModal').classList.remove('hidden');
+    }
+
+    function resetGame() {
+      score = 0;
+      lives = 3;
+      flyer.inAir = false;
+      flyer.y = H * 0.88;
+      flyer.vy = 0;
+      document.getElementById('scoreDisplay').textContent = 0;
+      updateLives();
+      document.getElementById('endModal').classList.add('hidden');
+      spawnPebbles();
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    loop();
+  </script>
+</body>
+</html>

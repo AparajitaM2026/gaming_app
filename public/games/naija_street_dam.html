@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Naija Street Dam — West African Flying Kings Draughts</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;600;700;800&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 25%, #172554 0%, #0f172a 50%, #020617 100%);
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .cinzel { font-family: 'Cinzel', serif; }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+
+    .dam-sq-dark { background: #1e293b; }
+    .dam-sq-light { background: #f8fafc; }
+
+    .dam-piece {
+      border-radius: 50%;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.7), inset 0 2px 4px rgba(255,255,255,0.4);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .dam-piece:hover {
+      transform: scale(1.08);
+      box-shadow: 0 0 16px #38bdf8;
+    }
+    .dam-piece.selected {
+      border: 3px solid #22c55e !important;
+      box-shadow: 0 0 18px #22c55e !important;
+    }
+    .dest-highlight {
+      background: rgba(34, 197, 94, 0.45) !important;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="h-full w-full flex flex-col justify-between p-2 sm:p-3 max-w-md mx-auto box-border overflow-hidden">
+
+  <!-- Header -->
+  <header class="w-full shrink-0 flex items-center justify-between bg-slate-900/80 border border-blue-500/30 px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-xl backdrop-blur-md">
+    <div class="flex items-center gap-2">
+      <span class="text-2xl">🇳🇬</span>
+      <div>
+        <h1 class="cinzel font-black text-xs sm:text-sm text-blue-300 tracking-wider leading-none">
+          NAIJA STREET DAM
+        </h1>
+        <span class="text-[9.5px] text-blue-400 font-bold uppercase tracking-widest">Flying Kings Draughts</span>
+      </div>
+    </div>
+
+    <!-- Reset & Mode -->
+    <div class="flex items-center gap-2">
+      <select id="modeSelect" class="bg-black/60 border border-blue-500/50 text-blue-200 text-xs font-bold rounded-lg px-2 py-1 outline-none cursor-pointer">
+        <option value="ai">vs Lagos AI 🤖</option>
+        <option value="pass">Pass &amp; Play 👥</option>
+      </select>
+      <button onclick="resetGame()" class="px-2.5 py-1 rounded-lg bg-blue-500 hover:bg-blue-400 text-black font-extrabold text-xs transition-all shadow-md active:scale-95">
+        <i class="fa-solid fa-rotate-right text-[10px]"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Turn & Scoreboard -->
+  <div class="w-full shrink-0 flex items-center justify-between px-3 py-1 rounded-xl bg-black/40 border border-slate-700/60">
+    <div class="flex items-center gap-2">
+      <div class="w-3.5 h-3.5 rounded-full bg-white border border-slate-400"></div>
+      <span class="text-xs font-bold text-gray-200">You (White): <span id="p1Pieces" class="font-extrabold text-amber-300">12</span></span>
+    </div>
+    <span id="turnBanner" class="orbitron font-extrabold text-[10.5px] text-blue-300 tracking-wider uppercase">YOUR MOVE</span>
+    <div class="flex items-center gap-2">
+      <span class="text-xs font-bold text-red-400">AI: <span id="p2Pieces" class="font-extrabold text-amber-300">12</span></span>
+      <div class="w-3.5 h-3.5 rounded-full bg-red-600 border border-red-300"></div>
+    </div>
+  </div>
+
+  <!-- Center 8x8 Draughts Board -->
+  <main class="flex-1 w-full my-1 flex items-center justify-center overflow-hidden">
+    <div class="aspect-square w-full max-w-[340px] sm:max-w-[380px] rounded-2xl bg-slate-950 p-1.5 border-4 border-slate-800 shadow-2xl">
+      <div class="grid grid-cols-8 grid-rows-8 w-full h-full rounded-xl overflow-hidden" id="damGrid">
+        <!-- 64 squares -->
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer Tip -->
+  <footer class="w-full shrink-0 py-1 px-3 rounded-xl bg-black/50 border border-white/5 text-[9.5px] sm:text-xs text-blue-200/80 text-center">
+    💡 <b>Naija Dam Rule:</b> Men can jump backwards to capture! Kings can fly any distance across diagonals!
+  </footer>
+
+  <!-- Win Modal Dialog -->
+  <div id="winModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-blue-950 to-stone-950 border-2 border-blue-400 p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl space-y-4">
+      <div id="winEmoji" class="text-5xl">👑</div>
+      <h2 id="winTitle" class="cinzel text-xl font-black text-blue-300">LAGOS CHAMPION!</h2>
+      <p id="winDesc" class="text-xs text-blue-100 font-medium leading-relaxed">
+        You cleared the board with street dam master tactics!
+      </p>
+      <button onclick="resetGame()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-400 to-indigo-500 text-black font-black text-xs tracking-wider uppercase shadow-lg active:scale-95 transition-all">
+        Play Next Match
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    function playSfx(type) {
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const t = audioCtx.currentTime;
+
+        if (type === 'slap') {
+          osc.frequency.setValueAtTime(260, t);
+          gain.gain.setValueAtTime(0.3, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.09);
+          osc.start(t);
+          osc.stop(t + 0.09);
+        } else if (type === 'capture') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(480, t);
+          osc.frequency.exponentialRampToValueAtTime(880, t + 0.2);
+          gain.gain.setValueAtTime(0.35, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.22);
+          osc.start(t);
+          osc.stop(t + 0.22);
+        }
+      } catch (e) {}
+    }
+
+    // 8x8 Board
+    // 0 = empty
+    // 1 = White Man (Player)
+    // 2 = White King
+    // -1 = Red Man (AI)
+    // -2 = Red King
+    let board = [];
+    let selectedSquare = null;
+    let validMoves = [];
+    let turn = 1; // 1 = White, -1 = Red
+    const modeSelect = document.getElementById('modeSelect');
+
+    function initBoard() {
+      board = Array.from({ length: 8 }, () => new Array(8).fill(0));
+      // Red at top (rows 0, 1, 2)
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 8; c++) {
+          if ((r + c) % 2 === 1) board[r][c] = -1;
+        }
+      }
+      // White at bottom (rows 5, 6, 7)
+      for (let r = 5; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if ((r + c) % 2 === 1) board[r][c] = 1;
+        }
+      }
+      selectedSquare = null;
+      validMoves = [];
+      turn = 1;
+      document.getElementById('winModal').classList.add('hidden');
+      render();
+    }
+
+    function render() {
+      const grid = document.getElementById('damGrid');
+      grid.innerHTML = '';
+
+      let p1Count = 0;
+      let p2Count = 0;
+
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const val = board[r][c];
+          if (val > 0) p1Count++;
+          if (val < 0) p2Count++;
+
+          const isDark = (r + c) % 2 === 1;
+          const sq = document.createElement('div');
+          sq.className = `w-full h-full flex items-center justify-center relative select-none ${isDark ? 'dam-sq-dark' : 'dam-sq-light'}`;
+
+          const isHighlight = validMoves.some(m => m.r === r && m.c === c);
+          if (isHighlight) {
+            sq.classList.add('dest-highlight');
+            sq.onclick = () => executeMove(selectedSquare.r, selectedSquare.c, r, c);
+          }
+
+          if (val !== 0) {
+            const piece = document.createElement('div');
+            const isWhite = val > 0;
+            const isKing = Math.abs(val) === 2;
+
+            piece.className = `dam-piece w-4/5 h-4/5 flex items-center justify-center font-black text-xs ${isWhite ? 'bg-gradient-to-r from-slate-100 to-white text-black' : 'bg-gradient-to-r from-red-600 to-rose-700 text-white'}`;
+            if (isKing) {
+              piece.innerHTML = "👑";
+            }
+
+            if (selectedSquare && selectedSquare.r === r && selectedSquare.c === c) {
+              piece.classList.add('selected');
+            }
+
+            if ((isWhite && turn === 1) || (!isWhite && turn === -1 && modeSelect.value === 'pass')) {
+              piece.onclick = (e) => {
+                e.stopPropagation();
+                selectPiece(r, c);
+              };
+            }
+
+            sq.appendChild(piece);
+          }
+
+          grid.appendChild(sq);
+        }
+      }
+
+      document.getElementById('p1Pieces').textContent = p1Count;
+      document.getElementById('p2Pieces').textContent = p2Count;
+      document.getElementById('turnBanner').textContent = turn === 1 ? "YOUR MOVE" : "AI THINKING...";
+
+      if (p1Count === 0 || p2Count === 0) {
+        endGame(p1Count > 0);
+      }
+    }
+
+    function selectPiece(r, c) {
+      selectedSquare = { r, c };
+      validMoves = calculateMoves(r, c);
+      render();
+    }
+
+    function calculateMoves(r, c) {
+      const val = board[r][c];
+      const moves = [];
+      const isKing = Math.abs(val) === 2;
+
+      // Directions: 4 diagonals
+      const dirs = [
+        { dr: -1, dc: -1 }, { dr: -1, dc: 1 },
+        { dr: 1, dc: -1 }, { dr: 1, dc: 1 }
+      ];
+
+      for (const d of dirs) {
+        // Regular single-step moves (forward only for men)
+        if (!isKing) {
+          const isForward = (val > 0 && d.dr === -1) || (val < 0 && d.dr === 1);
+          const nr = r + d.dr;
+          const nc = c + d.dc;
+          if (isForward && nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && board[nr][nc] === 0) {
+            moves.push({ r: nr, c: nc, capture: null });
+          }
+        } else {
+          // Flying Kings: can move multiple steps diagonally
+          let step = 1;
+          while (true) {
+            const nr = r + d.dr * step;
+            const nc = c + d.dc * step;
+            if (nr < 0 || nr >= 8 || nc < 0 || nc >= 8) break;
+            if (board[nr][nc] === 0) {
+              moves.push({ r: nr, c: nc, capture: null });
+            } else {
+              break;
+            }
+            step++;
+          }
+        }
+
+        // Jump Captures (Naija rule: men can jump backwards too!)
+        const hopR = r + d.dr;
+        const hopC = c + d.dc;
+        const landR = r + d.dr * 2;
+        const landC = c + d.dc * 2;
+        if (landR >= 0 && landR < 8 && landC >= 0 && landC < 8) {
+          if (board[hopR][hopC] !== 0 && (board[hopR][hopC] > 0) !== (val > 0) && board[landR][landC] === 0) {
+            moves.push({ r: landR, c: landC, capture: { r: hopR, c: hopC } });
+          }
+        }
+      }
+
+      return moves;
+    }
+
+    function executeMove(fromR, fromC, toR, toC) {
+      const move = validMoves.find(m => m.r === toR && m.c === toC);
+      if (!move) return;
+
+      const piece = board[fromR][fromC];
+      board[fromR][fromC] = 0;
+
+      // King promotion
+      let isCrowned = Math.abs(piece) === 2;
+      if (!isCrowned) {
+        if (piece > 0 && toR === 0) isCrowned = true;
+        if (piece < 0 && toR === 7) isCrowned = true;
+      }
+
+      board[toR][toC] = isCrowned ? (piece > 0 ? 2 : -2) : piece;
+
+      if (move.capture) {
+        board[move.capture.r][move.capture.c] = 0;
+        playSfx('capture');
+      } else {
+        playSfx('slap');
+      }
+
+      selectedSquare = null;
+      validMoves = [];
+      turn = (turn === 1) ? -1 : 1;
+      render();
+
+      if (turn === -1 && modeSelect.value === 'ai') {
+        setTimeout(playAiTurn, 550);
+      }
+    }
+
+    function playAiTurn() {
+      // Find all AI pieces
+      const aiMoves = [];
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (board[r][c] < 0) {
+            const m = calculateMoves(r, c);
+            if (m.length > 0) {
+              aiMoves.push({ from: { r, c }, moves: m });
+            }
+          }
+        }
+      }
+
+      if (aiMoves.length === 0) {
+        endGame(true);
+        return;
+      }
+
+      // Prioritize capture moves
+      let chosen = null;
+      for (const item of aiMoves) {
+        const cap = item.moves.find(m => m.capture);
+        if (cap) {
+          chosen = { from: item.from, to: cap };
+          break;
+        }
+      }
+      if (!chosen) {
+        const item = aiMoves[Math.floor(Math.random() * aiMoves.length)];
+        chosen = { from: item.from, to: item.moves[Math.floor(Math.random() * item.moves.length)] };
+      }
+
+      selectedSquare = chosen.from;
+      validMoves = chosen.moves || [chosen.to];
+      executeMove(chosen.from.r, chosen.from.c, chosen.to.r, chosen.to.c);
+    }
+
+    function endGame(won) {
+      const modal = document.getElementById('winModal');
+      const title = document.getElementById('winTitle');
+      const desc = document.getElementById('winDesc');
+      if (won) {
+        title.textContent = "LAGOS DAM CHAMPION!";
+        desc.textContent = "You swept the board with master flying kings!";
+      } else {
+        title.textContent = "AI MASTER PREVAILED!";
+        desc.textContent = "Lagos street master captured all pieces!";
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function resetGame() {
+      initBoard();
+    }
+
+    initBoard();
+  </script>
+</body>
+</html>
