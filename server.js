@@ -1021,7 +1021,7 @@ const INTERNAL_GAME_SOURCES = {
   'reversi': 'https://games.ottsol.cloud/reversi/',
   'dots-and-boxes': 'https://games.ottsol.cloud/dots-and-boxes/',
   'queens-puzzle': 'https://games.ottsol.cloud/queens/',
-  'mahjong-solitaire': 'https://play.famobi.com/mahjong-classic',
+  'mahjong-solitaire': 'https://games.cdn.famobi.com/html5games/m/mahjong-classic/v390/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=a66e3ed1-52f6-4f12-b1c8-014320eaf150&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=343',
   'sliding-puzzle': 'https://games.ottsol.cloud/sliding-puzzle/',
   'trivia-crack': 'https://games.ottsol.cloud/trivia-crack/',
   'cut-the-rope': 'https://play.famobi.com/cut-the-rope',
@@ -1104,6 +1104,7 @@ const RESOLVED_CDN_SOURCES = {
   'moto-x3m-pool-party': 'https://html5.gamedistribution.com/rvvASMiM/f804d079d19f44d3b951ead4588e974a/',
   'stunt-bike-mania': 'https://html5.gamedistribution.com/rvvASMiM/f804d079d19f44d3b951ead4588e974a/',
   'sand-balls': 'https://games.cdn.famobi.com/html5games/0/99-balls/v130/',
+  'mahjong-solitaire': 'https://games.cdn.famobi.com/html5games/m/mahjong-classic/v390/',
   'classic-minesweeper': 'https://gamezipper.com/minesweeper/'
 };
 
@@ -1417,6 +1418,18 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
       }
       buffer = Buffer.from(text, 'utf8');
     }
+
+    // Auto-patch Mahjong Solitaire / Mahjong Classic preloader freeze & null width crash
+    const isMahjong = slug === 'mahjong-solitaire' || slug === 'mahjong-classic';
+    if (isMahjong && (cleanAssetPath.endsWith('all.js') || assetPath.includes('all.js'))) {
+      let text = buffer.toString('utf8');
+      text = text.replaceAll('needMusic=!0', 'needMusic=!1');
+      text = text.replaceAll('needMoreGames=!0', 'needMoreGames=!1');
+      text = text.replaceAll('i.regX=i.getBounds().width/2', 'i.regX=((i&&i.getBounds?i.getBounds():null)||{width:100,height:100}).width/2');
+      text = text.replaceAll('i.regY=i.getBounds().height/2', 'i.regY=((i&&i.getBounds?i.getBounds():null)||{width:100,height:100}).height/2');
+      buffer = Buffer.from(text, 'utf8');
+    }
+
     res.send(buffer);
   } catch (e) {
     res.status(404).send('Asset not found');
@@ -2431,6 +2444,24 @@ const handleGameFrame = async (req, res) => {
               return function() { return Promise.resolve(true); };
             }
           });
+
+          // CreateJS safe bounds fallback to prevent null reference freezes
+          try {
+            function wrapCreateJS() {
+              if (window.createjs && window.createjs.DisplayObject && !window.createjs.DisplayObject.__safeGB) {
+                window.createjs.DisplayObject.__safeGB = true;
+                var _origGB = window.createjs.DisplayObject.prototype.getBounds;
+                window.createjs.DisplayObject.prototype.getBounds = function() {
+                  var b = _origGB ? _origGB.call(this) : null;
+                  if (!b) return { x: 0, y: 0, width: 100, height: 100, clone: function() { return { x: 0, y: 0, width: 100, height: 100 }; } };
+                  return b;
+                };
+              }
+            }
+            wrapCreateJS();
+            var _cjInt = setInterval(wrapCreateJS, 50);
+            setTimeout(function() { clearInterval(_cjInt); }, 10000);
+          } catch(e) {}
           
           const mockGameInterfaceBase = {
             init: function(files) {
@@ -2785,15 +2816,39 @@ const handleGameFrame = async (req, res) => {
           justify-content: center !important;
           align-items: center !important;
         }
-        /* When body has fixed/absolute wrappers (e.g. Katana Fruits, Phaser, Unity, GameMaker, Defold), don't flex-squeeze */
+        /* When body has fixed/absolute wrappers (e.g. Katana Fruits, Phaser, Unity, GameMaker, Defold, CreateJS), don't flex-squeeze */
         body:has(> div[style*="position: fixed"]),
         body:has(> div[style*="position:fixed"]),
         body:has(> #unity-container),
         body:has(> #c2canvasdiv),
         body:has(> .gm4html5_div_class),
         body:has(> .canvas-app-container),
-        body:has(> #app-container) {
+        body:has(> #app-container),
+        body:has(> #viewporter) {
           display: block !important;
+        }
+        #viewporter {
+          width: 100vw !important;
+          height: 100vh !important;
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          overflow: hidden !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          background: #120325 !important;
+        }
+        #viewporter canvas#canvas {
+          position: absolute !important;
+          top: 50% !important;
+          left: 50% !important;
+          transform: translate(-50%, -50%) !important;
+          max-width: 100vw !important;
+          max-height: 100vh !important;
+          width: min(100vw, 100vh) !important;
+          height: min(100vw, 100vh) !important;
+          object-fit: contain !important;
         }
         div.gm4html5_div_class {
           width: 100vw !important;
