@@ -1165,6 +1165,12 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
   const baseUrl = RESOLVED_CDN_SOURCES[slug] || INTERNAL_GAME_SOURCES[slug];
   if (!baseUrl) return res.status(404).send('Asset not found');
 
+  // Provide mock gameapi/v1.js if requested by Famobi SDK to prevent hang
+  if (assetPath.includes('gameapi/v1.js') || assetPath.endsWith('v1.js')) {
+    res.setHeader('Content-Type', 'application/javascript');
+    return res.status(200).send('(function(){ if(window.famobi_gameJS && Array.isArray(window.famobi_gameJS)){ while(window.famobi_gameJS.length){ var fn=window.famobi_gameJS.shift(); if(typeof fn==="function") { try { fn(); } catch(e) {} } } } })();');
+  }
+
   try {
     let fullAssetUrl = new URL(assetPath, baseUrl).href;
     let resp = await fetch(fullAssetUrl, {
@@ -1206,7 +1212,7 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
     // Proper MIME types for WebAssembly & Unity WebGL assets
     if (assetPath.endsWith('.wasm') || assetPath.endsWith('.wasm.unityweb')) {
       res.setHeader('Content-Type', 'application/wasm');
-    } else if (assetPath.endsWith('.framework.js.unityweb') || assetPath.endsWith('.loader.js')) {
+    } else if (assetPath.endsWith('.framework.js.unityweb') || assetPath.endsWith('.loader.js') || assetPath.endsWith('.js.unityweb')) {
       res.setHeader('Content-Type', 'application/javascript');
     } else if (assetPath.endsWith('.data.unityweb')) {
       res.setHeader('Content-Type', 'application/octet-stream');
@@ -1223,6 +1229,16 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
     }
 
     let buffer = Buffer.from(await resp.arrayBuffer());
+
+    // Auto-patch Famobi WebGL game interface to bypass hanging on external gameapi/v1.js
+    if (assetPath.includes('famobi-game-interface.js')) {
+      let text = buffer.toString('utf8');
+      const targetWait = 'const o=new Promise(e=>{t=e});window.famobi_gameJS=[async()=>{t()}],function(e,t){const o=e.createElement("script"),a=e.getElementsByTagName("script")[0];o.src=t+encodeURIComponent(e.location.href),a.parentNode.insertBefore(o,a)}(document,(e?"//games.cdn.famobi.com/":"/")+mr),await o';
+      if (text.includes(targetWait)) {
+        text = text.replace(targetWait, 'window.famobi_gameID=r.get().gameId;');
+        buffer = Buffer.from(text, 'utf8');
+      }
+    }
 
     // Auto-patch Construct 3 main.js to pass valid absolute baseUrl to RuntimeInterface
     if (assetPath.endsWith('main.js')) {
@@ -2238,6 +2254,11 @@ const handleGameFrame = async (req, res) => {
           };
 
           const famobiBase = {
+            adapters: {
+              add: function() {},
+              get: function() { return null; },
+              has: function() { return false; }
+            },
             storage: mockStorage,
             localStorage: mockStorage,
             sessionStorage: mockStorage,
@@ -2361,6 +2382,7 @@ const handleGameFrame = async (req, res) => {
           window.famobi = new Proxy(famobiBase, {
             get: function(target, prop) {
               if (prop in target) return target[prop];
+              if (prop === 'adapters') return target.adapters || { add: function(){}, get: function(){}, has: function(){} };
               if (prop === 'storage' || prop === 'localStorage' || prop === 'sessionStorage') return mockStorage;
               if (prop === 'iap') return mockGameInterfaceBase.iap;
               if (prop === 'config') return target.config;
@@ -2471,6 +2493,7 @@ const handleGameFrame = async (req, res) => {
           const mockGameInterface = new Proxy(mockGameInterfaceBase, {
             get: function(target, prop) {
               if (prop in target) return target[prop];
+              if (prop === 'adapters') return target.adapters || { add: function(){}, get: function(){}, has: function(){} };
               if (prop === 'storage' || prop === 'localStorage' || prop === 'sessionStorage') return mockStorage;
               if (prop === 'iap') return mockGameInterfaceBase.iap;
               if (prop === 'getOffsets') return function() { return { top: 0, bottom: 0, left: 0, right: 0 }; };
