@@ -1106,6 +1106,7 @@ const RESOLVED_CDN_SOURCES = {
   'sand-balls': 'https://games.cdn.famobi.com/html5games/0/99-balls/v130/',
   'mahjong-solitaire': 'https://games.cdn.famobi.com/html5games/m/mahjong-classic/v390/',
   'cut-the-rope': 'https://games.cdn.famobi.com/html5games/c/cut-the-rope/v100/',
+  'magic-sort': 'https://games.ottsol.cloud/magic-sort/',
   'classic-minesweeper': 'https://gamezipper.com/minesweeper/'
 };
 
@@ -1158,6 +1159,11 @@ app.get(/^\/(?:play\/)?archive\/(.*)/, (req, res) => {
   const match = referer.match(/\/play\/([a-z0-9-]+)/i);
   const slug = (match && match[1] && INTERNAL_GAME_SOURCES[match[1]]) ? match[1] : 'safari-block-pop';
   return res.redirect(`/play-asset/${slug}/archive/${req.params[0]}`);
+});
+
+// Resolve Magic Sort level chunk requests (/magic-sort/*)
+app.get(/^\/magic-sort\/(.*)/, (req, res) => {
+  return res.redirect(`/play-asset/magic-sort/${req.params[0]}`);
 });
 
 app.get(/^\/play\/([^/]+)\/(.+)/, (req, res, next) => {
@@ -4843,7 +4849,7 @@ const themeNames`
       }
     }
 
-    // Magic Sort (Color Sort): Expand canvas to 100% full height (remove bottom black gap), clean top menu header, and make Claim & level buttons pixel-perfect responsive
+    // Magic Sort (Color Sort): Responsive level grid (clean ~72px cells instead of 245px monsters), no overlap banner, pixel-perfect layout on mobile & desktop
     if (req.internalSlug === 'magic-sort' || (req.targetUrl && req.targetUrl.includes('magic-sort'))) {
       // 1. Force canvas to fill 100% full screen
       const magicSortCSS = `
@@ -4873,9 +4879,9 @@ const themeNames`
         </style>
       `;
       if (html.includes('</head>')) {
-        html = html.replace('</head>', `${magicSortCSS}</head>`);
+        html = html.replace('</head>', `${magicSortCSS}<script>window.MS_LEVELS_BASE = '/play-asset/magic-sort/';</script></head>`);
       } else {
-        html = magicSortCSS + html;
+        html = magicSortCSS + `<script>window.MS_LEVELS_BASE = '/play-asset/magic-sort/';</script>` + html;
       }
 
       // 2. Remove redundant "← Home" button from renderMenu
@@ -4902,20 +4908,20 @@ const themeNames`
         'drawButton(W - 146, 8, 72, 28, "▶ Lv." + (lastPlayedLevel + 1), hoverBtn === 102, true);'
       );
 
-      // 4. Reposition Daily Challenge banner, Select Level header, stars stats, progress bar, and level grid
-      html = html.replace('const bannerY = 4;', 'const bannerY = 40;');
-      html = html.replace('const headerY = isDailyDone() ? 34 : 48;', 'const headerY = isDailyDone() ? 44 : 74;');
+      // 4. Reposition Daily Challenge banner, Select Level header, stars stats, progress bar, and level grid without overlap
+      html = html.replace('const bannerY = 4;', 'const bannerY = 42;');
+      html = html.replace('const headerY = isDailyDone() ? 34 : 48;', 'const headerY = isDailyDone() ? 44 : 88;');
       html = html.replace(
         'X.fillText(`Stars ${totalStars}/${maxStars}  |  Done ${completedCount}/${TOTAL_LEVELS}  |  🏅${achieved}/${ACHIEVEMENTS.length}`, W / 2, 52);',
-        'X.fillText(`Stars ${totalStars}/${maxStars}  |  Done ${completedCount}/${TOTAL_LEVELS}  |  🏅${achieved}/${ACHIEVEMENTS.length}`, W / 2, isDailyDone() ? 66 : 94);'
+        'X.fillText(`Stars ${totalStars}/${maxStars}  |  Done ${completedCount}/${TOTAL_LEVELS}  |  🏅${achieved}/${ACHIEVEMENTS.length}`, W / 2, isDailyDone() ? 64 : 106);'
       );
       html = html.replace(
         'const barY = 60;',
-        'const barY = isDailyDone() ? 76 : 104;'
+        'const barY = isDailyDone() ? 74 : 116;'
       );
       html = html.replace(
         'const gridTop = 70 - menuScrollY;',
-        'const gridTop = (isDailyDone() ? 92 : 120) - menuScrollY;'
+        'const gridTop = (isDailyDone() ? 92 : 132) - menuScrollY;'
       );
 
       // 5. Update hit testing in click handler to match new positions
@@ -4933,7 +4939,7 @@ const themeNames`
       );
       html = html.replace(
         'if (!isDailyDone() && hitTest(px, py, 8, 4, W - 16, 28)) {',
-        'if (!isDailyDone() && hitTest(px, py, 8, 40, W - 16, 28)) {'
+        'if (!isDailyDone() && hitTest(px, py, 8, 42, W - 16, 28)) {'
       );
       html = html.replace(
         'if (hitTest(px, py, W - 78, 8, 66, 30)) {',
@@ -4943,6 +4949,77 @@ const themeNames`
         'if (lastPlayedLevel > 0 && lastPlayedLevel < TOTAL_LEVELS && hitTest(px, py, W - 158, 8, 72, 30)) {',
         'if (lastPlayedLevel > 0 && lastPlayedLevel < TOTAL_LEVELS && hitTest(px, py, W - 146, 8, 72, 28)) {'
       );
+
+      // 6. Fix gigantic 245px level cards on desktop/landscape: Replace fixed 5-col max with responsive ~72px cells
+      html = html.replaceAll(
+        'const cols = Math.min(5, Math.floor((W - 30) / 68));',
+        'const cols = Math.max(4, Math.floor((W - 30) / 76));'
+      );
+
+      // 7. Standalone Solvable Level Generator: Solves "Failed to load levels" caused by missing external chunk_*.json
+      const fastChunkGen = `
+        function mulberry32(a) {
+          return function() {
+            var t = a += 0x6D2B79F5;
+            t = Math.imul(t ^ t >>> 15, t | 1);
+            t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+            return ((t ^ t >>> 14) >>> 0) / 4294967296;
+          };
+        }
+        function generateWaterSortLevel(levelIdx) {
+          var rng = mulberry32(levelIdx + 1337);
+          var n = 3;
+          if (levelIdx >= 30) n = 4 + Math.min(6, Math.floor((levelIdx - 30) / 25));
+          if (n > 12) n = 12;
+          var tubes = [];
+          for (var i = 0; i < n; i++) tubes.push([i, i, i, i]);
+          tubes.push([]);
+          tubes.push([]);
+          var scrambleSteps = 15 + Math.min(45, n * 5);
+          for (var s = 0; s < scrambleSteps; s++) {
+            var fromIndices = [];
+            for (var i = 0; i < tubes.length; i++) if (tubes[i].length > 0) fromIndices.push(i);
+            var toIndices = [];
+            for (var i = 0; i < tubes.length; i++) if (tubes[i].length < 4) toIndices.push(i);
+            if (fromIndices.length === 0 || toIndices.length === 0) break;
+            var from = fromIndices[Math.floor(rng() * fromIndices.length)];
+            var toCandidates = toIndices.filter(function(idx) { return idx !== from; });
+            if (toCandidates.length === 0) continue;
+            var to = toCandidates[Math.floor(rng() * toCandidates.length)];
+            tubes[to].push(tubes[from].pop());
+          }
+          var empties = 0;
+          for (var i = 0; i < tubes.length; i++) if (tubes[i].length === 0) empties++;
+          while (empties < 2) { tubes.push([]); empties++; }
+          var encoded = [n];
+          for (var i = 0; i < tubes.length; i++) {
+            var t = tubes[i];
+            if (t.length === 0) continue;
+            var segs = [0, 0, 0, 0];
+            for (var j = 0; j < t.length; j++) segs[4 - t.length + j] = t[j] + 1;
+            var v = segs[3] + segs[2] * 30 + segs[1] * 900 + segs[0] * 27000;
+            encoded.push(v);
+          }
+          return encoded;
+        }
+        async function _ensureChunk(chunkIdx) {
+          if (_CHUNK_LOADED[chunkIdx]) return true;
+          const meta = _CHUNKS_META[chunkIdx];
+          if (!meta) return true;
+          for (let k = 0; k < meta.count; k++) {
+            const idx = meta.offset + k;
+            if (!_LD[idx]) _LD[idx] = generateWaterSortLevel(idx);
+          }
+          _CHUNK_LOADED[chunkIdx] = true;
+          return true;
+        }
+      `;
+      const targetChunkDecl = html.includes('async function _ensureChunk') ? 'async function _ensureChunk' : 'function _ensureChunk';
+      const chunkStart = html.indexOf(targetChunkDecl);
+      const chunkEnd = html.indexOf('// R662: background prefetch', chunkStart);
+      if (chunkStart !== -1 && chunkEnd !== -1) {
+        html = html.slice(0, chunkStart) + fastChunkGen + '\n\n' + html.slice(chunkEnd);
+      }
     }
 
     // Drift Cup Racing: Inject high-performance steering HUD, touch buttons, and keyboard controls
