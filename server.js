@@ -1165,10 +1165,10 @@ app.get(/^\/play-asset\/([^/]+)\/(.*)/, async (req, res) => {
   const baseUrl = RESOLVED_CDN_SOURCES[slug] || INTERNAL_GAME_SOURCES[slug];
   if (!baseUrl) return res.status(404).send('Asset not found');
 
-  // Provide mock gameapi/v1.js if requested by Famobi SDK to prevent hang
+  // Provide mock gameapi/v1.js if requested by Famobi SDK to trigger queue execution
   if (assetPath.includes('gameapi/v1.js') || assetPath.endsWith('v1.js')) {
     res.setHeader('Content-Type', 'application/javascript');
-    return res.status(200).send('(function(){ if(window.famobi_gameJS && Array.isArray(window.famobi_gameJS)){ while(window.famobi_gameJS.length){ var fn=window.famobi_gameJS.shift(); if(typeof fn==="function") { try { fn(); } catch(e) {} } } } })();');
+    return res.status(200).send('(function(){ if(typeof window.runFamobiQueue==="function"){ window.runFamobiQueue(); } else if(window.famobi_gameJS && Array.isArray(window.famobi_gameJS)){ for(var i=0; i<window.famobi_gameJS.length; i++){ if(typeof window.famobi_gameJS[i]==="function"){ var f=window.famobi_gameJS.splice(i,1)[0]; try{ f(); }catch(e){} break; } } } })();');
   }
 
   try {
@@ -2553,6 +2553,7 @@ const handleGameFrame = async (req, res) => {
               runFamobiQueue();
             }
           }
+          window.runFamobiQueue = runFamobiQueue;
           const famobiPoll = setInterval(runFamobiQueue, 100);
           setTimeout(function() { clearInterval(famobiPoll); }, 25000);
           if (document.readyState === 'loading') {
