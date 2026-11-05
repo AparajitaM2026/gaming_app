@@ -3297,6 +3297,111 @@ const handleGameFrame = async (req, res) => {
       `;
     }
 
+    // Fix Reversi viewport overflow: responsive 2-column difficulty menu & auto-fit board (no 67% zoom needed)
+    if (html.includes('Classic Othello Strategy') || finalUrl.includes('reversi') || targetUrl.includes('reversi') || (req.internalSlug && req.internalSlug.includes('reversi'))) {
+      html += `
+        <style>
+          html, body {
+            height: 100vh !important;
+            max-height: 100vh !important;
+            overflow: hidden !important;
+          }
+          #app {
+            height: 100vh !important;
+            max-height: 100vh !important;
+            padding: 8px !important;
+            justify-content: center !important;
+            align-items: center !important;
+            overflow: hidden !important;
+          }
+          #menu-screen {
+            min-height: auto !important;
+            height: 100% !important;
+            max-height: 98vh !important;
+            gap: 10px !important;
+            padding: 8px !important;
+            justify-content: center !important;
+            align-items: center !important;
+          }
+          .menu-title {
+            font-size: clamp(24px, 4.5vh, 40px) !important;
+            margin-bottom: 0 !important;
+          }
+          .menu-subtitle {
+            font-size: clamp(12px, 2vh, 15px) !important;
+            margin-top: -6px !important;
+          }
+          .menu-section {
+            width: min(440px, 94vw) !important;
+            padding: 12px 14px !important;
+            margin: 0 !important;
+          }
+          .menu-section:first-of-type {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 8px !important;
+          }
+          .menu-section:first-of-type h3 {
+            grid-column: 1 / -1 !important;
+            margin-bottom: 4px !important;
+            font-size: 13px !important;
+          }
+          .menu-section:nth-of-type(2) {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 8px !important;
+            padding: 10px 14px !important;
+          }
+          .menu-btn {
+            padding: 8px 10px !important;
+            margin-bottom: 0 !important;
+            font-size: 14px !important;
+          }
+          .menu-btn .diff-label {
+            font-size: 10px !important;
+            margin-top: 1px !important;
+          }
+          .menu-stats {
+            margin-top: 4px !important;
+            font-size: 12px !important;
+          }
+
+          /* Game Screen scaling to always fit viewport without scrolling */
+          #game-screen {
+            height: 100% !important;
+            max-height: 98vh !important;
+            justify-content: center !important;
+            align-items: center !important;
+          }
+          #game-header {
+            max-width: min(440px, 85vw) !important;
+            margin-bottom: 6px !important;
+          }
+          .turn-label {
+            margin-bottom: 4px !important;
+          }
+          #board-wrap {
+            max-width: min(440px, 62vh, 88vw) !important;
+            width: min(440px, 62vh, 88vw) !important;
+            margin: 0 auto !important;
+          }
+          canvas#board {
+            width: 100% !important;
+            height: auto !important;
+            aspect-ratio: 1/1 !important;
+          }
+          #controls {
+            margin-top: 8px !important;
+            max-width: min(440px, 85vw) !important;
+          }
+          .ctrl-btn {
+            padding: 6px 12px !important;
+            font-size: 12px !important;
+          }
+        </style>
+      `;
+    }
+
     // Fix Kitchen Rush / Burger Joint tutorial deadlock and missing initial customer
     if (html.includes('Burger Joint') || finalUrl.includes('kitchen-rush') || targetUrl.includes('kitchen-rush')) {
       // 1. Remove click-blocking tutorial deadlock so all taps register
