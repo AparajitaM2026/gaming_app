@@ -1003,7 +1003,7 @@ const INTERNAL_GAME_SOURCES = {
   'brick-breaker': 'https://games.ottsol.cloud/brick-breaker/',
   't-rex-dino-runner': 'https://games.ottsol.cloud/t-rex/',
   'cyberpunk-flappy': 'https://games.ottsol.cloud/flappy-wings/',
-  'fruit-slash': 'https://games.cdn.famobi.com/html5games/k/katana-fruits/v140/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=35c37758-52d5-4802-86a9-d6110c41198b&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=298',
+  'fruit-slash': 'https://games.cdn.famobi.com/html5games/k/katana-fruits/v1/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=908153ae-16bd-4f01-b996-83573a6fa7b3&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=316',
   'bubble-shooter': 'https://games.ottsol.cloud/bubble-shooter/',
   'steam-whacker': 'https://games.ottsol.cloud/whack-a-mole/',
   'classic-sudoku': 'https://games.ottsol.cloud/sudoku/',
@@ -1086,7 +1086,7 @@ const INTERNAL_GAME_SOURCES = {
 };
 
 const RESOLVED_CDN_SOURCES = {
-  'fruit-slash': 'https://games.cdn.famobi.com/html5games/k/katana-fruits/v140/',
+  'fruit-slash': 'https://games.cdn.famobi.com/html5games/k/katana-fruits/v1/',
   'stack-smash-3d': 'https://html5.gamedistribution.com/rvvASMiM/a81fd206711b48489fddfa7fd4aab621/',
   'cars-arena': 'https://games.cdn.famobi.com/html5games/c/cars-arena/v010/',
   'penalty-shooters-2': 'https://games.cdn.famobi.com/html5games/p/penalty-shooters-2/v350/',
