@@ -25,6 +25,8 @@ db.query(`UPDATE games SET game_url = '/play/' || slug WHERE game_url LIKE '%gam
 db.query(`UPDATE games SET game_url = 'https://html5.gamedistribution.com/rvvASMiM/0ccd52f987014bb49708e6afa2e3a8f7/index.html' WHERE slug = 'archery-world-tour'`).catch(() => {});
 const { generateToken, authMiddleware, verifyToken } = require('./middleware/auth');
 const { setupMultiplayer } = require('./services/multiplayer');
+const adminRoutes = require('./services/adminRoutes');
+const adminService = require('./services/adminService');
 
 function getUserFromReq(req) {
   const authHeader = req.headers['authorization'];
@@ -65,6 +67,12 @@ app.use((req, res, next) => {
 });
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Admin Portal & Management API
+app.use('/api/admin', adminRoutes);
+app.get(['/admin', '/admin/'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
+});
+
 // -------------------------------------------------------------
 // 1. AUTHENTICATION API ROUTES (JWT BASED)
 // -------------------------------------------------------------
@@ -95,6 +103,16 @@ app.post('/api/auth/guest', async (req, res) => {
     );
 
     const token = generateToken(user);
+
+    // Track login in admin monitoring
+    adminService.recordLogin(
+      user.id,
+      user.username,
+      adminService.getClientIp(req),
+      req.headers['user-agent'] || 'Guest Client',
+      'GUEST'
+    );
+
     res.json({
       success: true,
       token,
@@ -150,6 +168,16 @@ app.post('/api/auth/register', async (req, res) => {
     );
 
     const token = generateToken(user);
+
+    // Track login in admin monitoring
+    adminService.recordLogin(
+      user.id,
+      user.username,
+      adminService.getClientIp(req),
+      req.headers['user-agent'] || 'Guest Client',
+      'GUEST'
+    );
+
     res.json({
       success: true,
       token,
@@ -190,6 +218,15 @@ app.post('/api/auth/login', async (req, res) => {
     delete user.password_hash;
     const token = generateToken(user);
 
+    // Track standard login in admin monitoring
+    adminService.recordLogin(
+      user.id,
+      user.username,
+      adminService.getClientIp(req),
+      req.headers['user-agent'] || 'Standard Client',
+      'STANDARD'
+    );
+
     res.json({
       success: true,
       token,
@@ -204,6 +241,13 @@ app.post('/api/auth/login', async (req, res) => {
 // Current User Profile (with JWT)
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
   try {
+    adminService.trackActiveUser(
+      req.user.id,
+      req.user.username,
+      adminService.getClientIp(req),
+      req.headers['user-agent'] || 'Browser Client'
+    );
+
     const userRes = await db.query(
       `SELECT u.id, u.username, u.phone_or_email, u.avatar_url, u.country_code, 
               u.win_count, u.loss_count, u.win_streak, u.is_subscribed, u.subscription_expires_at,

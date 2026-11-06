@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voltixz Admin — Live Monitoring & Game Management</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            portalDark: '#070a14',
+            portalCard: '#0e1428',
+            portalBorder: 'rgba(255, 255, 255, 0.08)',
+            neonCyan: '#00f0ff',
+            neonAmber: '#f59e0b',
+            neonEmerald: '#10b981',
+            neonRose: '#f43f5e',
+          },
+          fontFamily: {
+            orbitron: ['Orbitron', 'sans-serif'],
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Google Fonts: Orbitron & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    body {
+      background-color: #070a14;
+      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+    }
+    .font-orbitron { font-family: 'Orbitron', sans-serif; }
+    .glass-card {
+      background: rgba(14, 20, 40, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card:hover {
+      border-color: rgba(0, 240, 255, 0.25);
+    }
+    .neon-glow-cyan {
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.2);
+    }
+    .pulsing-dot {
+      animation: pulseDot 2s infinite;
+    }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.3); }
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #070a14; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #00f0ff; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-neonCyan selection:text-black">
+
+  <!-- ========================================================= -->
+  <!-- 1. LOGIN SCREEN OVERLAY (Shown if not authenticated)      -->
+  <!-- ========================================================= -->
+  <div id="loginScreen" class="fixed inset-0 z-50 bg-[#070a14] flex items-center justify-center p-4">
+    <div class="glass-card max-w-md w-full p-8 rounded-3xl shadow-2xl relative overflow-hidden border border-cyan-500/30 neon-glow-cyan">
+      <!-- Glow flare -->
+      <div class="absolute -top-24 -left-24 w-48 h-48 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="text-center mb-8 relative">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 mb-4 shadow-lg shadow-cyan-500/10">
+          <i class="fa-solid fa-shield-halved text-2xl text-neonCyan"></i>
+        </div>
+        <h1 class="font-orbitron font-extrabold text-2xl text-white tracking-wider">VOLTIXZ ADMIN</h1>
+        <p class="text-xs text-gray-400 mt-1 uppercase tracking-widest font-semibold">Live Monitoring & Game Console</p>
+      </div>
+
+      <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" class="space-y-4 relative">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Admin Username</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
+              <i class="fa-solid fa-user-shield text-xs"></i>
+            </span>
+            <input type="text" id="adminUserInput" required value="admin"
+              class="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900/90 border border-white/10 text-white text-sm focus:border-neonCyan focus:ring-1 focus:ring-neonCyan outline-none transition-all placeholder:text-gray-600"
+              placeholder="Username">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Admin Password</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
+              <i class="fa-solid fa-lock text-xs"></i>
+            </span>
+            <input type="password" id="adminPassInput" required value="Admin@Voltixz2026"
+              class="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900/90 border border-white/10 text-white text-sm focus:border-neonCyan focus:ring-1 focus:ring-neonCyan outline-none transition-all placeholder:text-gray-600"
+              placeholder="••••••••••••">
+          </div>
+        </div>
+
+        <div id="loginErrorMsg" class="hidden text-xs text-rose-400 font-semibold bg-rose-950/40 border border-rose-500/30 p-2.5 rounded-xl text-center"></div>
+
+        <button type="submit" id="loginBtn"
+          class="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-orbitron font-extrabold text-sm tracking-wider uppercase transition-all shadow-lg shadow-cyan-500/25 active:scale-[0.99] flex items-center justify-center gap-2">
+          <span>Authorize Access</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 2. MAIN ADMIN DASHBOARD (When Authenticated)              -->
+  <!-- ========================================================= -->
+  <div id="dashboardApp" class="hidden flex-1 flex flex-col">
+    
+    <!-- Top Header Bar -->
+    <header class="glass-card sticky top-0 z-40 border-b border-white/10 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-neonCyan shadow-md shadow-cyan-500/10">
+          <i class="fa-solid fa-gamepad text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-orbitron font-extrabold text-base sm:text-lg text-white tracking-wide">VOLTIXZ</span>
+            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/40">ADMIN CONSOLE</span>
+          </div>
+          <p class="text-[11px] text-gray-400">Monitoring & Catalog Management</p>
+        </div>
+      </div>
+
+      <!-- Live Server Status Indicators -->
+      <div class="flex items-center gap-2 sm:gap-4">
+        <!-- Live Online Pill -->
+        <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs font-bold">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 pulsing-dot"></span>
+          <span id="headerOnlineCount">0 Online Now</span>
+        </div>
+
+        <!-- Refresh Data Button -->
+        <button onclick="refreshAllAdminData()" title="Refresh Dashboard"
+          class="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-slate-800/80 border border-white/10 hover:border-cyan-500/50 text-gray-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95">
+          <i class="fa-solid fa-rotate-right" id="refreshIcon"></i>
+          <span class="hidden sm:inline">Refresh</span>
+        </button>
+
+        <!-- View Main Website Link -->
+        <a href="/" target="_blank"
+          class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-white/10 hover:border-cyan-500/50 text-gray-300 hover:text-white text-xs font-semibold transition-all">
+          <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+          <span>Live Site</span>
+        </a>
+
+        <!-- Logout Button -->
+        <button onclick="handleAdminLogout()"
+          class="px-3 py-1.5 rounded-xl bg-rose-950/40 border border-rose-500/40 hover:bg-rose-900/60 text-rose-300 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span class="hidden sm:inline">Logout</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="bg-[#0b1022] border-b border-white/10 px-4 sm:px-8">
+      <div class="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar py-2">
+        <button onclick="switchTab('overview')" id="tabBtn-overview"
+          class="tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all bg-cyan-500 text-black shadow-md shadow-cyan-500/20">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Overview</span>
+        </button>
+
+        <button onclick="switchTab('users')" id="tabBtn-users"
+          class="tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all text-gray-400 hover:text-white hover:bg-white/5">
+          <i class="fa-solid fa-users"></i>
+          <span>User Monitoring</span>
+          <span id="badgeUsersOnline" class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold">0</span>
+        </button>
+
+        <button onclick="switchTab('games')" id="tabBtn-games"
+          class="tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all text-gray-400 hover:text-white hover:bg-white/5">
+          <i class="fa-solid fa-cubes"></i>
+          <span>Game Catalog</span>
+          <span id="badgeTotalGames" class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold">0</span>
+        </button>
+
+        <button onclick="switchTab('logs')" id="tabBtn-logs"
+          class="tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all text-gray-400 hover:text-white hover:bg-white/5">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <span>Live Login History</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto space-y-6">
+
+      <!-- ========================================================= -->
+      <!-- TAB 1: OVERVIEW & ANALYTICS                               -->
+      <!-- ========================================================= -->
+      <section id="tab-overview" class="tab-pane space-y-6">
+        
+        <!-- Quick Stat Metric Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Total Users -->
+          <div class="glass-card p-5 rounded-2xl relative overflow-hidden group">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-gray-400">Total Users</span>
+              <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">
+                <i class="fa-solid fa-users"></i>
+              </div>
+            </div>
+            <div class="font-orbitron font-black text-2xl sm:text-3xl text-white" id="statTotalUsers">0</div>
+            <div class="flex items-center gap-2 text-[11px] text-gray-400 mt-2">
+              <span id="statRegisteredUsers" class="text-cyan-400 font-semibold">0 reg</span>
+              <span>•</span>
+              <span id="statGuestUsers">0 guests</span>
+            </div>
+          </div>
+
+          <!-- Online Right Now -->
+          <div class="glass-card p-5 rounded-2xl relative overflow-hidden border-emerald-500/30">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 pulsing-dot"></span>
+                Online Now
+              </span>
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs">
+                <i class="fa-solid fa-tower-broadcast"></i>
+              </div>
+            </div>
+            <div class="font-orbitron font-black text-2xl sm:text-3xl text-emerald-300" id="statOnlineUsers">0</div>
+            <div class="text-[11px] text-gray-400 mt-2">
+              Active in last 5 minutes
+            </div>
+          </div>
+
+          <!-- Total Active Games -->
+          <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-gray-400">Total Games</span>
+              <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-neonCyan flex items-center justify-center text-xs">
+                <i class="fa-solid fa-gamepad"></i>
+              </div>
+            </div>
+            <div class="font-orbitron font-black text-2xl sm:text-3xl text-white" id="statTotalGames">0</div>
+            <div class="text-[11px] text-gray-400 mt-2 flex items-center justify-between">
+              <span id="statFeaturedGames" class="text-amber-400 font-semibold">0 featured</span>
+              <button onclick="switchTab('games')" class="text-neonCyan text-[11px] hover:underline font-bold">+ Manage</button>
+            </div>
+          </div>
+
+          <!-- Total Game Plays -->
+          <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-gray-400">Total Plays</span>
+              <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs">
+                <i class="fa-solid fa-fire"></i>
+              </div>
+            </div>
+            <div class="font-orbitron font-black text-2xl sm:text-3xl text-white" id="statTotalPlays">0</div>
+            <div class="text-[11px] text-gray-400 mt-2 flex items-center gap-1.5">
+              <span id="statLogins24h" class="text-cyan-400 font-semibold">0</span>
+              <span>logins in 24 hrs</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-Time Activity Feed & Quick Actions -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Left: Live Active Logins Feed (2 Cols) -->
+          <div class="lg:col-span-2 glass-card rounded-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-satellite-dish text-neonCyan"></i>
+                <h3 class="font-orbitron font-bold text-sm text-white">LIVE USER ACTIVITY TICKER</h3>
+              </div>
+              <button onclick="switchTab('logs')" class="text-xs text-neonCyan font-bold hover:underline">View All Logs</button>
+            </div>
+
+            <div id="overviewLiveActivityList" class="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+              <div class="text-xs text-gray-500 text-center py-8">Loading live activity...</div>
+            </div>
+          </div>
+
+          <!-- Right: Category Stats & Quick Add -->
+          <div class="glass-card rounded-2xl p-5 space-y-4 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center gap-2 mb-4">
+                <i class="fa-solid fa-layer-group text-amber-400"></i>
+                <h3 class="font-orbitron font-bold text-sm text-white">GAMES BY CATEGORY</h3>
+              </div>
+              <div id="categoryStatsList" class="space-y-2.5">
+                <div class="text-xs text-gray-500 text-center py-6">Loading category stats...</div>
+              </div>
+            </div>
+
+            <!-- Quick Add Game Banner -->
+            <div class="pt-4 border-t border-white/10">
+              <button onclick="openAddGameModal()"
+                class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-orbitron font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-cyan-500/20 active:scale-95 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-plus text-sm"></i>
+                <span>Add New Game To Catalog</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ========================================================= -->
+      <!-- TAB 2: USER MONITORING (WHO IS LOGGED IN)                 -->
+      <!-- ========================================================= -->
+      <section id="tab-users" class="tab-pane hidden space-y-4">
+        
+        <!-- Controls & Filters -->
+        <div class="glass-card p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="relative w-full sm:w-80">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+              <i class="fa-solid fa-magnifying-glass text-xs"></i>
+            </span>
+            <input type="text" id="userSearchInput" oninput="debounceUserSearch()"
+              placeholder="Search user by name or phone/email..."
+              class="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-white/10 text-white text-xs outline-none focus:border-neonCyan transition-all placeholder:text-gray-600">
+          </div>
+
+          <div class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
+            <button onclick="filterUsers('all')" id="userFilter-all" class="user-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-cyan-500 text-black">All</button>
+            <button onclick="filterUsers('online')" id="userFilter-online" class="user-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white bg-slate-900 border border-white/10">🟢 Online Now</button>
+            <button onclick="filterUsers('registered')" id="userFilter-registered" class="user-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white bg-slate-900 border border-white/10">Registered</button>
+            <button onclick="filterUsers('guest')" id="userFilter-guest" class="user-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white bg-slate-900 border border-white/10">Guests</button>
+            <button onclick="filterUsers('banned')" id="userFilter-banned" class="user-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white bg-slate-900 border border-white/10">Banned</button>
+          </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="glass-card rounded-2xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-900/90 text-gray-400 uppercase tracking-wider text-[10px] font-bold border-b border-white/10">
+                <tr>
+                  <th class="px-4 py-3.5">Status</th>
+                  <th class="px-4 py-3.5">User</th>
+                  <th class="px-4 py-3.5">Identifier</th>
+                  <th class="px-4 py-3.5">Coins</th>
+                  <th class="px-4 py-3.5">Win / Loss</th>
+                  <th class="px-4 py-3.5">Last Active / Login</th>
+                  <th class="px-4 py-3.5 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody" class="divide-y divide-white/5 text-gray-300">
+                <tr><td colspan="7" class="text-center py-10 text-gray-500">Loading users...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ========================================================= -->
+      <!-- TAB 3: GAME MANAGEMENT (ADD / EDIT / DELETE)              -->
+      <!-- ========================================================= -->
+      <section id="tab-games" class="tab-pane hidden space-y-4">
+        
+        <!-- Controls Bar -->
+        <div class="glass-card p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="flex items-center gap-3 w-full sm:w-auto">
+            <div class="relative w-full sm:w-72">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+              </span>
+              <input type="text" id="gameSearchInput" oninput="debounceGameSearch()"
+                placeholder="Search game title or slug..."
+                class="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-white/10 text-white text-xs outline-none focus:border-neonCyan transition-all placeholder:text-gray-600">
+            </div>
+
+            <select id="gameCategorySelect" onchange="filterGamesByCategory(this.value)"
+              class="px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white text-xs outline-none focus:border-neonCyan">
+              <option value="all">All Categories</option>
+              <option value="action">Action</option>
+              <option value="arcade">Arcade</option>
+              <option value="sports">Sports</option>
+              <option value="puzzle">Puzzle</option>
+              <option value="board">Board & Strategy</option>
+              <option value="card">Card Games</option>
+              <option value="racing">Racing</option>
+              <option value="multiplayer">Multiplayer</option>
+            </select>
+          </div>
+
+          <button onclick="openAddGameModal()"
+            class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-orbitron font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg shadow-cyan-500/20 active:scale-95 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-plus text-sm"></i>
+            <span>Add New Game</span>
+          </button>
+        </div>
+
+        <!-- Games Catalog Grid -->
+        <div id="gamesCatalogGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div class="col-span-full text-center py-12 text-gray-500 text-xs">Loading game catalog...</div>
+        </div>
+      </section>
+
+
+      <!-- ========================================================= -->
+      <!-- TAB 4: LIVE LOGIN & ACCESS LOGS                           -->
+      <!-- ========================================================= -->
+      <section id="tab-logs" class="tab-pane hidden space-y-4">
+        
+        <div class="glass-card p-4 rounded-2xl flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-list-check text-neonCyan"></i>
+            <h3 class="font-orbitron font-bold text-sm text-white">HISTORICAL & REALTIME LOGIN AUDIT</h3>
+          </div>
+          <button onclick="fetchLoginLogs()" class="text-xs text-neonCyan font-bold hover:underline flex items-center gap-1.5">
+            <i class="fa-solid fa-rotate-right"></i>
+            <span>Refresh Logs</span>
+          </button>
+        </div>
+
+        <div class="glass-card rounded-2xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-900/90 text-gray-400 uppercase tracking-wider text-[10px] font-bold border-b border-white/10">
+                <tr>
+                  <th class="px-4 py-3.5">Timestamp</th>
+                  <th class="px-4 py-3.5">User</th>
+                  <th class="px-4 py-3.5">Type</th>
+                  <th class="px-4 py-3.5">IP Address</th>
+                  <th class="px-4 py-3.5">Browser / Device</th>
+                </tr>
+              </thead>
+              <tbody id="logsTableBody" class="divide-y divide-white/5 text-gray-300">
+                <tr><td colspan="5" class="text-center py-10 text-gray-500">Loading login history...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+
+  <!-- ========================================================= -->
+  <!-- MODAL: ADD / EDIT GAME                                    -->
+  <!-- ========================================================= -->
+  <div id="gameModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-card max-w-xl w-full p-6 sm:p-7 rounded-3xl border border-cyan-500/40 my-8 relative overflow-hidden">
+      
+      <!-- Close button -->
+      <button onclick="closeGameModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white p-2 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="mb-6">
+        <h2 id="gameModalTitle" class="font-orbitron font-extrabold text-xl text-white">Add New Game</h2>
+        <p class="text-xs text-gray-400 mt-1">Configure game metadata, orientation, and launch URL</p>
+      </div>
+
+      <form id="gameForm" onsubmit="handleSaveGame(event)" class="space-y-4">
+        <input type="hidden" id="formGameId">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Game Title -->
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-1">Game Title *</label>
+            <input type="text" id="formGameTitle" required
+              oninput="handleTitleChange(this.value)"
+              placeholder="e.g. Lagos City Racer"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-xs outline-none focus:border-neonCyan transition-all">
+          </div>
+
+          <!-- Slug -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-1">Slug (Unique URL Key) *</label>
+            <input type="text" id="formGameSlug" required
+              placeholder="lagos-city-racer"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-xs outline-none focus:border-neonCyan transition-all">
+          </div>
+
+          <!-- Category -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-1">Category *</label>
+            <select id="formGameCategory" required
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-xs outline-none focus:border-neonCyan transition-all">
+              <option value="action">Action & Reflex</option>
+              <option value="arcade">Arcade & Classic</option>
+              <option value="sports">Sports & Simulation</option>
+              <option value="puzzle">Puzzle & Logic</option>
+              <option value="board">Board & Strategy</option>
+              <option value="card">Card & Deck</option>
+              <option value="racing">Racing & Physics</option>
+              <option value="multiplayer">Multiplayer 1v1</option>
+            </select>
+          </div>
+
+          <!-- Thumbnail URL -->
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-1">Thumbnail / Poster URL *</label>
+            <div class="flex gap-2">
+              <input type="text" id="formGameThumb" required
+                placeholder="/assets/posters/your-game.svg or https://..."
+                class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-xs outline-none focus:border-neonCyan transition-all">
+              <label class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-gray-300 cursor-pointer flex items-center gap-1.5 border border-white/10 shrink-0">
+                <i class="fa-solid fa-upload text-neonCyan"></i>
+                <span>Upload</span>
+                <input type="file" accept="image/*" class="hidden" onchange="handlePosterUpload(event)">
+              </label>
+            </div>
+          </div>
+
+          <!-- Game URL / Embed -->
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-1">Play URL (or /play/slug or https://...) *</label>
+            <input type="text" id="formGameUrl" required
+              placeholder="/play/lagos-city-racer or /games/mygame.html"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-xs outline-none focus:border-neonCyan transition-all">
+          </div>
+
+          <!-- Orientation -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-1">Screen Orientation</label>
+            <select id="formGameOrientation"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-xs outline-none focus:border-neonCyan transition-all">
+              <option value="portrait">Portrait (Vertical)</option>
+              <option value="landscape">Landscape (Horizontal)</option>
+            </select>
+          </div>
+
+          <!-- Entry Fee -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-1">Entry Fee (Coins)</label>
+            <input type="number" id="formGameEntryFee" value="0" min="0"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-xs outline-none focus:border-neonCyan transition-all">
+          </div>
+        </div>
+
+        <!-- Toggles -->
+        <div class="flex flex-wrap items-center gap-6 pt-2">
+          <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-300">
+            <input type="checkbox" id="formGameFeatured" class="w-4 h-4 rounded accent-cyan-500">
+            <span>Featured Spotlight</span>
+          </label>
+
+          <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-300">
+            <input type="checkbox" id="formGameMultiplayer" class="w-4 h-4 rounded accent-cyan-500">
+            <span>Multiplayer 1v1 Support</span>
+          </label>
+
+          <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-300">
+            <input type="checkbox" id="formGamePremium" class="w-4 h-4 rounded accent-amber-500">
+            <span class="text-amber-300">VIP Exclusive</span>
+          </label>
+        </div>
+
+        <div id="gameFormError" class="hidden text-xs text-rose-400 font-semibold bg-rose-950/40 border border-rose-500/30 p-2.5 rounded-xl text-center"></div>
+
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+          <button type="button" onclick="closeGameModal()"
+            class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-gray-300 text-xs font-bold transition-all">
+            Cancel
+          </button>
+          <button type="submit" id="saveGameBtn"
+            class="px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-orbitron font-extrabold text-xs tracking-wider uppercase transition-all shadow-lg shadow-cyan-500/25 active:scale-95">
+            Save Game
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ========================================================= -->
+  <!-- MODAL: PLAY / TEST GAME PREVIEW                           -->
+  <!-- ========================================================= -->
+  <div id="testGameModal" class="hidden fixed inset-0 z-50 bg-black/90 flex flex-col p-4">
+    <div class="flex items-center justify-between pb-3 border-b border-white/10">
+      <div class="flex items-center gap-3">
+        <span class="font-orbitron font-bold text-white text-base" id="testGameModalTitle">Test Game Preview</span>
+        <span id="testGameModalBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300">PREVIEW</span>
+      </div>
+      <button onclick="closeTestGameModal()" class="px-4 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase flex items-center gap-2">
+        <i class="fa-solid fa-xmark"></i>
+        <span>Close</span>
+      </button>
+    </div>
+    <div class="flex-1 w-full h-full pt-4 flex items-center justify-center">
+      <iframe id="testGameIframe" src="" class="w-full h-full max-w-5xl rounded-2xl bg-black border border-white/10 shadow-2xl" allow="autoplay; fullscreen"></iframe>
+    </div>
+  </div>
+
+
+  <!-- ========================================================= -->
+  <!-- JAVASCRIPT: ADMIN LOGIC & REALTIME API INTEGRATION        -->
+  <!-- ========================================================= -->
+  <script>
+    const API_BASE = '/api/admin';
+    let adminToken = localStorage.getItem('voltixz_admin_token') || '';
+    let currentUsersData = [];
+    let currentGamesData = [];
+    let refreshIntervalTimer = null;
+
+    // Check token on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      if (adminToken) {
+        verifyAdminSession();
+      } else {
+        showLoginScreen();
+      }
+    });
+
+    function showLoginScreen() {
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('dashboardApp').classList.add('hidden');
+    }
+
+    function showDashboardApp() {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('dashboardApp').classList.remove('hidden');
+      refreshAllAdminData();
+
+      // Auto-refresh every 15 seconds
+      if (refreshIntervalTimer) clearInterval(refreshIntervalTimer);
+      refreshIntervalTimer = setInterval(refreshAllAdminData, 15000);
+    }
+
+    // Authenticate Admin
+    async function handleAdminLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('adminUserInput').value;
+      const pass = document.getElementById('adminPassInput').value;
+      const errEl = document.getElementById('loginErrorMsg');
+      const btn = document.getElementById('loginBtn');
+
+      errEl.classList.add('hidden');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Authenticating...</span>';
+
+      try {
+        const res = await fetch(`${API_BASE}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: user, password: pass })
+        });
+        const data = await res.json();
+
+        if (data.success && data.token) {
+          adminToken = data.token;
+          localStorage.setItem('voltixz_admin_token', adminToken);
+          showDashboardApp();
+        } else {
+          errEl.textContent = data.message || 'Login failed. Check credentials.';
+          errEl.classList.remove('hidden');
+        }
+      } catch (err) {
+        errEl.textContent = 'Server connection error. Please try again.';
+        errEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Authorize Access</span><i class="fa-solid fa-arrow-right text-xs"></i>';
+      }
+    }
+
+    async function verifyAdminSession() {
+      try {
+        const res = await fetch(`${API_BASE}/me`, {
+          headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          showDashboardApp();
+        } else {
+          localStorage.removeItem('voltixz_admin_token');
+          showLoginScreen();
+        }
+      } catch (e) {
+        showLoginScreen();
+      }
+    }
+
+    function handleAdminLogout() {
+      localStorage.removeItem('voltixz_admin_token');
+      adminToken = '';
+      if (refreshIntervalTimer) clearInterval(refreshIntervalTimer);
+      showLoginScreen();
+    }
+
+    // Tab Switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-cyan-500', 'text-black', 'shadow-md', 'shadow-cyan-500/20');
+        btn.classList.add('text-gray-400', 'hover:text-white', 'hover:bg-white/5');
+      });
+
+      const pane = document.getElementById(`tab-${tabId}`);
+      const btn = document.getElementById(`tabBtn-${tabId}`);
+      if (pane) pane.classList.remove('hidden');
+      if (btn) {
+        btn.classList.add('bg-cyan-500', 'text-black', 'shadow-md', 'shadow-cyan-500/20');
+        btn.classList.remove('text-gray-400', 'hover:text-white', 'hover:bg-white/5');
+      }
+
+      if (tabId === 'users') fetchUsersList();
+      if (tabId === 'games') fetchGamesList();
+      if (tabId === 'logs') fetchLoginLogs();
+    }
+
+    // Refresh all data
+    async function refreshAllAdminData() {
+      const icon = document.getElementById('refreshIcon');
+      if (icon) icon.classList.add('fa-spin');
+      try {
+        await Promise.all([
+          fetchDashboardStats(),
+          fetchLiveActiveSessions(),
+          fetchLoginLogs(20)
+        ]);
+      } finally {
+        if (icon) icon.classList.remove('fa-spin');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // STATS & METRICS
+    // -------------------------------------------------------------
+    async function fetchDashboardStats() {
+      try {
+        const res = await fetch(`${API_BASE}/stats`, {
+          headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (!data.success) return;
+
+        const s = data.stats;
+        document.getElementById('statTotalUsers').textContent = Number(s.totalUsers || 0).toLocaleString();
+        document.getElementById('statRegisteredUsers').textContent = `${Number(s.registeredUsers || 0).toLocaleString()} reg`;
+        document.getElementById('statGuestUsers').textContent = `${Number(s.guestUsers || 0).toLocaleString()} guests`;
+        document.getElementById('statOnlineUsers').textContent = Number(s.onlineNow || 0).toLocaleString();
+        document.getElementById('statTotalGames').textContent = Number(s.totalGames || 0).toLocaleString();
+        document.getElementById('statFeaturedGames').textContent = `${Number(s.featuredGames || 0).toLocaleString()} featured`;
+        document.getElementById('statTotalPlays').textContent = Number(s.totalPlays || 0).toLocaleString();
+        document.getElementById('statLogins24h').textContent = Number(s.logins24h || 0).toLocaleString();
+        
+        document.getElementById('headerOnlineCount').textContent = `${s.onlineNow} Online Now`;
+        document.getElementById('badgeUsersOnline').textContent = s.onlineNow;
+        document.getElementById('badgeTotalGames').textContent = s.totalGames;
+
+        // Render category stats
+        renderCategoryStats(s.categoryStats || []);
+      } catch (err) {
+        console.error('Failed to load stats:', err);
+      }
+    }
+
+    function renderCategoryStats(categories) {
+      const container = document.getElementById('categoryStatsList');
+      if (!container) return;
+      if (categories.length === 0) {
+        container.innerHTML = '<div class="text-xs text-gray-500 py-4 text-center">No categories found</div>';
+        return;
+      }
+
+      container.innerHTML = categories.map(c => `
+        <div class="flex items-center justify-between text-xs p-2 rounded-xl bg-slate-900/60 border border-white/5">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-neonCyan"></span>
+            <span class="font-bold uppercase tracking-wider text-gray-300">${c.category}</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-gray-400 font-mono">${c.count} games</span>
+            <span class="text-amber-400 font-semibold">${Number(c.plays).toLocaleString()} plays</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // -------------------------------------------------------------
+    // LIVE ACTIVE SESSIONS & RECENT LOGS
+    // -------------------------------------------------------------
+    async function fetchLiveActiveSessions() {
+      try {
+        const res = await fetch(`${API_BASE}/active-sessions`, {
+          headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (!data.success) return;
+
+        const container = document.getElementById('overviewLiveActivityList');
+        if (!container) return;
+
+        if (data.sessions.length === 0) {
+          container.innerHTML = `
+            <div class="p-6 rounded-xl bg-slate-900/40 border border-white/5 text-center text-xs text-gray-400">
+              <i class="fa-solid fa-moon text-gray-500 text-lg mb-2 block"></i>
+              No users actively playing in the last few minutes. As soon as a user opens the app or logs in, they will appear here live!
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = data.sessions.map(s => `
+          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900/80 border border-white/5 hover:border-emerald-500/30 transition-all">
+            <div class="flex items-center gap-3">
+              <div class="relative">
+                <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center font-bold text-xs text-neonCyan">
+                  ${s.username.substring(0, 2).toUpperCase()}
+                </div>
+                <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ${s.isOnline ? 'bg-emerald-400 pulsing-dot' : 'bg-gray-500'} border-2 border-slate-900"></span>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-xs text-white">${s.username}</span>
+                  <span class="text-[9px] px-1.5 py-0.2 rounded font-black uppercase ${s.isOnline ? 'bg-emerald-500/20 text-emerald-300' : 'bg-gray-700 text-gray-300'}">
+                    ${s.isOnline ? 'ONLINE' : 'IDLE'}
+                  </span>
+                </div>
+                <div class="text-[11px] text-gray-500 truncate max-w-xs font-mono">
+                  IP: ${s.ip} • ${s.activeSecondsAgo < 60 ? 'Just now' : `${Math.round(s.activeSecondsAgo / 60)}m ago`}
+                </div>
+              </div>
+            </div>
+
+            <button onclick="switchTab('users')" class="text-xs text-gray-400 hover:text-neonCyan p-1">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Failed to load active sessions:', err);
+      }
+    }
+
+    async function fetchLoginLogs(limit = 50) {
+      try {
+        const res = await fetch(`${API_BASE}/login-history?limit=${limit}`, {
+          headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (!data.success) return;
+
+        const tbody = document.getElementById('logsTableBody');
+        if (!tbody) return;
+
+        if (data.logs.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">No login logs found</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.logs.map(log => {
+          const date = new Date(log.created_at);
+          const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const dateStr = date.toLocaleDateString();
+
+          return `
+            <tr class="hover:bg-white/[0.02]">
+              <td class="px-4 py-3 font-mono text-gray-400">${dateStr} ${timeStr}</td>
+              <td class="px-4 py-3 font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-circle-user text-neonCyan"></i>
+                <span>${log.username}</span>
+              </td>
+              <td class="px-4 py-3">
+                <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${log.login_type === 'GUEST' ? 'bg-purple-500/20 text-purple-300 border border-purple-400/30' : 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/30'}">
+                  ${log.login_type || 'STANDARD'}
+                </span>
+              </td>
+              <td class="px-4 py-3 font-mono text-gray-400">${log.ip_address || '127.0.0.1'}</td>
+              <td class="px-4 py-3 text-gray-400 truncate max-w-xs" title="${log.user_agent || ''}">${log.user_agent ? log.user_agent.substring(0, 45) + '...' : 'Unknown'}</td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error('Failed to load login logs:', err);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // USER MONITORING
+    // -------------------------------------------------------------
+    let userSearchTimeout = null;
+    let currentUserFilter = 'all';
+
+    function debounceUserSearch() {
+      clearTimeout(userSearchTimeout);
+      userSearchTimeout = setTimeout(fetchUsersList, 300);
+    }
+
+    function filterUsers(filterType) {
+      currentUserFilter = filterType;
+      document.querySelectorAll('.user-filter-btn').forEach(btn => {
+        btn.classList.remove('bg-cyan-500', 'text-black');
+        btn.classList.add('text-gray-400', 'bg-slate-900', 'border', 'border-white/10');
+      });
+      const activeBtn = document.getElementById(`userFilter-${filterType}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-cyan-500', 'text-black');
+        activeBtn.classList.remove('text-gray-400', 'bg-slate-900', 'border-white/10');
+      }
+      fetchUsersList();
+    }
+
+    async function fetchUsersList() {
+      const search = document.getElementById('userSearchInput')?.value || '';
+      try {
+        const res = await fetch(`${API_BASE}/users?search=${encodeURIComponent(search)}&filter=${currentUserFilter}`, {
+          headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (!data.success) return;
+
+        currentUsersData = data.users || [];
+        renderUsersTable(currentUsersData);
+      } catch (err) {
+        console.error('Failed to load users:', err);
+      }
+    }
+
+    function renderUsersTable(users) {
+      const tbody = document.getElementById('usersTableBody');
+      if (!tbody) return;
+
+      if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-gray-500">No users match the search filter</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = users.map(u => {
+        const isGuest = u.username.startsWith('Gamer_') || (u.phone_or_email && u.phone_or_email.startsWith('+9199999'));
+        const lastLogin = u.last_login_at ? new Date(u.last_login_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Never';
+
+        return `
+          <tr class="hover:bg-white/[0.02] transition-colors">
+            <td class="px-4 py-3">
+              ${u.is_online 
+                ? '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulsing-dot"></span>ONLINE</span>'
+                : '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-800 text-gray-400"><span class="w-1.5 h-1.5 rounded-full bg-gray-500"></span>OFFLINE</span>'}
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-2.5">
+                <img src="${u.avatar_url || '/avatars/default.png'}" class="w-7 h-7 rounded-full bg-slate-800 border border-white/10">
+                <div>
+                  <div class="font-bold text-white flex items-center gap-1.5">
+                    <span>${u.username}</span>
+                    ${u.is_admin ? '<span class="text-[9px] px-1 py-0.2 rounded bg-amber-500/30 text-amber-300 font-black">ADMIN</span>' : ''}
+                  </div>
+                  <span class="text-[10px] text-gray-500 uppercase font-mono">${isGuest ? 'Guest Gamer' : 'Registered'}</span>
+                </div>
+              </div>
+            </td>
+            <td class="px-4 py-3 font-mono text-gray-400">${u.phone_or_email || '—'}</td>
+            <td class="px-4 py-3 font-orbitron font-bold text-amber-400">🪙 ${Number(u.coin_balance || 0).toLocaleString()}</td>
+            <td class="px-4 py-3 font-mono text-gray-300"><span class="text-emerald-400 font-bold">${u.win_count || 0}W</span> / <span class="text-rose-400">${u.loss_count || 0}L</span></td>
+            <td class="px-4 py-3 text-gray-400">${lastLogin}</td>
+            <td class="px-4 py-3 text-right">
+              <button onclick="toggleBanUser(${u.id})"
+                class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${u.is_banned ? 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/40 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 hover:bg-rose-500/40 border border-rose-500/40'}">
+                ${u.is_banned ? 'Unban' : 'Ban'}
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function toggleBanUser(userId) {
+      if (!confirm('Are you sure you want to change this user\'s ban status?')) return;
+      try {
+        const res = await fetch(`${API_BASE}/users/${userId}/toggle-ban`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          fetchUsersList();
+          fetchDashboardStats();
+        } else {
+          alert(data.message || 'Failed to update user ban status');
+        }
+      } catch (err) {
+        alert('Network error while updating ban status');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // GAME MANAGEMENT (CATALOG)
+    // -------------------------------------------------------------
+    let gameSearchTimeout = null;
+    let currentGameCategory = 'all';
+
+    function debounceGameSearch() {
+      clearTimeout(gameSearchTimeout);
+      gameSearchTimeout = setTimeout(fetchGamesList, 300);
+    }
+
+    function filterGamesByCategory(cat) {
+      currentGameCategory = cat;
+      fetchGamesList();
+    }
+
+    async function fetchGamesList() {
+      const search = document.getElementById('gameSearchInput')?.value || '';
+      try {
+        const res = await fetch(`${API_BASE}/games?search=${encodeURIComponent(search)}&category=${currentGameCategory}`, {
+          headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (!data.success) return;
+
+        currentGamesData = data.games || [];
+        renderGamesGrid(currentGamesData);
+      } catch (err) {
+        console.error('Failed to load games:', err);
+      }
+    }
+
+    function renderGamesGrid(games) {
+      const container = document.getElementById('gamesCatalogGrid');
+      if (!container) return;
+
+      if (games.length === 0) {
+        container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500 text-xs">No games found</div>';
+        return;
+      }
+
+      container.innerHTML = games.map(g => `
+        <div class="glass-card rounded-2xl overflow-hidden flex flex-col justify-between group hover:border-cyan-500/40 transition-all">
+          <div class="relative aspect-video bg-black/40 overflow-hidden">
+            <img src="${g.thumbnail || '/assets/posters/default-game.svg'}" 
+                 alt="${g.title}" 
+                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                 onerror="this.src='/assets/logo.png'">
+            
+            <div class="absolute top-2 left-2 flex items-center gap-1.5">
+              <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-900/80 text-neonCyan border border-cyan-400/40 backdrop-blur-md">
+                ${g.category}
+              </span>
+              ${g.is_featured ? '<span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-amber-500 text-black">★ HOT</span>' : ''}
+              ${g.is_premium ? '<span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-purple-500 text-white">VIP</span>' : ''}
+            </div>
+
+            <div class="absolute bottom-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-md bg-black/70 text-gray-300 backdrop-blur-md">
+              <i class="fa-solid fa-play text-neonCyan text-[8px] mr-1"></i>${Number(g.plays_count || 0).toLocaleString()}
+            </div>
+          </div>
+
+          <div class="p-3.5 flex-1 flex flex-col justify-between space-y-3">
+            <div>
+              <h4 class="font-bold text-sm text-white truncate" title="${g.title}">${g.title}</h4>
+              <p class="text-[11px] text-gray-400 font-mono truncate">slug: ${g.slug}</p>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-white/5 gap-1">
+              <button onclick="previewGame('${encodeURIComponent(g.title)}', '${encodeURIComponent(g.game_url || g.url)}')"
+                class="px-2.5 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500 hover:text-black text-xs font-bold transition-all flex items-center gap-1">
+                <i class="fa-solid fa-play text-[10px]"></i>
+                <span>Test</span>
+              </button>
+
+              <div class="flex items-center gap-1">
+                <button onclick="openEditGameModal(${g.id})" title="Edit Game"
+                  class="p-1.5 rounded-lg bg-slate-800 text-gray-300 hover:text-white hover:bg-slate-700 text-xs transition-all">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <button onclick="deleteGame(${g.id}, '${encodeURIComponent(g.title)}')" title="Delete Game"
+                  class="p-1.5 rounded-lg bg-rose-950/40 text-rose-300 hover:bg-rose-900/60 text-xs transition-all">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Add / Edit Game Modal Handling
+    function handleTitleChange(val) {
+      const slugInput = document.getElementById('formGameSlug');
+      const idInput = document.getElementById('formGameId');
+      if (!idInput.value && slugInput) {
+        slugInput.value = val.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      }
+    }
+
+    function openAddGameModal() {
+      document.getElementById('gameForm').reset();
+      document.getElementById('formGameId').value = '';
+      document.getElementById('gameModalTitle').textContent = 'Add New Game to Catalog';
+      document.getElementById('gameFormError').classList.add('hidden');
+      document.getElementById('gameModal').classList.remove('hidden');
+    }
+
+    function openEditGameModal(id) {
+      const g = currentGamesData.find(item => item.id === id);
+      if (!g) return;
+
+      document.getElementById('formGameId').value = g.id;
+      document.getElementById('formGameTitle').value = g.title;
+      document.getElementById('formGameSlug').value = g.slug;
+      document.getElementById('formGameCategory').value = g.category;
+      document.getElementById('formGameThumb').value = g.thumbnail;
+      document.getElementById('formGameUrl').value = g.game_url || g.url;
+      document.getElementById('formGameOrientation').value = g.orientation || 'portrait';
+      document.getElementById('formGameEntryFee').value = g.entry_fee_coins || 0;
+      document.getElementById('formGameFeatured').checked = !!g.is_featured;
+      document.getElementById('formGameMultiplayer').checked = !!g.is_multiplayer;
+      document.getElementById('formGamePremium').checked = !!g.is_premium;
+
+      document.getElementById('gameModalTitle').textContent = `Edit Game: ${g.title}`;
+      document.getElementById('gameFormError').classList.add('hidden');
+      document.getElementById('gameModal').classList.remove('hidden');
+    }
+
+    function closeGameModal() {
+      document.getElementById('gameModal').classList.add('hidden');
+    }
+
+    async function handleSaveGame(e) {
+      e.preventDefault();
+      const id = document.getElementById('formGameId').value;
+      const title = document.getElementById('formGameTitle').value;
+      const slug = document.getElementById('formGameSlug').value;
+      const category = document.getElementById('formGameCategory').value;
+      const thumbnail = document.getElementById('formGameThumb').value;
+      const game_url = document.getElementById('formGameUrl').value;
+      const orientation = document.getElementById('formGameOrientation').value;
+      const entry_fee_coins = Number(document.getElementById('formGameEntryFee').value || 0);
+      const is_featured = document.getElementById('formGameFeatured').checked;
+      const is_multiplayer = document.getElementById('formGameMultiplayer').checked;
+      const is_premium = document.getElementById('formGamePremium').checked;
+
+      const payload = {
+        title, slug, category, thumbnail, game_url,
+        orientation, entry_fee_coins, is_featured, is_multiplayer, is_premium
+      };
+
+      const errEl = document.getElementById('gameFormError');
+      errEl.classList.add('hidden');
+
+      try {
+        const url = id ? `${API_BASE}/games/${id}` : `${API_BASE}/games`;
+        const method = id ? 'PUT' : 'POST';
+
+        const res = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          closeGameModal();
+          fetchGamesList();
+          fetchDashboardStats();
+          alert(`Success: "${data.game?.title || 'Game'}" saved to catalog!`);
+        } else {
+          errEl.textContent = data.message || 'Failed to save game';
+          errEl.classList.remove('hidden');
+        }
+      } catch (err) {
+        errEl.textContent = 'Server error while saving game';
+        errEl.classList.remove('hidden');
+      }
+    }
+
+    async function deleteGame(id, rawTitle) {
+      const title = decodeURIComponent(rawTitle);
+      if (!confirm(`Are you sure you want to permanently delete "${title}"?`)) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/games/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          fetchGamesList();
+          fetchDashboardStats();
+        } else {
+          alert(data.message || 'Failed to delete game');
+        }
+      } catch (err) {
+        alert('Network error while deleting game');
+      }
+    }
+
+    // Poster file upload handler
+    async function handlePosterUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function() {
+        try {
+          const res = await fetch(`${API_BASE}/upload-poster`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${adminToken}`
+            },
+            body: JSON.stringify({
+              filename: file.name,
+              fileData: reader.result
+            })
+          });
+          const data = await res.json();
+          if (data.success && data.url) {
+            document.getElementById('formGameThumb').value = data.url;
+            alert('Poster image uploaded successfully!');
+          } else {
+            alert(data.message || 'Upload failed');
+          }
+        } catch (err) {
+          alert('Failed to upload poster image');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Game Preview Modal
+    function previewGame(rawTitle, rawUrl) {
+      const title = decodeURIComponent(rawTitle);
+      let url = decodeURIComponent(rawUrl);
+      if (url.startsWith('/play/') || url.startsWith('/games/')) {
+        url = url;
+      }
+
+      document.getElementById('testGameModalTitle').textContent = `Testing: ${title}`;
+      document.getElementById('testGameIframe').src = url;
+      document.getElementById('testGameModal').classList.remove('hidden');
+    }
+
+    function closeTestGameModal() {
+      document.getElementById('testGameIframe').src = '';
+      document.getElementById('testGameModal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
