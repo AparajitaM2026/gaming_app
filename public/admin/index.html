@@ -731,9 +731,9 @@
       document.getElementById('dashboardApp').classList.remove('hidden');
       refreshAllAdminData();
 
-      // Auto-refresh every 15 seconds
+      // Auto-refresh every 5 seconds for live real-time monitoring
       if (refreshIntervalTimer) clearInterval(refreshIntervalTimer);
-      refreshIntervalTimer = setInterval(refreshAllAdminData, 15000);
+      refreshIntervalTimer = setInterval(refreshAllAdminData, 5000);
     }
 
     // Authenticate Admin

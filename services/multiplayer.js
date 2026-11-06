@@ -1,6 +1,7 @@
 const { verifyToken } = require('../middleware/auth');
 const antiFraud = require('./antiFraud');
 const db = require('../db');
+const adminService = require('./adminService');
 
 // In-memory Quick Match queues & 1v1 rooms
 const matchmakingQueues = new Map(); // gameSlug -> [{ ws, user, timer }]
@@ -8,6 +9,37 @@ const activeRooms = new Map(); // roomId -> RoomState
 
 // In-memory Party Rooms (Friends Multiplayer)
 const partyRooms = new Map(); // roomCode -> PartyRoom
+
+// In-memory Online Players & Live Challenges
+const onlinePlayers = new Map(); // userId -> { ws, user, lastSeen, status }
+const pendingChallenges = new Map(); // challengeId -> { id, fromUser, fromWs, toUser, toWs, gameSlug, gameTitle, createdAt, timer }
+
+function broadcastOnlinePlayers() {
+  const playersList = [];
+  for (const [uid, p] of onlinePlayers.entries()) {
+    if (p.ws && p.ws.readyState === 1 && p.user) {
+      playersList.push({
+        id: p.user.id,
+        username: p.user.username,
+        avatar_url: p.user.avatar_url,
+        isGuest: !!p.user.isGuest,
+        status: p.status || 'AVAILABLE'
+      });
+    }
+  }
+
+  const payload = JSON.stringify({
+    type: 'ONLINE_PLAYERS_UPDATE',
+    count: playersList.length,
+    players: playersList
+  });
+
+  onlinePlayers.forEach(p => {
+    if (p.ws && p.ws.readyState === 1) {
+      try { p.ws.send(payload); } catch (e) {}
+    }
+  });
+}
 
 const SMART_BOT_NAMES = [
   'NeonNinja', 'CyberApex', 'AstroViper', 'ShadowGamer', 
@@ -69,12 +101,18 @@ function setupMultiplayer(wss) {
           // 1. AUTHENTICATION (Registered JWT or Instant Guest Profile)
           // -------------------------------------------------------------
           case 'AUTH': {
+            const clientIp = req?.headers['x-forwarded-for']?.split(',')[0]?.trim() || req?.socket?.remoteAddress || '127.0.0.1';
+            const userAgent = req?.headers['user-agent'] || 'WebSocket Client';
+
             if (msg.token) {
               const decoded = verifyToken(msg.token);
               if (decoded) {
                 currentUser = decoded;
-                ws.userId = decoded.id;
+                ws.userId = String(decoded.id);
+                onlinePlayers.set(ws.userId, { ws, user: currentUser, lastSeen: Date.now(), status: 'AVAILABLE' });
+                adminService.trackActiveUser(currentUser.id, currentUser.username, clientIp, userAgent);
                 ws.send(JSON.stringify({ type: 'AUTH_SUCCESS', user: decoded, isGuest: false }));
+                broadcastOnlinePlayers();
                 break;
               }
             }
@@ -89,8 +127,11 @@ function setupMultiplayer(wss) {
               avatar_url: guestAvatar,
               isGuest: true
             };
-            ws.userId = guestId;
+            ws.userId = String(guestId);
+            onlinePlayers.set(ws.userId, { ws, user: currentUser, lastSeen: Date.now(), status: 'AVAILABLE' });
+            adminService.trackActiveUser(guestId, guestName, clientIp, userAgent);
             ws.send(JSON.stringify({ type: 'AUTH_SUCCESS', user: currentUser, isGuest: true }));
+            broadcastOnlinePlayers();
             break;
           }
 
@@ -746,6 +787,163 @@ function setupMultiplayer(wss) {
             break;
           }
 
+          // -------------------------------------------------------------
+          // 4. LIVE ONLINE PLAYERS & "LET'S PLAY" CHALLENGES
+          // -------------------------------------------------------------
+          case 'GET_ONLINE_PLAYERS': {
+            const playersList = [];
+            for (const [uid, p] of onlinePlayers.entries()) {
+              if (p.ws && p.ws.readyState === 1 && p.user) {
+                playersList.push({
+                  id: p.user.id,
+                  username: p.user.username,
+                  avatar_url: p.user.avatar_url,
+                  isGuest: !!p.user.isGuest,
+                  status: p.status || 'AVAILABLE'
+                });
+              }
+            }
+            ws.send(JSON.stringify({
+              type: 'ONLINE_PLAYERS_UPDATE',
+              count: playersList.length,
+              players: playersList
+            }));
+            break;
+          }
+
+          case 'SEND_CHALLENGE': {
+            if (!currentUser) {
+              return ws.send(JSON.stringify({ type: 'CHALLENGE_FAILED', reason: 'Please authenticate first' }));
+            }
+            const { targetUserId, gameSlug = 'ludo-hero-ai', gameTitle = 'Ludo' } = msg;
+            const target = onlinePlayers.get(String(targetUserId));
+            if (!target || !target.ws || target.ws.readyState !== 1) {
+              return ws.send(JSON.stringify({ type: 'CHALLENGE_FAILED', reason: 'Player is currently offline or unreachable' }));
+            }
+            if (String(targetUserId) === String(currentUser.id)) {
+              return ws.send(JSON.stringify({ type: 'CHALLENGE_FAILED', reason: 'You cannot challenge yourself' }));
+            }
+
+            const challengeId = 'ch_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+            const timer = setTimeout(() => {
+              if (pendingChallenges.has(challengeId)) {
+                pendingChallenges.delete(challengeId);
+                try {
+                  ws.send(JSON.stringify({ type: 'CHALLENGE_EXPIRED', challengeId, toUser: target.user }));
+                  target.ws.send(JSON.stringify({ type: 'CHALLENGE_EXPIRED', challengeId }));
+                } catch(e) {}
+              }
+            }, 25000); // 25s auto-expire
+
+            pendingChallenges.set(challengeId, {
+              id: challengeId,
+              fromUser: currentUser,
+              fromWs: ws,
+              toUser: target.user,
+              toWs: target.ws,
+              gameSlug,
+              gameTitle,
+              createdAt: Date.now(),
+              timer
+            });
+
+            // Send notification to target
+            target.ws.send(JSON.stringify({
+              type: 'INCOMING_CHALLENGE',
+              challengeId,
+              fromUser: currentUser,
+              gameSlug,
+              gameTitle
+            }));
+
+            // Acknowledge sender
+            ws.send(JSON.stringify({
+              type: 'CHALLENGE_SENT',
+              challengeId,
+              toUser: target.user,
+              gameTitle
+            }));
+            break;
+          }
+
+          case 'ACCEPT_CHALLENGE': {
+            const { challengeId } = msg;
+            const ch = pendingChallenges.get(challengeId);
+            if (!ch) {
+              return ws.send(JSON.stringify({ type: 'CHALLENGE_FAILED', reason: 'Challenge has expired or was cancelled' }));
+            }
+            clearTimeout(ch.timer);
+            pendingChallenges.delete(challengeId);
+
+            // Create private 2-player match room for both players
+            const roomCode = generateRoomCode();
+            const p1 = { ws: ch.fromWs, user: ch.fromUser, color: PLAYER_COLORS[0], isHost: true, ready: true, score: 0, position: 0 };
+            const p2 = { ws: ch.toWs, user: ch.toUser, color: PLAYER_COLORS[1], isHost: false, ready: true, score: 0, position: 0 };
+
+            const room = {
+              code: roomCode,
+              gameSlug: ch.gameSlug,
+              maxPlayers: 2,
+              hostId: ch.fromUser.id,
+              status: 'PLAYING',
+              createdAt: Date.now(),
+              currentTurnIndex: 0,
+              players: [p1, p2],
+              gameState: {}
+            };
+            partyRooms.set(roomCode, room);
+
+            // Notify both players to launch into the synchronized game
+            const launchPayload = {
+              type: 'CHALLENGE_START',
+              roomCode,
+              gameSlug: ch.gameSlug,
+              gameTitle: ch.gameTitle,
+              players: [
+                { id: ch.fromUser.id, username: ch.fromUser.username, avatar_url: ch.fromUser.avatar_url, isHost: true },
+                { id: ch.toUser.id, username: ch.toUser.username, avatar_url: ch.toUser.avatar_url, isHost: false }
+              ]
+            };
+
+            if (ch.fromWs.readyState === 1) ch.fromWs.send(JSON.stringify(launchPayload));
+            if (ch.toWs.readyState === 1) ch.toWs.send(JSON.stringify(launchPayload));
+            break;
+          }
+
+          case 'DECLINE_CHALLENGE': {
+            const { challengeId } = msg;
+            const ch = pendingChallenges.get(challengeId);
+            if (ch) {
+              clearTimeout(ch.timer);
+              pendingChallenges.delete(challengeId);
+              if (ch.fromWs && ch.fromWs.readyState === 1) {
+                ch.fromWs.send(JSON.stringify({
+                  type: 'CHALLENGE_DECLINED',
+                  challengeId,
+                  fromUser: ch.toUser,
+                  gameTitle: ch.gameTitle
+                }));
+              }
+            }
+            break;
+          }
+
+          case 'CANCEL_CHALLENGE': {
+            const { challengeId } = msg;
+            const ch = pendingChallenges.get(challengeId);
+            if (ch) {
+              clearTimeout(ch.timer);
+              pendingChallenges.delete(challengeId);
+              if (ch.toWs && ch.toWs.readyState === 1) {
+                ch.toWs.send(JSON.stringify({
+                  type: 'CHALLENGE_CANCELLED_BY_SENDER',
+                  challengeId
+                }));
+              }
+            }
+            break;
+          }
+
           // Heartbeat keep-alive
           case 'PING': {
             ws.send(JSON.stringify({ type: 'PONG', time: Date.now() }));
@@ -758,6 +956,25 @@ function setupMultiplayer(wss) {
     });
 
     ws.on('close', () => {
+      // 0. Remove from online players & broadcast
+      if (ws.userId) {
+        onlinePlayers.delete(String(ws.userId));
+        broadcastOnlinePlayers();
+      }
+
+      // 0.1 Clean up pending challenges
+      for (const [chId, ch] of pendingChallenges.entries()) {
+        if (ch.fromWs === ws || ch.toWs === ws) {
+          clearTimeout(ch.timer);
+          pendingChallenges.delete(chId);
+          if (ch.fromWs === ws && ch.toWs && ch.toWs.readyState === 1) {
+            try { ch.toWs.send(JSON.stringify({ type: 'CHALLENGE_CANCELLED_BY_SENDER', challengeId: chId })); } catch(e) {}
+          } else if (ch.toWs === ws && ch.fromWs && ch.fromWs.readyState === 1) {
+            try { ch.fromWs.send(JSON.stringify({ type: 'CHALLENGE_FAILED', reason: 'Player went offline' })); } catch(e) {}
+          }
+        }
+      }
+
       // 1. Remove from matchmaking queues
       for (const [slug, q] of matchmakingQueues.entries()) {
         const idx = q.findIndex(item => item.ws === ws);

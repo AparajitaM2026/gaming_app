@@ -268,6 +268,42 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
   }
 });
 
+// Live Heartbeat Ping (Keeps users online in real-time monitoring)
+app.post('/api/auth/ping', (req, res) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    let userId = null;
+    let username = null;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const decoded = verifyToken(token);
+      if (decoded) {
+        userId = decoded.id;
+        username = decoded.username;
+      }
+    }
+
+    if (!userId && req.body && (req.body.guestId || req.body.username)) {
+      userId = req.body.guestId || `guest_${req.body.username}`;
+      username = req.body.guestName || req.body.username || `Gamer_${String(userId).slice(-4)}`;
+    }
+
+    if (userId || username) {
+      adminService.trackActiveUser(
+        userId,
+        username,
+        adminService.getClientIp(req),
+        req.headers['user-agent'] || 'Web Client'
+      );
+    }
+
+    res.json({ success: true, timestamp: Date.now() });
+  } catch (err) {
+    res.json({ success: false });
+  }
+});
+
 // -------------------------------------------------------------
 // 2. WALLET, REWARDS & PROMO COUPONS API ROUTES
 // -------------------------------------------------------------

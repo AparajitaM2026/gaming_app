@@ -3,7 +3,7 @@ const path = require('path');
 const db = require('../db.js');
 
 // In-Memory Active Sessions Store
-// Key: userId, Value: { id, username, ip, userAgent, lastSeen }
+// Key: sessionKey, Value: { sessionKey, id, userId, username, ip, userAgent, lastSeen }
 const activeSessions = new Map();
 
 // Helper to sanitize IP
@@ -14,28 +14,43 @@ function getClientIp(req) {
          '127.0.0.1';
 }
 
-// Track user activity
+// Track user activity (supports numeric IDs, guest strings, and multi-device sessions)
 function trackActiveUser(userId, username, ip = '127.0.0.1', userAgent = 'Unknown') {
-  if (!userId || !username) return;
-  activeSessions.set(Number(userId), {
-    id: Number(userId),
-    username,
-    ip,
+  if (!userId && !username) return;
+  
+  const safeId = userId ? String(userId) : `guest_${username}`;
+  const safeName = username || `Gamer_${safeId.slice(-4)}`;
+  
+  // Clean device signature from user agent (browser/mobile)
+  const isMobile = /Android|iPhone|iPad|Mobile/i.test(userAgent);
+  const deviceType = isMobile ? 'Mobile' : 'Desktop';
+  const cleanIp = (ip || '127.0.0.1').replace('::ffff:', '');
+  
+  // Unique session key per device/connection so simultaneous users never collide
+  const sessionKey = `${safeId}_${cleanIp}_${deviceType}`;
+  
+  activeSessions.set(sessionKey, {
+    sessionKey,
+    id: safeId,
+    userId: safeId,
+    username: safeName,
+    ip: cleanIp,
+    deviceType,
     userAgent,
     lastSeen: Date.now()
   });
 }
 
-// Remove inactive sessions (inactive > 15 minutes)
+// Remove inactive sessions (inactive > 5 minutes)
 function cleanStaleSessions() {
-  const fifteenMinutesAgo = Date.now() - 15 * 60 * 1000;
-  for (const [userId, session] of activeSessions.entries()) {
-    if (session.lastSeen < fifteenMinutesAgo) {
-      activeSessions.delete(userId);
+  const staleThreshold = Date.now() - 5 * 60 * 1000;
+  for (const [key, session] of activeSessions.entries()) {
+    if (session.lastSeen < staleThreshold) {
+      activeSessions.delete(key);
     }
   }
 }
-setInterval(cleanStaleSessions, 60 * 1000);
+setInterval(cleanStaleSessions, 30 * 1000);
 
 // Record login event in DB and active session
 async function recordLogin(userId, username, ip, userAgent, loginType = 'STANDARD') {
@@ -189,12 +204,19 @@ async function getUsersList({ search = '', filter = 'all', limit = 50, offset = 
   
   // Attach live online status
   const users = res.rows.map(user => {
-    const session = activeSessions.get(user.id);
-    const isOnline = session && session.lastSeen >= fiveMinutesAgo;
+    let matchedSession = null;
+    for (const session of activeSessions.values()) {
+      if (String(session.userId) === String(user.id) || session.username === user.username) {
+        if (!matchedSession || session.lastSeen > matchedSession.lastSeen) {
+          matchedSession = session;
+        }
+      }
+    }
+    const isOnline = matchedSession && matchedSession.lastSeen >= fiveMinutesAgo;
     return {
       ...user,
       is_online: !!isOnline,
-      last_active_session: session || null
+      last_active_session: matchedSession || null
     };
   });
 
@@ -210,8 +232,12 @@ async function toggleUserBan(userId) {
   await db.query('UPDATE users SET is_banned = $1 WHERE id = $2', [newStatus, userId]);
   
   if (newStatus) {
-    // If banned, kick from active sessions
-    activeSessions.delete(Number(userId));
+    // If banned, kick all sessions for this user
+    for (const [key, session] of activeSessions.entries()) {
+      if (String(session.userId) === String(userId)) {
+        activeSessions.delete(key);
+      }
+    }
   }
 
   return { userId, username: current.rows[0].username, is_banned: newStatus };

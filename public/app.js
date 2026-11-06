@@ -291,6 +291,11 @@ window.addEventListener('DOMContentLoaded', async () => {
   await loadFreeGamesCatalog();
   refreshWalletModalData();
 
+  // Instant Real-Time WebSocket & Heartbeat Presence
+  ensurePartyWebSocket();
+  sendHeartbeatPing();
+  setInterval(sendHeartbeatPing, 20000);
+
   // URL Auto-Launcher (?game=slug)
   const urlParams = new URLSearchParams(window.location.search);
   const targetSlug = urlParams.get('game');
@@ -300,6 +305,25 @@ window.addEventListener('DOMContentLoaded', async () => {
     }, 400);
   }
 });
+
+// Periodic heartbeat keeping online user presence 100% active in real-time
+async function sendHeartbeatPing() {
+  try {
+    const token = localStorage.getItem('ott_jwt');
+    const guestUser = typeof getPartyUser === 'function' ? getPartyUser() : null;
+    await fetch('/api/auth/ping', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({
+        guestId: guestUser?.id,
+        guestName: guestUser?.username
+      })
+    });
+  } catch(e) {}
+}
 
 // Render Play with AI Zone Row
 function renderAiRow() {
@@ -2067,6 +2091,12 @@ async function handleGuestLogin() {
       updateAuthUI(currentUser);
       updateCoinUI();
       closeAuthModal();
+      sendHeartbeatPing();
+      if (partyWs && partyWs.readyState === WebSocket.OPEN) {
+        partyWs.send(JSON.stringify({ type: 'AUTH', token: currentToken }));
+      } else {
+        ensurePartyWebSocket();
+      }
       showToast('🎮 Welcome Guest Gamer! Create an account to earn and save coins.');
     }
   } catch (err) {
@@ -2095,6 +2125,12 @@ async function handleLoginSubmit(e) {
       updateAuthUI(currentUser);
       updateCoinUI();
       closeAuthModal();
+      sendHeartbeatPing();
+      if (partyWs && partyWs.readyState === WebSocket.OPEN) {
+        partyWs.send(JSON.stringify({ type: 'AUTH', token: currentToken }));
+      } else {
+        ensurePartyWebSocket();
+      }
       showToast(`🎮 Welcome back, ${currentUser.username}!`);
     } else {
       alert(data.message || 'Login failed');
@@ -2126,6 +2162,12 @@ async function handleRegisterSubmit(e) {
       updateAuthUI(currentUser);
       updateCoinUI();
       closeAuthModal();
+      sendHeartbeatPing();
+      if (partyWs && partyWs.readyState === WebSocket.OPEN) {
+        partyWs.send(JSON.stringify({ type: 'AUTH', token: currentToken }));
+      } else {
+        ensurePartyWebSocket();
+      }
       showToast('🎉 Account created! 150 Starter Coins Added!');
     } else {
       alert(data.message || 'Registration failed');
