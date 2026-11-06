@@ -17,13 +17,17 @@ window.gameMap = {};
 // Clean titles from dirty entities or suffixes
 function cleanGameTitle(rawTitle) {
   if (!rawTitle) return '';
-  return rawTitle
+  let t = rawTitle
     .replace(/^OTT\s+/i, '')
     .replace(/&apos;/g, "'")
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
     .replace(/\(vs Smart AI\)/gi, '')
     .trim();
+  if (t.toLowerCase().includes('fire & ice') || t.toLowerCase().includes('fire and ice') || t.toLowerCase().includes('fire-ice')) {
+    return 'Football Strike';
+  }
+  return t;
 }
 
 // Format multi-word game title for 3D poster stamp (1 or 2 lines)
@@ -790,7 +794,10 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
   }
 
   // All games unlocked for instant free play!
-  const title = cleanGameTitle(game.title);
+  let title = cleanGameTitle(game.title);
+  if (slug === 'fire-ice-temple' || slug === 'football-strike') {
+    title = 'Football Strike';
+  }
   let playUrl = game.url || game.game_url;
 
   // Full Web View for all games across the entire web app
