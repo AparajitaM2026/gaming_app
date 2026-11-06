@@ -12,7 +12,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 24500,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false
   },
@@ -29,7 +29,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.7",
-    "plays_count": 14903,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false,
     "url": "/play/classic-snake"
@@ -47,7 +47,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 17934,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false,
     "url": "https://gamezipper.com/2048/?utm_source=embed"
@@ -65,7 +65,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.8",
-    "plays_count": 12370,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false,
     "url": "/play/tetris"
@@ -83,7 +83,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.8",
-    "plays_count": 6638,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false,
     "url": "/play/pong"
@@ -101,7 +101,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.7",
-    "plays_count": 15020,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false,
     "url": "/play/brick-breaker"
@@ -119,7 +119,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.7",
-    "plays_count": 6573,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/t-rex-dino-runner"
@@ -137,7 +137,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.6",
-    "plays_count": 10324,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/cyberpunk-flappy"
@@ -155,7 +155,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.8",
-    "plays_count": 17182,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/fruit-slash"
@@ -173,7 +173,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.6",
-    "plays_count": 6558,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/bubble-shooter"
@@ -191,7 +191,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.6",
-    "plays_count": 7517,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/steam-whacker"
@@ -209,7 +209,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.6",
-    "plays_count": 5435,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/classic-sudoku"
@@ -227,7 +227,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 4996,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/crossword-puzzle"
@@ -245,7 +245,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.8",
-    "plays_count": 10849,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/nonogram-puzzle"
@@ -263,7 +263,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.8",
-    "plays_count": 18769,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/classic-minesweeper"
@@ -281,7 +281,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 18497,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/jigsaw-puzzle"
@@ -299,7 +299,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.6",
-    "plays_count": 16453,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/unblock-me"
@@ -317,7 +317,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.7",
-    "plays_count": 9149,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/flow-connect"
@@ -335,7 +335,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 8815,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/word-connections"
@@ -353,7 +353,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.7",
-    "plays_count": 4547,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/little-alchemy"
@@ -371,7 +371,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 15593,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/the-impossible-quiz"
@@ -389,7 +389,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.8",
-    "plays_count": 4268,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false
   },
@@ -406,7 +406,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.7",
-    "plays_count": 8691,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/solitaire"
@@ -424,7 +424,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.8",
-    "plays_count": 16829,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/reversi"
@@ -442,7 +442,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.7",
-    "plays_count": 11888,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/dots-and-boxes"
@@ -460,7 +460,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 13599,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/queens-puzzle"
@@ -478,7 +478,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.9",
-    "plays_count": 9876,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/mahjong-solitaire"
@@ -496,7 +496,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.6",
-    "plays_count": 9841,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/sliding-puzzle"
@@ -514,7 +514,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.8",
-    "plays_count": 12919,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/trivia-crack"
@@ -532,7 +532,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.8",
-    "plays_count": 12288,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/cut-the-rope"
@@ -550,7 +550,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.7",
-    "plays_count": 13720,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "https://gamezipper.com/neon-dash/?utm_source=embed"
@@ -568,7 +568,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.8",
-    "plays_count": 17799,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/drive-fury"
@@ -586,7 +586,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.7",
-    "plays_count": 16380,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "https://gamezipper.com/level-devil/?utm_source=embed"
@@ -604,7 +604,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 13371,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/escape-manor"
@@ -622,7 +622,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.7",
-    "plays_count": 13362,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/sand-balls"
@@ -640,7 +640,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 18609,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/arrow-escape"
@@ -658,7 +658,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 8114,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/block-stacker"
@@ -676,7 +676,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 6643,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/memory-master"
@@ -694,7 +694,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.8",
-    "plays_count": 18450,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false
   },
@@ -711,7 +711,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.6",
-    "plays_count": 14185,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/typing-speed-test"
@@ -729,7 +729,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.6",
-    "plays_count": 7537,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/basketball-shoot"
@@ -747,7 +747,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.7",
-    "plays_count": 6817,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/paint-splash"
@@ -765,7 +765,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 8746,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/cloud-amp-sheep"
@@ -783,7 +783,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.7",
-    "plays_count": 9977,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/magic-sort"
@@ -801,7 +801,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.8",
-    "plays_count": 7017,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/watermelon-merge"
@@ -819,7 +819,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 6366,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "/play/wood-block-puzzle"
@@ -837,7 +837,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.8",
-    "plays_count": 24150,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false,
     "url": "https://games.cdn.famobi.com/html5games/c/cars-arena/v010/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=bfca421b-0e9a-491b-8840-da277bda1aa4&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=471"
@@ -855,7 +855,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.9",
-    "plays_count": 36200,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false
   },
@@ -872,7 +872,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.8",
-    "plays_count": 31800,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false
   },
@@ -889,7 +889,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 29540,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false,
     "url": "/play/cut-the-rope-experiments"
@@ -907,7 +907,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 27810,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false,
     "url": "/play/cut-the-rope-magic"
@@ -925,7 +925,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 42100,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false,
     "url": "https://games.cdn.famobi.com/html5games/o/om-nom-run/v1240/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=abe80572-560a-444d-baf7-2fa4a7b2c02f&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472"
@@ -943,7 +943,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.8",
-    "plays_count": 19450,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "https://games.cdn.famobi.com/html5games/o/om-nom-bubbles/v040/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=04a8baa6-e3ad-43e7-8b35-b274552d5890&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472"
@@ -961,7 +961,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.7",
-    "plays_count": 15300,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "https://games.cdn.famobi.com/html5games/t/tnt-bomb/v250/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=fa946169-bde2-4b3b-8552-08a85d7ae0e7&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472"
@@ -979,7 +979,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.8",
-    "plays_count": 22600,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false,
     "url": "https://games.cdn.famobi.com/html5games/c/cannon-balls-3d/v320/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=3ffa11c2-61da-4974-892b-473582253371&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472"
@@ -997,7 +997,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.8",
-    "plays_count": 26400,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false,
     "url": "https://games.cdn.famobi.com/html5games/t/tower-crash-3d/v290/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=68a7c06e-ec27-4fa4-99a5-a5e9702ac4ef&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472"
@@ -1015,7 +1015,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.8",
-    "plays_count": 21900,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "https://games.cdn.famobi.com/html5games/d/drift-cup-racing/v620/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=e8ca54ee-cfbe-417c-b69e-e4f4858a9957&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=472"
@@ -1033,7 +1033,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.8",
-    "plays_count": 28700,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false
   },
@@ -1050,7 +1050,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.8",
-    "plays_count": 25800,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": false,
     "url": "https://html5.gamedistribution.com/rvvASMiM/0ccd52f987014bb49708e6afa2e3a8f7/index.html"
@@ -1068,7 +1068,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.9",
-    "plays_count": 28400,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": true
   },
@@ -1085,7 +1085,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.9",
-    "plays_count": 31200,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": true
   },
@@ -1102,7 +1102,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.9",
-    "plays_count": 26500,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": true
   },
@@ -1119,7 +1119,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.8",
-    "plays_count": 19800,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": true
   },
@@ -1136,7 +1136,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.8",
-    "plays_count": 15400,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": true
   },
@@ -1153,7 +1153,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.9",
-    "plays_count": 34100,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": true
   },
@@ -1170,7 +1170,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.7",
-    "plays_count": 14200,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": true
   },
@@ -1187,7 +1187,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.8",
-    "plays_count": 22100,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": true
   },
@@ -1204,7 +1204,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.9",
-    "plays_count": 25700,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": true
   },
@@ -1221,7 +1221,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.8",
-    "plays_count": 18900,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": true
   },
@@ -1238,7 +1238,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.7",
-    "plays_count": 13800,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": true
   },
@@ -1255,7 +1255,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.8",
-    "plays_count": 21300,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": true
   },
@@ -1272,7 +1272,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.9",
-    "plays_count": 27600,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": true
   },
@@ -1289,7 +1289,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.8",
-    "plays_count": 19400,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": true
   },
@@ -1306,7 +1306,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.7",
-    "plays_count": 16500,
+    "plays_count": 0,
     "is_featured": false,
     "is_premium": true
   },
@@ -1323,7 +1323,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.9",
-    "plays_count": 28500,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false
   },
@@ -1340,7 +1340,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.8",
-    "plays_count": 21900,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": true
   },
@@ -1357,7 +1357,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 48900,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": true
   },
@@ -1374,7 +1374,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.9",
-    "plays_count": 34200,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": true
   },
@@ -1391,7 +1391,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.8",
-    "plays_count": 26700,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": true
   },
@@ -1408,7 +1408,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 31500,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": true
   },
@@ -1425,7 +1425,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.9",
-    "plays_count": 39400,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": true
   },
@@ -1442,7 +1442,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.9",
-    "plays_count": 42100,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": true
   },
@@ -1459,7 +1459,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.8",
-    "plays_count": 18200,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": true
   },
@@ -1476,7 +1476,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.8",
-    "plays_count": 23600,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": true
   },
@@ -1493,7 +1493,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 27800,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": true
   },
@@ -1510,7 +1510,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.9",
-    "plays_count": 41500,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false
   },
@@ -1527,7 +1527,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.8",
-    "plays_count": 29800,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false
   },
@@ -1544,7 +1544,7 @@
     "entry_fee_coins": 0,
     "orientation": "landscape",
     "rating": "4.8",
-    "plays_count": 26400,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false
   },
@@ -1561,7 +1561,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 34100,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false
   },
@@ -1578,7 +1578,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 46200,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false
   },
@@ -1595,7 +1595,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 58400,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false
   },
@@ -1612,7 +1612,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 51200,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false
   },
@@ -1629,7 +1629,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 48900,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false
   },
@@ -1646,7 +1646,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 53100,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false
   },
@@ -1663,7 +1663,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 47800,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false
   },
@@ -1680,7 +1680,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.8",
-    "plays_count": 38900,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false
   },
@@ -1697,7 +1697,7 @@
     "entry_fee_coins": 0,
     "orientation": "portrait",
     "rating": "4.9",
-    "plays_count": 42100,
+    "plays_count": 0,
     "is_featured": true,
     "is_premium": false
   }

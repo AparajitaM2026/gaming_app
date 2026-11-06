@@ -900,6 +900,11 @@ async function launchGameBySlug(slug, forceDirect = false, isPassAndPlay = false
   // Award Coins for playing (+10 Coins reward)
   awardGamePlayCoins(slug, title);
 
+  // Track real play count in database
+  if (slug) {
+    fetch(`/api/games/${encodeURIComponent(slug)}/record-play`, { method: 'POST' }).catch(() => {});
+  }
+
   openGameTheater(title, playUrl, game);
 }
 

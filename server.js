@@ -1164,9 +1164,22 @@ app.get('/play/:slug', async (req, res, next) => {
   const { slug } = req.params;
   const target = INTERNAL_GAME_SOURCES[slug];
   if (!target) return res.redirect('/');
+  
+  // Increment genuine real gameplay counter
+  db.query('UPDATE games SET plays_count = plays_count + 1 WHERE slug = $1', [slug]).catch(() => {});
+
   req.targetUrl = target;
   req.internalSlug = slug;
   return handleGameFrame(req, res, next);
+});
+
+// Explicit endpoint to record real gameplay events
+app.post('/api/games/:slug/record-play', async (req, res) => {
+  const { slug } = req.params;
+  if (slug) {
+    await db.query('UPDATE games SET plays_count = plays_count + 1 WHERE slug = $1', [slug]).catch(() => {});
+  }
+  res.json({ success: true });
 });
 
 // Resolve relative sub-resource requests for Construct 3, Godot, or HTML5 engines
