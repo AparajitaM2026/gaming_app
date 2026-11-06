@@ -72,12 +72,14 @@
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-neonCyan selection:text-black">
 
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
   <!-- ========================================================= -->
   <!-- 1. LOGIN SCREEN OVERLAY (Shown if not authenticated)      -->
   <!-- ========================================================= -->
   <div id="loginScreen" class="fixed inset-0 z-50 bg-[#070a14] flex items-center justify-center p-4">
     <div class="glass-card max-w-md w-full p-8 rounded-3xl shadow-2xl relative overflow-hidden border border-cyan-500/30 neon-glow-cyan">
-      <!-- Glow flare -->
       <div class="absolute -top-24 -left-24 w-48 h-48 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
       <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -208,12 +210,12 @@
     </div>
 
     <!-- Main Content Container -->
-    <main class="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto space-y-6">
+    <main class="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto space-y-8">
 
       <!-- ========================================================= -->
       <!-- TAB 1: OVERVIEW & ANALYTICS                               -->
       <!-- ========================================================= -->
-      <section id="tab-overview" class="tab-pane space-y-6">
+      <section id="tab-overview" class="tab-pane space-y-8">
         
         <!-- Quick Stat Metric Cards -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -261,7 +263,7 @@
             <div class="font-orbitron font-black text-2xl sm:text-3xl text-white" id="statTotalGames">0</div>
             <div class="text-[11px] text-gray-400 mt-2 flex items-center justify-between">
               <span id="statFeaturedGames" class="text-amber-400 font-semibold">0 featured</span>
-              <button onclick="switchTab('games')" class="text-neonCyan text-[11px] hover:underline font-bold">+ Manage</button>
+              <button onclick="document.getElementById('overviewGamesSection').scrollIntoView({ behavior: 'smooth' })" class="text-neonCyan text-[11px] hover:underline font-bold">↓ View All</button>
             </div>
           </div>
 
@@ -294,7 +296,7 @@
               <button onclick="switchTab('logs')" class="text-xs text-neonCyan font-bold hover:underline">View All Logs</button>
             </div>
 
-            <div id="overviewLiveActivityList" class="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+            <div id="overviewLiveActivityList" class="space-y-2.5 max-h-[280px] overflow-y-auto pr-1">
               <div class="text-xs text-gray-500 text-center py-8">Loading live activity...</div>
             </div>
           </div>
@@ -306,13 +308,13 @@
                 <i class="fa-solid fa-layer-group text-amber-400"></i>
                 <h3 class="font-orbitron font-bold text-sm text-white">GAMES BY CATEGORY</h3>
               </div>
-              <div id="categoryStatsList" class="space-y-2.5">
+              <div id="categoryStatsList" class="space-y-2 max-h-[220px] overflow-y-auto pr-1">
                 <div class="text-xs text-gray-500 text-center py-6">Loading category stats...</div>
               </div>
             </div>
 
             <!-- Quick Add Game Banner -->
-            <div class="pt-4 border-t border-white/10">
+            <div class="pt-3 border-t border-white/10">
               <button onclick="openAddGameModal()"
                 class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-orbitron font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-cyan-500/20 active:scale-95 flex items-center justify-center gap-2">
                 <i class="fa-solid fa-plus text-sm"></i>
@@ -321,6 +323,78 @@
             </div>
           </div>
         </div>
+
+        <!-- ========================================================= -->
+        <!-- PROMINENT OVERVIEW SECTION: ALL GAMES EDIT & RENAME TABLE -->
+        <!-- ========================================================= -->
+        <div id="overviewGamesSection" class="glass-card rounded-2xl p-6 space-y-5 border border-cyan-500/20">
+          
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+            <div>
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-neonCyan flex items-center justify-center text-sm">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </div>
+                <h2 class="font-orbitron font-extrabold text-base sm:text-lg text-white">ALL GAMES — QUICK EDIT & RENAME</h2>
+              </div>
+              <p class="text-xs text-gray-400 mt-1">Change game names, categories, posters, orientations, or spotlight status in 1-click</p>
+            </div>
+
+            <div class="flex items-center gap-2.5 shrink-0">
+              <button onclick="openAddGameModal()"
+                class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-orbitron font-extrabold text-xs uppercase tracking-wider transition-all shadow-md shadow-cyan-500/20 active:scale-95 flex items-center gap-1.5">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add Game</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Search & Filter Controls Bar -->
+          <div class="flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="relative w-full md:w-80">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+              </span>
+              <input type="text" id="overviewGameSearch" oninput="filterOverviewGames()"
+                placeholder="Search game by title or slug (e.g. Football, Ludo)..."
+                class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-xs outline-none focus:border-neonCyan transition-all placeholder:text-gray-600">
+            </div>
+
+            <!-- Category Pills -->
+            <div class="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto no-scrollbar py-1" id="overviewCategoryPills">
+              <button onclick="setOverviewCategory('all')" id="ovCat-all" class="ov-cat-pill px-3 py-1.5 rounded-xl text-xs font-bold bg-cyan-500 text-black">All (<span id="ovCountAll">0</span>)</button>
+              <button onclick="setOverviewCategory('sports')" id="ovCat-sports" class="ov-cat-pill px-3 py-1.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white bg-slate-900 border border-white/10">Sports</button>
+              <button onclick="setOverviewCategory('arcade')" id="ovCat-arcade" class="ov-cat-pill px-3 py-1.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white bg-slate-900 border border-white/10">Arcade</button>
+              <button onclick="setOverviewCategory('action')" id="ovCat-action" class="ov-cat-pill px-3 py-1.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white bg-slate-900 border border-white/10">Action</button>
+              <button onclick="setOverviewCategory('puzzle')" id="ovCat-puzzle" class="ov-cat-pill px-3 py-1.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white bg-slate-900 border border-white/10">Puzzle</button>
+              <button onclick="setOverviewCategory('board')" id="ovCat-board" class="ov-cat-pill px-3 py-1.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white bg-slate-900 border border-white/10">Board</button>
+            </div>
+          </div>
+
+          <!-- All Games Table -->
+          <div class="rounded-xl overflow-hidden border border-white/10 bg-slate-950/60">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-900/90 text-gray-400 uppercase tracking-wider text-[10px] font-bold border-b border-white/10">
+                  <tr>
+                    <th class="px-4 py-3.5 w-16">Poster</th>
+                    <th class="px-4 py-3.5">Game Name / Title</th>
+                    <th class="px-4 py-3.5">Category</th>
+                    <th class="px-4 py-3.5">Orientation</th>
+                    <th class="px-4 py-3.5">Spotlight</th>
+                    <th class="px-4 py-3.5">Plays</th>
+                    <th class="px-4 py-3.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="overviewGamesTableBody" class="divide-y divide-white/5 text-gray-300">
+                  <tr><td colspan="7" class="text-center py-10 text-gray-500">Loading games catalog...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
       </section>
 
 
@@ -374,7 +448,7 @@
 
 
       <!-- ========================================================= -->
-      <!-- TAB 3: GAME MANAGEMENT (ADD / EDIT / DELETE)              -->
+      <!-- TAB 3: GAME MANAGEMENT (DEDICATED GRID & MANAGER)         -->
       <!-- ========================================================= -->
       <section id="tab-games" class="tab-pane hidden space-y-4">
         
@@ -480,10 +554,10 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <!-- Game Title -->
           <div class="sm:col-span-2">
-            <label class="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-1">Game Title *</label>
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-1">Game Title / Name *</label>
             <input type="text" id="formGameTitle" required
               oninput="handleTitleChange(this.value)"
-              placeholder="e.g. Lagos City Racer"
+              placeholder="e.g. Football Strike"
               class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-xs outline-none focus:border-neonCyan transition-all">
           </div>
 
@@ -491,7 +565,7 @@
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-1">Slug (Unique URL Key) *</label>
             <input type="text" id="formGameSlug" required
-              placeholder="lagos-city-racer"
+              placeholder="football-strike"
               class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-xs outline-none focus:border-neonCyan transition-all">
           </div>
 
@@ -500,9 +574,9 @@
             <label class="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-1">Category *</label>
             <select id="formGameCategory" required
               class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-xs outline-none focus:border-neonCyan transition-all">
-              <option value="action">Action & Reflex</option>
-              <option value="arcade">Arcade & Classic</option>
               <option value="sports">Sports & Simulation</option>
+              <option value="arcade">Arcade & Classic</option>
+              <option value="action">Action & Reflex</option>
               <option value="puzzle">Puzzle & Logic</option>
               <option value="board">Board & Strategy</option>
               <option value="card">Card & Deck</option>
@@ -530,7 +604,7 @@
           <div class="sm:col-span-2">
             <label class="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-1">Play URL (or /play/slug or https://...) *</label>
             <input type="text" id="formGameUrl" required
-              placeholder="/play/lagos-city-racer or /games/mygame.html"
+              placeholder="/play/football-strike or /games/mygame.html"
               class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-xs outline-none focus:border-neonCyan transition-all">
           </div>
 
@@ -615,7 +689,28 @@
     let adminToken = localStorage.getItem('voltixz_admin_token') || '';
     let currentUsersData = [];
     let currentGamesData = [];
+    let currentOverviewCategory = 'all';
     let refreshIntervalTimer = null;
+
+    // Toast Notification helper
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      const isSuccess = type === 'success';
+      toast.className = `px-4 py-3 rounded-xl shadow-2xl text-xs font-bold flex items-center gap-2 transition-all transform duration-300 border ${
+        isSuccess 
+          ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500/50' 
+          : 'bg-rose-950/90 text-rose-300 border-rose-500/50'
+      }`;
+      toast.innerHTML = `<i class="fa-solid ${isSuccess ? 'fa-circle-check text-emerald-400' : 'fa-circle-xmark text-rose-400'}"></i><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-10px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
 
     // Check token on page load
     window.addEventListener('DOMContentLoaded', () => {
@@ -731,6 +826,7 @@
         await Promise.all([
           fetchDashboardStats(),
           fetchLiveActiveSessions(),
+          fetchGamesList(), // Also fetch full catalog for quick edit table!
           fetchLoginLogs(20)
         ]);
       } finally {
@@ -762,6 +858,8 @@
         document.getElementById('headerOnlineCount').textContent = `${s.onlineNow} Online Now`;
         document.getElementById('badgeUsersOnline').textContent = s.onlineNow;
         document.getElementById('badgeTotalGames').textContent = s.totalGames;
+        const ovCountAll = document.getElementById('ovCountAll');
+        if (ovCountAll) ovCountAll.textContent = s.totalGames;
 
         // Render category stats
         renderCategoryStats(s.categoryStats || []);
@@ -860,7 +958,7 @@
         if (!tbody) return;
 
         if (data.logs.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">No login logs found</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">No login logs recorded yet. Real logins will appear here automatically.</td></tr>';
           return;
         }
 
@@ -990,6 +1088,7 @@
         if (data.success) {
           fetchUsersList();
           fetchDashboardStats();
+          showToast(data.is_banned ? 'User banned from platform' : 'User unbanned');
         } else {
           alert(data.message || 'Failed to update user ban status');
         }
@@ -1025,11 +1124,231 @@
 
         currentGamesData = data.games || [];
         renderGamesGrid(currentGamesData);
+        renderOverviewGamesTable(currentGamesData);
       } catch (err) {
         console.error('Failed to load games:', err);
       }
     }
 
+    // =============================================================
+    // OVERVIEW GAMES TABLE (QUICK RENAME & EDIT)
+    // =============================================================
+    function setOverviewCategory(cat) {
+      currentOverviewCategory = cat;
+      document.querySelectorAll('.ov-cat-pill').forEach(btn => {
+        btn.classList.remove('bg-cyan-500', 'text-black');
+        btn.classList.add('text-gray-400', 'bg-slate-900', 'border', 'border-white/10');
+      });
+      const activeBtn = document.getElementById(`ovCat-${cat}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-cyan-500', 'text-black');
+        activeBtn.classList.remove('text-gray-400', 'bg-slate-900', 'border-white/10');
+      }
+      filterOverviewGames();
+    }
+
+    function filterOverviewGames() {
+      const q = (document.getElementById('overviewGameSearch')?.value || '').toLowerCase().trim();
+      let filtered = currentGamesData;
+
+      if (currentOverviewCategory !== 'all') {
+        filtered = filtered.filter(g => (g.category || '').toLowerCase() === currentOverviewCategory);
+      }
+
+      if (q) {
+        filtered = filtered.filter(g => 
+          (g.title || '').toLowerCase().includes(q) || 
+          (g.slug || '').toLowerCase().includes(q)
+        );
+      }
+
+      renderOverviewGamesTable(filtered);
+    }
+
+    function renderOverviewGamesTable(games) {
+      const tbody = document.getElementById('overviewGamesTableBody');
+      if (!tbody) return;
+
+      if (!games || games.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-gray-500">No games found matching your search.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = games.map(g => {
+        const isFeatured = !!g.is_featured;
+        const isLandscape = (g.orientation || 'portrait') === 'landscape';
+
+        return `
+          <tr class="hover:bg-white/[0.03] transition-colors group">
+            <!-- Poster -->
+            <td class="px-4 py-3">
+              <div class="relative w-12 h-12 rounded-xl bg-slate-900 border border-white/10 overflow-hidden flex items-center justify-center shrink-0">
+                <img src="${g.thumbnail || '/assets/posters/default-game.svg'}" 
+                     class="w-full h-full object-cover" 
+                     onerror="this.src='/assets/logo.png'">
+              </div>
+            </td>
+
+            <!-- Name / Title with 1-Click Quick Rename Button -->
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-white text-sm tracking-wide group-hover:text-neonCyan transition-colors" id="gameTitleDisplay-${g.id}">
+                  ${g.title}
+                </span>
+                <button onclick="quickRenameGame(${g.id}, '${encodeURIComponent(g.title)}')"
+                  title="Rename Game Title"
+                  class="px-2 py-0.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500 text-cyan-300 hover:text-black text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer">
+                  <i class="fa-solid fa-pen text-[9px]"></i>
+                  <span>Rename</span>
+                </button>
+              </div>
+              <div class="flex items-center gap-2 mt-0.5">
+                <span class="text-[10px] text-gray-500 font-mono">slug: ${g.slug}</span>
+                ${g.is_premium ? '<span class="text-[9px] px-1.5 py-0.2 rounded font-black bg-purple-500/20 text-purple-300 border border-purple-500/40">VIP</span>' : ''}
+              </div>
+            </td>
+
+            <!-- Category -->
+            <td class="px-4 py-3">
+              <select onchange="quickUpdateGameField(${g.id}, 'category', this.value)"
+                class="px-2.5 py-1 rounded-lg bg-slate-900 border border-white/10 text-white text-xs font-semibold uppercase tracking-wider outline-none focus:border-neonCyan transition-all cursor-pointer">
+                <option value="sports" ${g.category === 'sports' ? 'selected' : ''}>Sports</option>
+                <option value="arcade" ${g.category === 'arcade' ? 'selected' : ''}>Arcade</option>
+                <option value="action" ${g.category === 'action' ? 'selected' : ''}>Action</option>
+                <option value="puzzle" ${g.category === 'puzzle' ? 'selected' : ''}>Puzzle</option>
+                <option value="board" ${g.category === 'board' ? 'selected' : ''}>Board</option>
+                <option value="card" ${g.category === 'card' ? 'selected' : ''}>Card</option>
+                <option value="racing" ${g.category === 'racing' ? 'selected' : ''}>Racing</option>
+                <option value="multiplayer" ${g.category === 'multiplayer' ? 'selected' : ''}>Multiplayer</option>
+              </select>
+            </td>
+
+            <!-- Orientation Toggle -->
+            <td class="px-4 py-3">
+              <button onclick="quickToggleOrientation(${g.id}, '${g.orientation || 'portrait'}')"
+                title="Click to toggle orientation"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  isLandscape 
+                    ? 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 border border-blue-500/40' 
+                    : 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/40'
+                }">
+                <i class="fa-solid ${isLandscape ? 'fa-mobile-screen-button rotate-90' : 'fa-mobile-screen'} text-[10px]"></i>
+                <span class="capitalize">${g.orientation || 'portrait'}</span>
+              </button>
+            </td>
+
+            <!-- Spotlight Toggle -->
+            <td class="px-4 py-3">
+              <button onclick="quickToggleFeatured(${g.id}, ${isFeatured})"
+                title="Toggle Featured Spotlight on Home Page"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  isFeatured 
+                    ? 'bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/40' 
+                    : 'bg-slate-900 text-gray-500 hover:text-gray-300 border border-white/10'
+                }">
+                <i class="fa-solid fa-star text-[10px] ${isFeatured ? 'text-amber-400' : 'text-gray-600'}"></i>
+                <span>${isFeatured ? 'Featured' : 'Normal'}</span>
+              </button>
+            </td>
+
+            <!-- Real Plays Count -->
+            <td class="px-4 py-3 font-mono font-bold text-gray-300">
+              ${Number(g.plays_count || 0).toLocaleString()}
+            </td>
+
+            <!-- Action Buttons -->
+            <td class="px-4 py-3 text-right">
+              <div class="flex items-center justify-end gap-1.5">
+                <!-- Test Play -->
+                <button onclick="previewGame('${encodeURIComponent(g.title)}', '${encodeURIComponent(g.game_url || g.url)}')"
+                  title="Play & Test Game"
+                  class="px-2.5 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-neonCyan hover:text-black text-cyan-300 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
+                  <i class="fa-solid fa-play text-[9px]"></i>
+                  <span>Test</span>
+                </button>
+
+                <!-- Full Edit -->
+                <button onclick="openEditGameModal(${g.id})" title="Full Edit (Poster, URL, Metadata)"
+                  class="p-1.5 rounded-lg bg-slate-800 text-gray-300 hover:text-white hover:bg-slate-700 text-xs transition-all cursor-pointer">
+                  <i class="fa-solid fa-sliders"></i>
+                </button>
+
+                <!-- Delete -->
+                <button onclick="deleteGame(${g.id}, '${encodeURIComponent(g.title)}')" title="Delete Game"
+                  class="p-1.5 rounded-lg bg-rose-950/40 text-rose-300 hover:bg-rose-900/60 text-xs transition-all cursor-pointer">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // =============================================================
+    // 1-CLICK QUICK EDIT FUNCTIONS
+    // =============================================================
+    async function quickRenameGame(id, rawOldTitle) {
+      const oldTitle = decodeURIComponent(rawOldTitle);
+      const newTitle = prompt(`Enter new title / name for "${oldTitle}":`, oldTitle);
+      if (!newTitle || newTitle.trim() === '' || newTitle.trim() === oldTitle) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/games/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify({ title: newTitle.trim() })
+        });
+        const data = await res.json();
+        if (data.success) {
+          fetchGamesList();
+          showToast(`Game renamed to "${newTitle.trim()}" successfully!`);
+        } else {
+          alert(data.message || 'Failed to rename game');
+        }
+      } catch (err) {
+        alert('Network error while renaming game');
+      }
+    }
+
+    async function quickUpdateGameField(id, field, value) {
+      try {
+        const payload = {};
+        payload[field] = value;
+        const res = await fetch(`${API_BASE}/games/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          fetchGamesList();
+          fetchDashboardStats();
+          showToast(`Game ${field} updated!`);
+        } else {
+          alert(data.message || 'Failed to update game');
+        }
+      } catch (err) {
+        alert('Network error while updating game');
+      }
+    }
+
+    async function quickToggleOrientation(id, currentOrientation) {
+      const nextOrientation = (currentOrientation || 'portrait') === 'portrait' ? 'landscape' : 'portrait';
+      await quickUpdateGameField(id, 'orientation', nextOrientation);
+    }
+
+    async function quickToggleFeatured(id, currentFeatured) {
+      await quickUpdateGameField(id, 'is_featured', !currentFeatured);
+    }
+
+    // Grid View in Dedicated Games Tab
     function renderGamesGrid(games) {
       const container = document.getElementById('gamesCatalogGrid');
       if (!container) return;
@@ -1062,24 +1381,31 @@
 
           <div class="p-3.5 flex-1 flex flex-col justify-between space-y-3">
             <div>
-              <h4 class="font-bold text-sm text-white truncate" title="${g.title}">${g.title}</h4>
+              <div class="flex items-center justify-between gap-1">
+                <h4 class="font-bold text-sm text-white truncate" title="${g.title}">${g.title}</h4>
+                <button onclick="quickRenameGame(${g.id}, '${encodeURIComponent(g.title)}')"
+                  title="Rename"
+                  class="text-gray-400 hover:text-neonCyan text-xs p-1">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+              </div>
               <p class="text-[11px] text-gray-400 font-mono truncate">slug: ${g.slug}</p>
             </div>
 
             <div class="flex items-center justify-between pt-2 border-t border-white/5 gap-1">
               <button onclick="previewGame('${encodeURIComponent(g.title)}', '${encodeURIComponent(g.game_url || g.url)}')"
-                class="px-2.5 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500 hover:text-black text-xs font-bold transition-all flex items-center gap-1">
+                class="px-2.5 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500 hover:text-black text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
                 <i class="fa-solid fa-play text-[10px]"></i>
                 <span>Test</span>
               </button>
 
               <div class="flex items-center gap-1">
-                <button onclick="openEditGameModal(${g.id})" title="Edit Game"
-                  class="p-1.5 rounded-lg bg-slate-800 text-gray-300 hover:text-white hover:bg-slate-700 text-xs transition-all">
-                  <i class="fa-solid fa-pen-to-square"></i>
+                <button onclick="openEditGameModal(${g.id})" title="Edit Full Game Details"
+                  class="p-1.5 rounded-lg bg-slate-800 text-gray-300 hover:text-white hover:bg-slate-700 text-xs transition-all cursor-pointer">
+                  <i class="fa-solid fa-sliders"></i>
                 </button>
                 <button onclick="deleteGame(${g.id}, '${encodeURIComponent(g.title)}')" title="Delete Game"
-                  class="p-1.5 rounded-lg bg-rose-950/40 text-rose-300 hover:bg-rose-900/60 text-xs transition-all">
+                  class="p-1.5 rounded-lg bg-rose-950/40 text-rose-300 hover:bg-rose-900/60 text-xs transition-all cursor-pointer">
                   <i class="fa-solid fa-trash"></i>
                 </button>
               </div>
@@ -1171,7 +1497,7 @@
           closeGameModal();
           fetchGamesList();
           fetchDashboardStats();
-          alert(`Success: "${data.game?.title || 'Game'}" saved to catalog!`);
+          showToast(`Success: "${data.game?.title || 'Game'}" saved to catalog!`);
         } else {
           errEl.textContent = data.message || 'Failed to save game';
           errEl.classList.remove('hidden');
@@ -1195,6 +1521,7 @@
         if (data.success) {
           fetchGamesList();
           fetchDashboardStats();
+          showToast(`Game "${title}" deleted from catalog`);
         } else {
           alert(data.message || 'Failed to delete game');
         }
@@ -1225,7 +1552,7 @@
           const data = await res.json();
           if (data.success && data.url) {
             document.getElementById('formGameThumb').value = data.url;
-            alert('Poster image uploaded successfully!');
+            showToast('Poster image uploaded successfully!');
           } else {
             alert(data.message || 'Upload failed');
           }
