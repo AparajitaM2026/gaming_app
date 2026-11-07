@@ -1,16 +1,18 @@
 services:
   - type: web
-    name: voltixz-gaming-arena
-    env: node
+    name: voltixz-gaming
+    runtime: node
     plan: free
     buildCommand: npm install
-    startCommand: npm start
+    startCommand: node server.js
     envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 10000
+      - key: NODE_VERSION
+        value: 20.10.0
       - key: DATABASE_URL
-        sync: false
+        value: postgresql://neondb_owner:npg_u8e9bHatFTpY@ep-misty-recipe-b4mm6qtl-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require
       - key: JWT_SECRET
-        generateValue: true
+        value: super_secret_voltixz_gaming_jwt_key_2026
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        value: Admin@Voltixz2026
